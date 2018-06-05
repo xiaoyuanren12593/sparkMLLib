@@ -1,0 +1,15 @@
+<configuration>
+    <property>
+        <name>hive.metastore.warehouse.dir</name>
+        <value>/user/hive/warehouse</value> <!-- hdfs上的目录 -->
+    </property>
+
+    <property>
+        <name>hive.metastore.local</name>
+        <value>false</value> <!-- hdfs上的目录 -->
+    </property>
+    <property>
+        <name>hive.metastore.local</name>
+        <value>thrift://namenode1.cdh:9083</value>
+    </property>
+</configuration>
