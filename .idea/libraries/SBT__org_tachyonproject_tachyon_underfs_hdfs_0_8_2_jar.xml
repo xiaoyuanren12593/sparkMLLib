@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="SBT: org.tachyonproject:tachyon-underfs-hdfs:0.8.2:jar">
+    <CLASSES>
+      <root url="jar://F:/sbt_Package/ivy-repository/cache/org.tachyonproject/tachyon-underfs-hdfs/jars/tachyon-underfs-hdfs-0.8.2.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

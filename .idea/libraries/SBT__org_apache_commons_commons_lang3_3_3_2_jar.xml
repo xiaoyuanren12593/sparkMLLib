@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="SBT: org.apache.commons:commons-lang3:3.3.2:jar">
+    <CLASSES>
+      <root url="jar://F:/sbt_Package/ivy-repository/cache/org.apache.commons/commons-lang3/jars/commons-lang3-3.3.2.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

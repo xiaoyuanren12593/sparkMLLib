@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="SBT: net.hydromatic:eigenbase-properties:1.1.5:jar">
+    <CLASSES>
+      <root url="jar://F:/sbt_Package/ivy-repository/cache/net.hydromatic/eigenbase-properties/bundles/eigenbase-properties-1.1.5.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

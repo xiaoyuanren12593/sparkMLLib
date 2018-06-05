@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="SBT: com.sun.xml.fastinfoset:FastInfoset:1.2.12:jar">
+    <CLASSES>
+      <root url="jar://F:/sbt_Package/ivy-repository/cache/com.sun.xml.fastinfoset/FastInfoset/jars/FastInfoset-1.2.12.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

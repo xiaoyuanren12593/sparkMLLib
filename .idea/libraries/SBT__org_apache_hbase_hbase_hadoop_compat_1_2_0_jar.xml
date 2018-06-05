@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="SBT: org.apache.hbase:hbase-hadoop-compat:1.2.0:jar">
+    <CLASSES>
+      <root url="jar://F:/sbt_Package/ivy-repository/cache/org.apache.hbase/hbase-hadoop-compat/jars/hbase-hadoop-compat-1.2.0.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

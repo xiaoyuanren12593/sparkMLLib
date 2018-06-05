@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="SBT: org.owasp.antisamy:antisamy:1.4.3:jar">
+    <CLASSES>
+      <root url="jar://F:/sbt_Package/ivy-repository/cache/org.owasp.antisamy/antisamy/jars/antisamy-1.4.3.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
