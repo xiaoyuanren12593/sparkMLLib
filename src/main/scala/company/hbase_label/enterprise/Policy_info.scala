@@ -35,7 +35,7 @@ object Policy_info extends Policy_until with until {
     end
   }
 
-  def Policy(sqlContext: HiveContext) = {
+  def Policy(sqlContext: HiveContext): Unit = {
 
     //HBaseConf
     val conf = HbaseConf("policy_information_vT")._1

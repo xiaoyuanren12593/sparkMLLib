@@ -1,4 +1,4 @@
-package company.sparkMLlib
+package company.sparkMLlib.another
 
 import java.util.regex.Pattern
 
@@ -128,7 +128,7 @@ object za_Standard {
         .recognition(stop)
         .toStringWithOutNature("-")
       (data_testsentence_ods.mkString(""), s)
-    }).flatMap(x => {
+    }) .flatMap(x => {
       //提取汉字，并去除空格，在去除标点符号
       val keys = x._1.split("-").map(s => s"${tq(s)._2.replace(" ", "").replaceAll("[\\pP\\p{Punct}]", "")}:${x._2}")
       keys

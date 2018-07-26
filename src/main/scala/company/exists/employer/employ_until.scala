@@ -19,7 +19,6 @@ trait employ_until {
     val rdd: RDD[Array[String]] = sc.textFile(path).map(x => {
       val reader = new CSVReader(new StringReader(x.replaceAll("\"", "")))
       reader.readNext()
-
     })
     //取得列名,并将其作为字段名
     val schema = StructType(rdd.first.map(fieldName => StructField(fieldName, StringType, nullable = true)))

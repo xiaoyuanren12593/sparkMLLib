@@ -1,5 +1,8 @@
 package company.canal_streaming
 
+import java.text.SimpleDateFormat
+import java.util.Date
+
 import com.alibaba.fastjson.JSON
 import kafka.serializer.StringDecoder
 import org.apache.spark.sql.{Row, SaveMode}
@@ -16,6 +19,15 @@ import org.apache.spark.{SparkConf, SparkContext}
   */
 
 object canalkafka_to_hive {
+  //得到当前时间
+  def getNowTime: String
+  = {
+    //得到当前的日期
+    val now: Date = new Date()
+    val dateFormatOne: SimpleDateFormat = new SimpleDateFormat("yyyy-MM-dd")
+    val now_Date: String = dateFormatOne.format(now)
+    now_Date
+  }
 
   def createStreamingContext(): StreamingContext = {
 
@@ -132,7 +144,7 @@ object canalkafka_to_hive {
             value.getString("create_time"),
             value.getString("update_time"),
 
-            value.getString("month"))
+            getNowTime)
 
         }).map(r => Row(r: _*))
         val schema = StructType(ofo_column_name.map(fieldName => StructField(fieldName, StringType, nullable = true)))
@@ -182,7 +194,7 @@ object canalkafka_to_hive {
             value.getString("create_time"),
             value.getString("update_time"),
 
-            value.getString("month"))
+            getNowTime)
 
         }).map(r => Row(r: _*))
         val other_column_name = Array(
@@ -229,7 +241,7 @@ object canalkafka_to_hive {
         other_result.write.format("parquet").partitionBy("month").mode(SaveMode.Append).saveAsTable("odsdb_prd.open_other_policy_vt")
 
 
-        //open_express_policy 表的数据过滤出来，进行实时存储
+        //open_express_policy 表的数据过滤出来，进行实时存储——
         val tep_three = rdd.filter(x => if (x._1.contains("open_express_policy")) true else false).map(x => {
           val value = JSON.parseObject(x._2)
           Array(
@@ -266,7 +278,7 @@ object canalkafka_to_hive {
             value.getString("create_time"),
             value.getString("update_time"),
 
-            value.getString("month"))
+            getNowTime)
 
         }).map(r => Row(r: _*))
         val express_column_name = Array(
@@ -349,7 +361,7 @@ object canalkafka_to_hive {
             value.getString("create_time"),
             value.getString("update_time"),
 
-            value.getString("month"))
+            getNowTime)
         }).map(r => Row(r: _*))
         val coolqi_column_name = Array(
           "policy_id",
@@ -403,7 +415,7 @@ object canalkafka_to_hive {
     **/
   def main(args: Array[String]): Unit = {
     System.setProperty("HADOOP_USER_NAME", "hdfs")
-//    val ssc = StreamingContext.getOrCreate("hdfs://namenode1.cdh:8020/model_data/hive_four", createStreamingContext _)
+    //    val ssc = StreamingContext.getOrCreate("hdfs://namenode1.cdh:8020/model_data/hive_four", createStreamingContext _)
     val ssc = StreamingContext.getOrCreate("/model_data/hive_four", createStreamingContext _)
 
     ssc.start()

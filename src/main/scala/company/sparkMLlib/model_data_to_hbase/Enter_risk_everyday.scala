@@ -1,4 +1,4 @@
-package company.canal_streaming
+package company.sparkMLlib.model_data_to_hbase
 
 import company.hbase_label.until
 import org.apache.hadoop.hbase.HBaseConfiguration
@@ -201,7 +201,6 @@ object Enter_risk_everyday  extends until {
 
     //将其存入对应的hive表中
     enter_prise.insertInto("model_final_value", overwrite = true)
-
 
   }
 

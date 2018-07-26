@@ -1,12 +1,14 @@
-package company.hbase_label
+package company.year.month
 
+import java.io.File
+import java.sql.DriverManager
 import java.text.{NumberFormat, SimpleDateFormat}
 import java.util.regex.Pattern
 import java.util.{Calendar, Date}
 
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileSystem, FsShell, Path}
-import org.apache.hadoop.hbase.client.{ConnectionFactory, HTable, Put, Result}
+import org.apache.hadoop.hbase.client.{ConnectionFactory, HTable, Result}
 import org.apache.hadoop.hbase.io.ImmutableBytesWritable
 import org.apache.hadoop.hbase.mapred.TableOutputFormat
 import org.apache.hadoop.hbase.mapreduce.{HFileOutputFormat, LoadIncrementalHFiles, TableInputFormat}
@@ -24,7 +26,11 @@ import scala.collection.mutable.ArrayBuffer
 /**
   * Created by a2589 on 2018/4/2.
   */
-trait until {
+trait year_until {
+  def to_null(s: String): String
+  = {
+    if (s == null) "null" else s.replaceAll("[^\u4E00-\u9FA5]", "")
+  }
   //Hbase执行truncate操作
   def truncate_hbase(sc: SparkContext, table: String): Unit
   = {
@@ -82,9 +88,9 @@ trait until {
   //将hfile存到Hbase中
   def toHbase(result: RDD[(String, String, String)], columnFamily1: String, column: String, conf_fs: Configuration, tableName: String, conf: Configuration)
   = {
-//    val stagingFolder = s"hdfs://namenode1.cdh:8020/oozie/hfile/$columnFamily1/$column"
-//    val stagingFolders = s"hdfs://namenode1.cdh:8020/oozie/hfile/$columnFamily1"
-        val stagingFolder = s"/oozie/hfile/$columnFamily1/$column"
+    //    val stagingFolder = s"hdfs://namenode1.cdh:8020/oozie/hfile/$columnFamily1/$column"
+    //    val stagingFolders = s"hdfs://namenode1.cdh:8020/oozie/hfile/$columnFamily1"
+    val stagingFolder = s"/oozie/hfile/$columnFamily1/$column"
     //创建hbase的链接,利用默认的配置文件,实际上读取的hbase的master地址
     val hdfs = FileSystem.get(conf_fs)
     val path = new Path(stagingFolder)
@@ -215,14 +221,14 @@ trait until {
     dateFormat.format(date).toInt
   }
 
-  //删除日期的小数点
-  def deletePoint(strs: String): String = {
-    var str = strs
-    if (str.indexOf(".") > 0) {
-      str = str.replaceAll("0+?$", ""); //去掉多余的0
-      str = str.replaceAll("[.]$", ""); //如最后一位是.则去掉
-    }
-    str
+  //时间戳转换为日期
+  def get_current_date(current: Long): String
+  = {
+    val sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+    //这个是你要转成后的时间的格式
+    val sd = sdf.format(new Date(current)); // 时间戳转换成时间
+    sd
+
   }
 
   //判断一个字符串是否含有数字
@@ -243,6 +249,7 @@ trait until {
     val months = Months.monthsBetween(start, end).getMonths
     months + ""
   }
+
 
   //算法统计相同
   def bruteForceStringMatch(source: String, pattern: String): Int = {
@@ -480,41 +487,6 @@ trait until {
     vectors
   }
 
-  //得到2个日期之间的所有天数:该方法只适用于Enter_risk_everyday该类
-  //  def getBeg_End_one_two(mon3:String,day_time:String): ArrayBuffer[String] = {
-  //    val sdf = new SimpleDateFormat("yyyy/MM/dd")
-  //
-  //    //得到过去第三个月的日期
-  //    val c = Calendar.getInstance
-  //    c.setTime(new Date)
-  //    c.add(Calendar.MONTH, -3)
-  //    val m3 = c.getTime
-  //
-  //
-  //    //得到今天的日期
-  //    val cc = Calendar.getInstance
-  //    cc.setTime(new Date)
-  //    val day = cc.getTime
-  //
-  //
-  //    //得到他们相间的所有日期
-  //    val arr: ArrayBuffer[String] = ArrayBuffer[String]()
-  //    val date_start = sdf.parse(mon3)
-  //    //    val date_start = sdf.parse("20161007")
-  //    val date_end = sdf.parse(day_time)
-  //    //    val date_end = sdf.parse("20161008")
-  //    var date = date_start
-  //    val cd = Calendar.getInstance //用Calendar 进行日期比较判断
-  //
-  //    while (date.getTime <= date_end.getTime) {
-  //      arr += sdf.format(date)
-  //      cd.setTime(date)
-  //      cd.add(Calendar.DATE, 1); //增加一天 放入集合
-  //      date = cd.getTime
-  //    }
-  //    arr
-  //
-  //  }
 
 
 }

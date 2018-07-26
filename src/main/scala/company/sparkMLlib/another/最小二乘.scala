@@ -1,4 +1,4 @@
-package company.sparkMLlib
+package company.sparkMLlib.another
 
 /**
   * Created by MK on 2018/5/7.
@@ -71,7 +71,6 @@ object 最小二乘 {
   }
 
   def main(args: Array[String]): Unit = {
-
     //        val x: Array[Double] = Array(0.1, 0.11, 0.12, 0.13, 0.14, 0.15, 0.16, 0.17, 0.18, 0.2, 0.21, 0.23)
     //        val y: Array[Double] = Array(42, 43, 45, 45, 45, 47.5, 49, 53, 50, 55, 55, 60)
     //        val x: Array[Double] = Array(1801, 1802, 1803, 1804, 1805,1810)

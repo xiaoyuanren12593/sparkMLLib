@@ -1,4 +1,4 @@
-package company.sparkMLlib
+package company.sparkMLlib.another
 
 import org.ansj.recognition.impl.StopRecognition
 import org.apache.log4j.{Level, Logger}

@@ -16,7 +16,6 @@ import org.apache.spark.{SparkConf, SparkContext}
 
 object Travelbehavior extends until {
 
-
   //列族:goout
   def main(args: Array[String]): Unit = {
     System.setProperty("HADOOP_USER_NAME", "hdfs")

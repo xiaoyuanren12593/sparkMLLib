@@ -17,17 +17,17 @@ import org.apache.spark.{SparkConf, SparkContext}
   * Created by MK on 2018/4/26.
   * 保费，精确到天，有年单的也有月单的
   */
-object Year_Month_Premium extends until {
+object Year_Month_Premium extends year_until {
 
 
   //遍历某目录下所有的文件和子文件
   def subDir(dir: File): Iterator[File] = {
     val dirs = dir.listFiles().filter(_.isDirectory())
     val files = dir.listFiles().filter(_.isFile())
-    files.toIterator ++ dirs.toIterator.flatMap(subDir _)
+    files.toIterator ++ dirs.toIterator.flatMap(subDir)
   }
 
-  def getC3p0DateSource(path: String) = {
+  def getC3p0DateSource(path: String): Boolean = {
     Class.forName("com.mysql.jdbc.Driver")
     //获取连接//http://baidu.com
     val connection = DriverManager.getConnection("jdbc:mysql://172.16.11.105:3306/odsdb?user=root&password=bzn@cdh123!")
@@ -58,7 +58,6 @@ object Year_Month_Premium extends until {
     //通过load,将数据加载到MySQL中 : /share/ods_policy_insured_charged_vt/part-0000
     val tep_end = path + "/" + end
     getC3p0DateSource(tep_end)
-
   }
 
   //月单
@@ -188,7 +187,7 @@ object Year_Month_Premium extends until {
     //为true表示覆盖
     to_hive.insertInto("odsdb_prd.ods_policy_insured_charged_vt", overwrite = true)
 
-    /**
+    /*
       * 存入mysql
       **/
 

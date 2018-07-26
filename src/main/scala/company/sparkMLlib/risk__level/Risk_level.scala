@@ -134,11 +134,11 @@ object Risk_level extends risl_until {
     //        Optimal_classification(train_date: RDD[linalg.Vector], test_date: RDD[linalg.Vector])
 
 
-    val numCluster = 3
-    //        最大的分类数(设置多少个中心点，也是KMeans中的K)
-    val numTerations = 50 //最大的迭代次数
-    val clusters: KMeansModel = KMeans.train(scaledData, numCluster, numTerations) //训练模型
-    clusters.save(sc, "hdfs://namenode1.cdh:8020/model/risk_level")
+        val numCluster = 3
+        //        最大的分类数(设置多少个中心点，也是KMeans中的K)
+        val numTerations = 50 //最大的迭代次数
+        val clusters: KMeansModel = KMeans.train(scaledData, numCluster, numTerations) //训练模型
+        clusters.save(sc, "hdfs://namenode1.cdh:8020/model/risk_level")
 
     //    scalerModel.transform(result).map(x => {
     //      (clusters.predict(x.getAs[linalg.Vector]("scaledFeatures")), x.getAs("features").toString)

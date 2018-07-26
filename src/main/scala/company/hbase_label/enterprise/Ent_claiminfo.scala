@@ -1,6 +1,7 @@
 package company.hbase_label.enterprise
 
 import java.text.NumberFormat
+import java.util.regex.Pattern
 
 import company.hbase_label.enterprise.enter_until.Claiminfo_until
 import company.hbase_label.until
@@ -8,10 +9,20 @@ import org.apache.spark.broadcast.Broadcast
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.hive.HiveContext
+import org.apache.spark.sql.types.{StructField, StructType}
 import org.apache.spark.{SparkConf, SparkContext}
+import spire.std.boolean
 
 
 object Ent_claiminfo extends Claiminfo_until with until {
+
+  def is_not_chinese(str: String): Boolean
+  = {
+    val p = Pattern.compile("[\u4e00-\u9fa5]")
+    val m = p.matcher(str)
+    m.find()
+  }
+
   //理由同上类 : 27
   //企业报案时效（小时）
   def ent_report_time(employer_liability_claims_r: DataFrame, ods_policy_detail_r: DataFrame): RDD[(String, String, String)] = {
@@ -23,7 +34,11 @@ object Ent_claiminfo extends Claiminfo_until with until {
     val employer_liability_claims = employer_liability_claims_r.filter("length(report_date)>3 and length(risk_date)>3").select("policy_no", "report_date", "risk_date")
       //    val employer_liability_claims = sqlContext.sql("select lc.policy_no, lc.report_date ,lc.risk_date from  odsdb_prd.employer_liability_claims lc")
       //      .filter("length(report_date)>3 and length(risk_date)>3")
-      .map(x => {
+      .map(x => x).filter(x => {
+      val date3 = x.getString(1)
+      val date4 = x.getString(2)
+      if (!is_not_chinese(date3) && !is_not_chinese(date4)) true else false
+    }).map(x => {
       val date3 = x.getString(1)
       val date4 = x.getString(2)
       val day_mix = xg(date3, date4)
@@ -72,7 +87,11 @@ object Ent_claiminfo extends Claiminfo_until with until {
       //      .show()
       //    |         policy_no|paper_finish_date|risk_date|
       //    |900000046998381950|         2018/1/8| 2017/8/21|
-      .map(x => {
+      .map(x => x).filter(x => {
+      val paper_finish_date = x.getString(1)
+      val risk_date = x.getString(2)
+      if (!is_not_chinese(paper_finish_date) && !is_not_chinese(risk_date)) true else false
+    }).map(x => {
       val paper_finish_date = x.getString(1)
       val risk_date = x.getString(2)
       val days = xg(paper_finish_date, risk_date)
@@ -118,14 +137,27 @@ object Ent_claiminfo extends Claiminfo_until with until {
     //    ods_policy_detail：保单表
     //    dim_product	企业产品信息表
 
-    val employer_liability_claims: DataFrame = sqlContext.sql("select * from odsdb_prd.employer_liability_claims").cache()
-    val ods_policy_detail: DataFrame = sqlContext.sql("select * from odsdb_prd.ods_policy_detail").cache()
+    val employer_liability_claims: DataFrame = sqlContext.sql("select * from odsdb_prd.employer_liability_claims").cache
+    //    val employer_liability_claims_tep_one: DataFrame = sqlContext.sql("select * from odsdb_prd.employer_liability_claims").cache
+
+    //    val employer_liability_claims_fields = employer_liability_claims_tep_one.schema.map(x => (x.name, x.dataType))
+    //    val value = employer_liability_claims_tep_one.map(x => {
+    //      val paper_finish_date = x.getAs[String]("paper_finish_date")
+    //      val risk_date = x.getAs[String]("risk_date")
+    //      (is_not_chinese(paper_finish_date), is_not_chinese(risk_date), x)
+    //    }).filter(x => if (!x._1 || !x._2) true else false).map(x => x._3) //将字段中的中文过滤掉
+    //
+    //    val schema = StructType(employer_liability_claims_fields.map(field => StructField(field._1, field._2, nullable = true)))
+    //    val employer_liability_claims = sqlContext.createDataFrame(value, schema) //.show()
+
+
+    val ods_policy_detail: DataFrame = sqlContext.sql("select * from odsdb_prd.ods_policy_detail").cache
     val dim_product = sqlContext.sql("select * from odsdb_prd.dim_product").filter("product_type_2='蓝领外包'").select("product_code").cache()
     val bro_dim: Broadcast[Array[String]] = sc.broadcast(dim_product.map(_.get(0).toString).collect)
     val ods_policy_insured_charged = sqlContext.sql("select * from odsdb_prd.ods_policy_insured_charged")
     val ods_policy_risk_period = sqlContext.sql("select * from odsdb_prd.ods_policy_risk_period").cache() //ods_policy_risk_period:投保到报案
     val ods_policy_insured_detail = sqlContext.sql("select * from odsdb_prd.ods_policy_insured_detail")
-    val d_work_level = sqlContext.sql("select * from odsdb_prd.d_work_level").cache()
+    val d_work_level = sqlContext.sql("select * from odsdb_prd.d_work_level").cache
     val ods_policy_preserve_detail = sqlContext.sql("select * from odsdb_prd.ods_policy_preserve_detail")
 
     //工种风险等级：对应的有多少人
@@ -133,11 +165,11 @@ object Ent_claiminfo extends Claiminfo_until with until {
     ent_work_risk_r_To_Hbase(ent_work_risk_r, columnFamily1, conf_fs, tableName, conf)
 
     //员工增减行为(人数):在同一个年单中超过2次减员的人的个数
-    val ent_employee_increase_r = ent_employee_increase(ods_policy_preserve_detail, ods_policy_detail).distinct()
+    val ent_employee_increase_r = ent_employee_increase(ods_policy_preserve_detail, ods_policy_detail).distinct
     toHbase(ent_employee_increase_r, columnFamily1, "ent_employee_increase", conf_fs, tableName, conf)
 
     //月均出现概率,每百人月均出险概率（逻辑改为:  每百人出险人数=总出险概率*100）
-    val ent_monthly_risk_r = ent_monthly_risk(employer_liability_claims, ods_policy_detail, ods_policy_insured_detail).distinct()
+    val ent_monthly_risk_r = ent_monthly_risk(employer_liability_claims, ods_policy_detail, ods_policy_insured_detail).distinct
     toHbase(ent_monthly_risk_r, columnFamily1, "ent_monthly_risk", conf_fs, tableName, conf)
 
     //材料完整度
@@ -250,7 +282,7 @@ object Ent_claiminfo extends Claiminfo_until with until {
 
 
     //极短周期百分比(只取极短特征个数大于1的企业)
-    val mix_period_rate_r = mix_period_rate(ods_policy_detail, ods_policy_risk_period).distinct()
+    val mix_period_rate_r = mix_period_rate(ods_policy_detail, ods_policy_risk_period).distinct
     toHbase(mix_period_rate_r, columnFamily1, "mix_period_rate", conf_fs, tableName, conf)
 
 

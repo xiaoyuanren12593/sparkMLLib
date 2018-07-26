@@ -103,7 +103,8 @@ object person_and_enter {
       val person_risk_vector = x.getAs("person_risk_vector").toString
       val ent_id = x.getAs("ent_id").toString
       (cert_no, person_risk_model.predict(one), person_risk_vector, ent_id)
-    }).toDF("cert_no", "person_risk", "person_value", "ent_id").select("cert_no","person_risk","person_value").take(20).foreach(println(_))
+    }).toDF("cert_no", "person_risk", "person_value", "ent_id").select("cert_no","person_risk","person_value")
+      //.take(20).foreach(println(_))
 
 //企业
 //    val tep_one = sqlContext.sql("select * from model_final_value").join(ent_risk_value, "ent_id")

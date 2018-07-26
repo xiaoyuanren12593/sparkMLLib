@@ -19,7 +19,7 @@
 <configuration>
       <property>
           <name>fs.defaultFS</name>
-          <value>hdfs://namenode1.cdh:8020</value>
+          <!--<value>hdfs://namenode1.cdh:8020</value>-->
       </property>
       <property>
          <name>io.file.buffer.size</name>

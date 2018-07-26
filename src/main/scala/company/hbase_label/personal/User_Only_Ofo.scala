@@ -20,7 +20,12 @@ import sun.util.calendar.CalendarUtils.mod
 object User_Only_Ofo extends until {
 
   //个人信息
-  def user_Information(date: Date, dateFormat: SimpleDateFormat, x: (String, (String, String, String, String, String, Long, String, String, String, String, Int)), cert_native_province_r: collection.Map[String, String], d_city_grade_r: collection.Map[String, String], cert_constellation_r: collection.Map[String, String]): String
+  def user_Information(date: Date,
+                       dateFormat: SimpleDateFormat,
+                       x: (String, (String, String, String, String, String, Long, String, String, String, String, Int)),
+                       cert_native_province_r: collection.Map[String, String],
+                       d_city_grade_r: collection.Map[String, String],
+                       cert_constellation_r: collection.Map[String, String]): String
   = {
     //个人信息
     //得到省份编码
@@ -274,7 +279,7 @@ object User_Only_Ofo extends until {
 
 
         //如果,rr与res_wek，都有值则表示它既是夜猫子(早起族)同时也是上班族
-        jSONObject.put("early_night", rr) //早起族还是上班族
+        jSONObject.put("early_night", rr) //早起族还是夜猫子
         jSONObject.put("work", res_wek) //上班族
         jSONObject.put("weeks", week_res) //主要骑行日期
         jSONObject.put("frequency", riding_frequency_res) //骑行频率
@@ -288,9 +293,9 @@ object User_Only_Ofo extends until {
         jSONObject.put("insurance_Products", start_product) //首次投保的产品号
         jSONObject.put("customer_Source", "ofo") //客户来源
 
-        jSONObject.put("user_insure_product_num", number_product) //投保产品数
+        jSONObject.put("user_insure_product_num", number_product) //投保次数
 
-        jSONObject.put("user_type", version._1)
+        jSONObject.put("user_type", version._1) //城市版还是校园版
         jSONObject.put("ofo_guarantee", version._2)
         jSONObject.put("ofo_brand", version._3)
         (x._1, jSONObject.toJSONString, "user_person_only_ofo")

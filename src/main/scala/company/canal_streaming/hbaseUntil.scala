@@ -1,4 +1,4 @@
-package company.hbase_label
+package company.canal_streaming
 
 import java.text.{NumberFormat, SimpleDateFormat}
 import java.util.regex.Pattern
@@ -6,7 +6,7 @@ import java.util.{Calendar, Date}
 
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileSystem, FsShell, Path}
-import org.apache.hadoop.hbase.client.{ConnectionFactory, HTable, Put, Result}
+import org.apache.hadoop.hbase.client.{ConnectionFactory, HTable, Result}
 import org.apache.hadoop.hbase.io.ImmutableBytesWritable
 import org.apache.hadoop.hbase.mapred.TableOutputFormat
 import org.apache.hadoop.hbase.mapreduce.{HFileOutputFormat, LoadIncrementalHFiles, TableInputFormat}
@@ -24,7 +24,7 @@ import scala.collection.mutable.ArrayBuffer
 /**
   * Created by a2589 on 2018/4/2.
   */
-trait until {
+trait hbaseUntil {
   //Hbase执行truncate操作
   def truncate_hbase(sc: SparkContext, table: String): Unit
   = {
@@ -84,7 +84,8 @@ trait until {
   = {
 //    val stagingFolder = s"hdfs://namenode1.cdh:8020/oozie/hfile/$columnFamily1/$column"
 //    val stagingFolders = s"hdfs://namenode1.cdh:8020/oozie/hfile/$columnFamily1"
-        val stagingFolder = s"/oozie/hfile/$columnFamily1/$column"
+        val stagingFolder = s"hdfs://namenode1.cdh:8020/oozie/hfile/$columnFamily1/$column"
+//        val stagingFolder = s"/oozie/hfile/$columnFamily1/$column"
     //创建hbase的链接,利用默认的配置文件,实际上读取的hbase的master地址
     val hdfs = FileSystem.get(conf_fs)
     val path = new Path(stagingFolder)

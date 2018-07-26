@@ -70,7 +70,7 @@ object User_None_Ofo extends until {
       .set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
       .registerKryoClasses(Array(classOf[org.apache.hadoop.hbase.io.ImmutableBytesWritable]))
       .set("spark.sql.broadcastTimeout", "36000")
-      .setMaster("local[2]")
+//      .setMaster("local[2]")
     val sc = new SparkContext(conf_s)
     val sqlContext: HiveContext = new HiveContext(sc)
     val sum = select_Table(sqlContext: HiveContext)
