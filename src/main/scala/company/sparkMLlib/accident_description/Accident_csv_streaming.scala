@@ -244,7 +244,7 @@ object Accident_csv_streaming {
           } else {
             //得到预测的结果案情
             val end_case_two = getProduct_result(tep_Twos: Array[Row], result_str: String, stop: StopRecognition)
-            val end_case_three = end_case_two.filter(x => if (x._1.contains("死亡") || x._1.contains("残疾") || x._1.contains("骨折") || x._1.contains("伤残") || x._1.contains("手术")) false else true) // filter(!_._1.contains("死亡")).filter(x => if (!x._1.contains("骨折") || !x._1.contains("残疾")) true else false)
+            val end_case_three: Array[(String, Int, String, String)] = end_case_two.filter(x => if (x._1.contains("死亡") || x._1.contains("残疾") || x._1.contains("骨折") || x._1.contains("伤残") || x._1.contains("手术")) false else true) // filter(!_._1.contains("死亡")).filter(x => if (!x._1.contains("骨折") || !x._1.contains("残疾")) true else false)
             //            println(s"执行的我3:$str")
             //            end_case_three.foreach(println(_))
 

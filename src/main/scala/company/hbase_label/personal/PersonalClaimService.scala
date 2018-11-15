@@ -85,8 +85,11 @@ object PersonalClaimService extends until {
         if (!m.find) true else false
       })
       .map(x => {
-        (x.getString(0), x.get(1).toString.toDouble)
-      }).reduceByKey(_ + _).map(x => {
+        (x.getString(0), x.get(1).toString)
+      }).filter(_._2 != ".")
+
+      .map(x => (x._1, x._2.toDouble))
+      .reduceByKey(_ + _).map(x => {
       (x._1, x._2.toInt + "", "prepay_total")
     })
     end
@@ -103,8 +106,12 @@ object PersonalClaimService extends until {
         if (!m.find) true else false
       })
       .map(x => {
-        (x.getString(0), x.get(1).toString.toDouble)
-      }).reduceByKey(_ + _).map(x => {
+        (x.getString(0), x.get(1).toString)
+      })
+     .filter(_._2 != ".")
+      .map(x => (x._1, x._2.toDouble))
+
+      .reduceByKey(_ + _).map(x => {
       (x._1, x._2.toInt + "", "prepay_death")
     })
     end
@@ -122,8 +129,12 @@ object PersonalClaimService extends until {
       })
 
       .map(x => {
-        (x.getString(0), x.get(1).toString.toDouble)
-      }).reduceByKey(_ + _).map(x => {
+        (x.getString(0), x.get(1).toString)
+      })
+      .filter(_._2 != ".")
+      .map(x => (x._1, x._2.toDouble))
+
+      .reduceByKey(_ + _).map(x => {
       (x._1, x._2.toInt + "", "prepay_disability")
     })
     end
@@ -141,8 +152,12 @@ object PersonalClaimService extends until {
         if (!m.find) true else false
       })
       .map(x => {
-        (x.getString(0), x.get(1).toString.toDouble)
-      }).reduceByKey(_ + _).map(x => {
+        (x.getString(0), x.get(1).toString)
+      })
+      .filter(_._2 != ".")
+      .map(x => (x._1, x._2.toDouble))
+
+      .reduceByKey(_ + _).map(x => {
       (x._1, x._2.toInt + "", "prepay_work")
     })
     end
@@ -160,8 +175,11 @@ object PersonalClaimService extends until {
       })
 
       .map(x => {
-        (x.getString(0), x.get(1).toString.toDouble)
-      }).reduceByKey(_ + _).map(x => {
+        (x.getString(0), x.get(1).toString)
+      })
+      .filter(_._2 != ".")
+      .map(x => (x._1, x._2.toDouble))
+      .reduceByKey(_ + _).map(x => {
       (x._1, x._2.toInt + "", "prepay_notwork")
     })
     end
@@ -170,7 +188,7 @@ object PersonalClaimService extends until {
   //实际已赔付金额
   def finalpay_total(employer_liability_claims: DataFrame): RDD[(String, String, String)] = {
     val end = employer_liability_claims.filter("length(cert_no)> 2").select("cert_no", "final_payment").map(x => {
-      val result = if (x.get(1) == "" || x.get(1)==null ) 0 else x.get(1).toString.toDouble
+      val result = if (x.get(1) == "" || x.get(1) == null) 0 else x.get(1).toString.toDouble
       (x.getString(0), result)
     }).reduceByKey(_ + _).map(x => {
       (x._1, x._2.toInt + "", "finalpay_total")
@@ -194,9 +212,12 @@ object PersonalClaimService extends until {
     numberFormat.setMaximumFractionDigits(2)
 
     val yG = end.map(x => {
-      val result = if (x.get(1) == "" || x.get(1)==null) 0 else x.get(1).toString.toDouble
+      val result = if (x.get(1) == "" || x.get(1) == null) "0.0" else x.get(1).toString
       (x.getString(0), result)
-    }).reduceByKey(_ + _).map(x => {
+    })
+      .filter(_._2 != ".")
+      .map(x => (x._1, x._2.toDouble))
+      .reduceByKey(_ + _).map(x => {
       (x._1, x._2.toDouble)
     })
 
@@ -222,9 +243,13 @@ object PersonalClaimService extends until {
     numberFormat.setMaximumFractionDigits(2)
 
     val yG = end.map(x => {
-      val result = if (x.get(1) == "" || x.get(1)==null ) 0 else x.get(1).toString.toDouble
+      val result = if (x.get(1) == "" || x.get(1) == null) "0.0" else x.get(1).toString
       (x.getString(0), result)
-    }).reduceByKey(_ + _).map(x => {
+    })
+      .filter(_._2 != ".")
+      .map(x => (x._1, x._2.toDouble))
+
+      .reduceByKey(_ + _).map(x => {
       (x._1, x._2.toDouble)
     })
 
@@ -258,7 +283,7 @@ object PersonalClaimService extends until {
     numberFormat.setMaximumFractionDigits(2)
 
     val end = employer_liability_claims.filter("length(cert_no) >2 ").select("cert_no", "time_effect").map(x => {
-      val res = if (x.get(1) == "" || x.get(1)==null) 0.0 else x.get(1).toString.toDouble
+      val res = if (x.get(1) == "" || x.get(1) == null) 0.0 else x.get(1).toString.toDouble
       (x.getString(0), (res, 1))
     }).reduceByKey((x1, x2) => {
       val sum = x1._1 + x2._1

@@ -62,6 +62,7 @@ object canalkafka_to_hive {
 
     lines.foreachRDD(rdd => {
       if (!rdd.isEmpty()) {
+
         //open_ofo_policy表的数据过滤出来，进行实时存储
         val ofo_column_name = Array(
           "policy_id",
@@ -143,9 +144,7 @@ object canalkafka_to_hive {
             value.getString("export_status"),
             value.getString("create_time"),
             value.getString("update_time"),
-
             getNowTime)
-
         }).map(r => Row(r: _*))
         val schema = StructType(ofo_column_name.map(fieldName => StructField(fieldName, StringType, nullable = true)))
         val ofo_result = hiveContext.createDataFrame(tep_one, schema)
@@ -196,7 +195,9 @@ object canalkafka_to_hive {
 
             getNowTime)
 
-        }).map(r => Row(r: _*))
+        })
+
+          .map(r => Row(r: _*))
         val other_column_name = Array(
           "policy_id",
           "proposal_no",

@@ -1,12 +1,11 @@
 package company.hbase_label.enterprise.enter_until
 
 import java.text.{NumberFormat, SimpleDateFormat}
-import java.util.Date
+import java.util.{Date, Properties}
 
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.DataFrame
-import org.joda.time.DateTime
-import org.joda.time.format.DateTimeFormat
+import org.apache.spark.sql.hive.HiveContext
 
 import scala.collection.mutable
 
@@ -161,11 +160,7 @@ trait Insureinfo_until {
     }).reduceByKey(_ + _).map(x => {
       (x._1._1, (x._1._2, x._2))
     }).reduceByKey((x1, x2) => {
-      val res = if (x1._2 > x2._2) {
-        x1
-      } else {
-        x2
-      }
+      val res = if (x1._2 > x2._2) x1 else x2
       res
     }).map(x => {
       (x._1, s"${x._2._1}|${x._2._2}", "ent_first_craft")
@@ -256,15 +251,9 @@ trait Insureinfo_until {
     val end: RDD[(String, String, String)] = tepFive.select("ent_id", "work_type", "final_payment").map(x => {
       (x.getString(0), (x.getString(1), x.get(2).toString.toDouble))
     }).reduceByKey((x1, x2) => {
-      val result = if (x1._2 > x2._2) {
-        x1
-      } else {
-        x2
-      }
+      val result = if (x1._2 > x2._2) x1 else x2
       result
-    }).map(x => {
-      (x._1, s"${x._2._1}|${x._2._2}", "ent_most_money_craft")
-    })
+    }).map(x => (x._1, s"${x._2._1}|${x._2._2}", "ent_most_money_craft"))
     end
   }
 
@@ -334,7 +323,8 @@ trait Insureinfo_until {
     val end: RDD[(String, String, String)] = tepFour.join(ent_sum_level_data).map(x => {
       val number_tb = x._2._1
       val number_total = x._2._2
-      val result = numberFormat.format(number_tb.toFloat / number_total.toFloat * 100)
+      //      val result = numberFormat.format(number_tb.toFloat / number_total.toFloat * 100)
+      val result = number_tb.toFloat / number_total.toFloat * 100
       (x._1, result + "%", "insured_rate")
     })
     end
@@ -350,7 +340,6 @@ trait Insureinfo_until {
     }).reduceByKey(_ + _).map(x => {
       (x._1, x._2 + "", "effective_policy")
     })
-    //      .take(10).foreach(println(_))
     end
   }
 
@@ -390,12 +379,11 @@ trait Insureinfo_until {
       (x._1, x._2.split("\t").distinct.length + "", "total_insured_persons")
     })
     end
-
   }
 
-  //当前在保人数
+  //旧当前在保人数
   def cur_insured_persons(ods_policy_detail: DataFrame, ods_policy_insured_detail: DataFrame): RDD[(String, String, String)] = {
-//    val tepOne = ods_policy_detail.where("policy_status in('0','1', '7', '9', '10')").select("ent_id", "policy_id")
+    //        val tepOne = ods_policy_detail.where("policy_status in('0','1', '7', '9', '10')").select("ent_id", "policy_id")
     val tepOne = ods_policy_detail.where("policy_status = '1'").select("ent_id", "policy_id")
     val tepTwo = ods_policy_insured_detail.select("policy_id", "insure_policy_status", "insured_cert_no")
     val tepThree = tepOne.join(tepTwo, "policy_id").filter("length(ent_id)>0 and insure_policy_status='1'")
@@ -413,7 +401,39 @@ trait Insureinfo_until {
       (x._1, x._2.split("\t").distinct.length + "", "cur_insured_persons")
     })
     end
-    //      .take(10).foreach(println(_))
+  }
+
+  //新的当前在保人数
+  def read_people_product(sqlContext: HiveContext, location_mysql_url: String,
+                          prop: Properties,
+                          location_mysql_url_dwdb: String)
+  : RDD[(String, (Int, Int))] = {
+
+    val now: Date = new Date
+    val dateFormatOne: SimpleDateFormat = new SimpleDateFormat("yyyyMMdd")
+    val now_Date = dateFormatOne.format(now)
+
+
+    import sqlContext.implicits._
+        val dim_1 = sqlContext.read.jdbc(location_mysql_url_dwdb, "dim_product", prop).select("product_code", "dim_1").where("dim_1 in ('外包雇主','骑士保','大货车')").map(x => x.getAs[String]("product_code")).collect
+//    val dim_1 = sqlContext.sql("select * from dim_product").select("product_code", "dim_1").where("dim_1 in ('外包雇主','骑士保','大货车')").map(x => x.getAs[String]("product_code")).collect
+
+        val ods_policy_detail: DataFrame = sqlContext.read.jdbc(location_mysql_url, "ods_policy_detail", prop).where("policy_status in ('1','0')").select("ent_id", "policy_id", "insure_code")
+//    val ods_policy_detail: DataFrame = sqlContext.sql("select * from ods_policy_detail").where("policy_status in ('1','0')").select("ent_id", "policy_id", "insure_code")
+
+    val tep_ods_one = ods_policy_detail.map(x => (x.getAs[String]("insure_code"), x)).filter(x => if (dim_1.contains(x._1)) true else false)
+      .map(x => {
+        (x._2.getAs[String]("ent_id"), x._2.getAs[String]("policy_id"), x._2.getAs[String]("insure_code"))
+      }).toDF("ent_id", "policy_id", "insure_code").cache
+
+    val end = sqlContext.read.jdbc(location_mysql_url, "ods_policy_curr_insured", prop).join(tep_ods_one, "policy_id").map(x => {
+      ((x.getAs[String]("ent_id"), x.getAs[String]("day_id")), x.getAs[Long]("curr_insured").toInt)
+    }).filter(_._1._2.toDouble <= now_Date.toDouble)
+
+    val end_all = end.reduceByKey(_ + _).map(x => ((x._1._1, x._1._2.substring(0, 6)), x._2)).reduceByKey((x1, x2) => if (x1 >= x2) x1 else x2)
+      .map(x => (x._1._1, (x._1._2.toInt, x._2)))
+      .reduceByKey((x1, x2) => if (x1._1 >= x2._1) x1 else x2)
+    end_all
   }
 
   //累计保费
@@ -428,7 +448,8 @@ trait Insureinfo_until {
     val end: RDD[(String, String, String)] = tepOne.map(x => {
       (x.getString(0), x.get(1).toString.toDouble)
     }).reduceByKey(_ + _).map(x => {
-      (x._1, numberFormat.format(x._2), "total_premium")
+      //      (x._1, numberFormat.format(x._2), "total_premium")
+      (x._1, x._2.toString, "total_premium")
     })
     end
   }
@@ -451,21 +472,21 @@ trait Insureinfo_until {
     }).reduceByKey(_ + _).map(x => {
       (x._1, x._2)
     })
-
     val end: RDD[(String, String, String)] = tepOne.join(tepTwo).map(x => {
       val ent_id = x._1
       //使用总保费/次数 (就是每月的保费)
       val avg_month_premium = x._2._1 / x._2._2
-      (ent_id, numberFormat.format(avg_month_premium), "avg_month_premium")
+      //      (ent_id, numberFormat.format(avg_month_premium), "avg_month_premium")
+      (ent_id, avg_month_premium.toString, "avg_month_premium")
     })
     end
   }
 
   //连续在保月数
   def ent_continuous_plc_month(ent_summary_month_1: DataFrame): RDD[(String, String, String)] = {
+
     //求出我表中有哪些企业在保，然后将人数大于0的过滤出来，同时对企业进行分组，将month_id集合以|进行隔离
     //data_type: ->当月在保人数（totalInsuredPersons）| ->当前累计投保保费（totalPremium）
-
     val end: RDD[(String, String, String)] = ent_summary_month_1.filter("data_type='totalInsuredPersons'").select("month_id", "data_val", "ent_id").map(x => {
       (x.getString(0), x.getString(1), x.getString(2))
     }).filter(_._2.toInt > 0).map(x => {
@@ -477,8 +498,30 @@ trait Insureinfo_until {
     }).map(x => {
       (x._1, x._2, "ent_continuous_plc_month")
     })
+
     end
   }
+
+  //连续在保月数,同上但因为都有用到会有问题，因此区分开
+  def ent_continuous_plc_month_number(ent_summary_month_1: DataFrame): RDD[(String, String, String)] = {
+
+    //求出我表中有哪些企业在保，然后将人数大于0的过滤出来，同时对企业进行分组，将month_id集合以|进行隔离
+    //data_type: ->当月在保人数（totalInsuredPersons）| ->当前累计投保保费（totalPremium）
+    val end: RDD[(String, String, String)] = ent_summary_month_1.filter("data_type='totalInsuredPersons'").select("month_id", "data_val", "ent_id").map(x => {
+      (x.getString(0), x.getString(1), x.getString(2))
+    }).filter(_._2.toInt > 0).map(x => {
+      //ent_id | month_id
+      (x._3, x._1)
+    }).reduceByKey((x1, x2) => {
+      val res = x1 + "-" + x2
+      res
+    }).map(x => {
+      (x._1, x._2, "month_number")
+    })
+
+    end
+  }
+
 
   //最多的次数
   def maxNumber(res: List[String]): String = {

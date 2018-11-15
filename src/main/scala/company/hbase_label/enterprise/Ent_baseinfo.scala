@@ -13,7 +13,9 @@ import org.apache.spark.{SparkConf, SparkContext}
 object Ent_baseinfo extends Baseinfo_until with until {
 //12
   //企业的投保平均年龄(因为其有用到接口中的方法，因此无法放到接口中，只能放到该类中，防止序列化)
-  def qy_avg(ods_policy_insured_detail: DataFrame, ods_policy_detail_table_T: DataFrame): RDD[(String, String, String)] = {
+  def qy_avg(ods_policy_insured_detail: DataFrame, ods_policy_detail_table_T: DataFrame)
+  : RDD[(String, String, String)]
+  = {
     // 创建一个数值格式化对象(对数字)
     val numberFormat = NumberFormat.getInstance
     // 设置精确到小数点后2位
@@ -30,16 +32,22 @@ object Ent_baseinfo extends Baseinfo_until with until {
     }).groupByKey.map(x => {
       val result = x._2.map(s => {
         (s._2, s._3)
-      }).filter(f => {
+      })
+        .filter( x=> if (x._1.contains("-") && x._2 .contains("-")) true else false )
+
+        .filter(f => {
         if (f._1.split("-")(0).toInt > 1900) true else false
       }).map(m => {
         val mp = m._2.split(" ")(0)
-        (m._1, m._2, year_tb_one(m._1, mp).toInt)
+        val mp_one =  m._1.split(" ")(0)
+
+        (mp_one, m._2, year_tb_one(mp_one, mp).toInt)
       })
       val q_length = result.size.toDouble
       val sum_date = result.map(_._3).sum.toDouble
       val sq = sum_date / q_length
-      (x._1, numberFormat.format(sq.toFloat), "ent_employee_age")
+//      (x._1, numberFormat.format(sq.toFloat), "ent_employee_age")
+      (x._1, sq.toString, "ent_employee_age")
     })
     end
   }
@@ -66,6 +74,7 @@ object Ent_baseinfo extends Baseinfo_until with until {
     val columnFamily1 = "baseinfo"
     //各表对应的信息:
     /**
+      * ent_sum_level               企业等级信息表
       * ent_enterprise_info         官网企业信息表 功能是（官网企业信息）
       * d_id_certificate	          企业三证合一码表	企业三证合一信息
       * ods_policy_detail	          保单级别信息总表	保单级别综合数据
@@ -141,7 +150,6 @@ object Ent_baseinfo extends Baseinfo_until with until {
 
     val sc = new SparkContext(conf_spark)
     val sqlContext: HiveContext = new HiveContext(sc)
-
 
     BaseInfo(sqlContext)
     sc.stop()

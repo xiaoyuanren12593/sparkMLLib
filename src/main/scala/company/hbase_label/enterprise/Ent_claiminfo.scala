@@ -1,6 +1,7 @@
 package company.hbase_label.enterprise
 
 import java.text.NumberFormat
+import java.util.Properties
 import java.util.regex.Pattern
 
 import company.hbase_label.enterprise.enter_until.Claiminfo_until
@@ -9,9 +10,9 @@ import org.apache.spark.broadcast.Broadcast
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.hive.HiveContext
-import org.apache.spark.sql.types.{StructField, StructType}
 import org.apache.spark.{SparkConf, SparkContext}
-import spire.std.boolean
+
+import scala.io.Source
 
 
 object Ent_claiminfo extends Claiminfo_until with until {
@@ -65,7 +66,8 @@ object Ent_claiminfo extends Claiminfo_until with until {
       val si = x._2.map(x => x.toDouble).size
       val avg = su / si
       val end_result = numberFormat.format(avg)
-      (x._1, end_result, "ent_report_time")
+//      (x._1, end_result, "ent_report_time")
+      (x._1, avg.toString, "ent_report_time")
     })
     //      .take(10).foreach(println(_))
     //      .show()
@@ -99,7 +101,6 @@ object Ent_claiminfo extends Claiminfo_until with until {
       (x.getString(0), days)
     })
     val tep_two = ods_policy_detail.filter("LENGTH(ent_id)>0").select("policy_code", "ent_id")
-
       //    val tep_two = sqlContext.sql("select pd.policy_code,pd.ent_id from odsdb_prd.ods_policy_detail pd").filter("LENGTH(ent_id)>0")
       .map(x => {
       //policy_code | ent_id
@@ -117,8 +118,9 @@ object Ent_claiminfo extends Claiminfo_until with until {
       (days, count)
     }).map(x => {
       val s = x._2._1 / x._2._2
-      //ent_id |  平均数
-      (x._1, numberFormat.format(s), "avg_aging_claim")
+      // ent_id |  平均数
+      // (x._1, numberFormat.format(s), "avg_aging_claim")
+      (x._1, s.toString, "avg_aging_claim")
     })
     end
   }
@@ -155,10 +157,11 @@ object Ent_claiminfo extends Claiminfo_until with until {
     val dim_product = sqlContext.sql("select * from odsdb_prd.dim_product").filter("product_type_2='蓝领外包'").select("product_code").cache()
     val bro_dim: Broadcast[Array[String]] = sc.broadcast(dim_product.map(_.get(0).toString).collect)
     val ods_policy_insured_charged = sqlContext.sql("select * from odsdb_prd.ods_policy_insured_charged")
-    val ods_policy_risk_period = sqlContext.sql("select * from odsdb_prd.ods_policy_risk_period").cache() //ods_policy_risk_period:投保到报案
+    val ods_policy_risk_period = sqlContext.sql("select * from odsdb_prd.ods_policy_risk_period").cache //ods_policy_risk_period:投保到报案
     val ods_policy_insured_detail = sqlContext.sql("select * from odsdb_prd.ods_policy_insured_detail")
     val d_work_level = sqlContext.sql("select * from odsdb_prd.d_work_level").cache
     val ods_policy_preserve_detail = sqlContext.sql("select * from odsdb_prd.ods_policy_preserve_detail")
+
 
     //工种风险等级：对应的有多少人
     val ent_work_risk_r: RDD[(String, String, String)] = ent_work_risk(ods_policy_insured_detail, ods_policy_detail, d_work_level).cache()
@@ -168,7 +171,7 @@ object Ent_claiminfo extends Claiminfo_until with until {
     val ent_employee_increase_r = ent_employee_increase(ods_policy_preserve_detail, ods_policy_detail).distinct
     toHbase(ent_employee_increase_r, columnFamily1, "ent_employee_increase", conf_fs, tableName, conf)
 
-    //月均出现概率,每百人月均出险概率（逻辑改为:  每百人出险人数=总出险概率*100）
+    //c,每百人月均出险概率（逻辑改为:  每百人出险人数=总出险概率*100）
     val ent_monthly_risk_r = ent_monthly_risk(employer_liability_claims, ods_policy_detail, ods_policy_insured_detail).distinct
     toHbase(ent_monthly_risk_r, columnFamily1, "ent_monthly_risk", conf_fs, tableName, conf)
 
@@ -257,8 +260,13 @@ object Ent_claiminfo extends Claiminfo_until with until {
 
 
     //已赚保费
-    val charged_premium_r = charged_premium(ods_policy_detail, bro_dim, ods_policy_insured_charged).distinct()
+    val lines_source = Source.fromURL(getClass.getResource("/config_scala.properties")).getLines.toSeq
+    val location_mysql_url: String = lines_source(2).toString.split("==")(1)
+    val prop: Properties = new Properties
+
+    val charged_premium_r = charged_premium_new(sqlContext: HiveContext, location_mysql_url: String, prop: Properties, ods_policy_detail: DataFrame).distinct()
     toHbase(charged_premium_r, columnFamily1, "charged_premium", conf_fs, tableName, conf)
+
 
 
     //企业拒赔次数

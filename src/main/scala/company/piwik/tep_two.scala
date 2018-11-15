@@ -133,6 +133,7 @@ object tep_two extends piwik_until {
     val sql2 = s"load data infile '$path'  into table odsdb.$table_name fields terminated by 'mk6'"
     statement = connection.createStatement()
     //先删除数据，在导入数据
+//    statement.execute("set names gb2312")
     statement.execute(sql1)
     statement.execute(sql2)
   }

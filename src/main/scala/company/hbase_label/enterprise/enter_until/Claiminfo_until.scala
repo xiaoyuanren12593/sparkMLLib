@@ -1,6 +1,7 @@
 package company.hbase_label.enterprise.enter_until
 
 import java.text.{NumberFormat, SimpleDateFormat}
+import java.util.{Date, Properties}
 import java.util.regex.Pattern
 
 import company.hbase_label.enterprise.Ent_claiminfo.toHbase
@@ -8,7 +9,7 @@ import org.apache.hadoop.conf.Configuration
 import org.apache.spark.broadcast.Broadcast
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.DataFrame
-import java.util.regex.Pattern
+import org.apache.spark.sql.hive.HiveContext
 
 /**
   * Created by a2589 on 2018/4/3.
@@ -168,8 +169,8 @@ trait Claiminfo_until {
       .map(x => {
         (x.getString(1), (x.getString(0), x.getString(2)))
       }).groupByKey.map(x => {
-      //      x._1 //ent_id
-      //      x._2.size //计算次数
+      //      x._1 ent_id
+      //      x._2.size 计算次数
       (x._1, x._2.size)
     })
     //.take(1).foreach(println(_))
@@ -187,7 +188,8 @@ trait Claiminfo_until {
       val tb = x._2._2.toDouble //该企业的投保人数
       val number = xq * 100 / tb
       val res = numberFormat.format(number)
-      (ed, res.toString, "ent_monthly_risk")
+      //      (ed, res.toString, "ent_monthly_risk")
+      (ed, number.toString, "ent_monthly_risk")
     })
     result
     //      .take(10).foreach(println(_))
@@ -241,7 +243,8 @@ trait Claiminfo_until {
       val yw_b_end = if (yw_b == "") 0 else yw_b
       //      (因为它补过资料所以是不完整的，最后的结果是用1-不完整度就是完整度了)
       val result = 1 - (yw_b_end.toDouble / yw_sum.toDouble)
-      (ed, numberFormat.format(result))
+      //      (ed, numberFormat.format(result))
+      (ed, result.toString)
     }).map(x => {
       (x._1, x._2, "ent_material_integrity")
     })
@@ -250,8 +253,9 @@ trait Claiminfo_until {
   }
 
 
-  //平均赔付时效 (这里有问题明天再查)
+  //平均赔付时效
   def avg_aging_cps(employer_liability_claims: DataFrame, ods_policy_detail: DataFrame): RDD[(String, String, String)] = {
+    //有中文则为true
     val numberFormat = NumberFormat.getInstance
     numberFormat.setMaximumFractionDigits(2)
 
@@ -267,9 +271,17 @@ trait Claiminfo_until {
     //    |900000046998381950|      23.00|900000046998381950|ddc05b821562470fa...|
     //通过police_no，找到该保单所对应的企业信息(join)
     //再根据企业ID进行分组，找出企业ID，保单号（结案的天数） 求个平均数(使用reduceByKey进行计算)
-    //ent_id ,结案天数 （存到HBase中的avg_aging_cps）
+    //ent_id ,结案天数 （存到HBase中的avg_aging_cps
     val ens: RDD[(String, String, String)] = tep_three.map(x => {
-      (x.getAs[String]("ent_id"), x.getAs("finish_days").toString)
+
+      val finsh_days = x.getAs("finish_days").toString
+
+      val p = Pattern.compile("[\u4e00-\u9fa5]")
+      val m = p.matcher(finsh_days)
+      val before_tepOne = m.find() //包含中文的话为0
+
+      val finsh_days_end = if (before_tepOne) "0" else finsh_days //有中文则为0
+      (x.getAs[String]("ent_id"), finsh_days_end)
     }).filter(!_._2.contains("=")).map(x => {
       (x._1, (x._2.toDouble, 1))
     }).reduceByKey((x1, x2) => {
@@ -278,7 +290,8 @@ trait Claiminfo_until {
       (day, count)
     }).map(x => {
       val s = x._2._1 / x._2._2
-      (x._1, numberFormat.format(s), "avg_aging_cps")
+      //      (x._1, numberFormat.format(s), "avg_aging_cps")
+      (x._1, s.toString, "avg_aging_cps")
     })
     ens
   }
@@ -412,38 +425,37 @@ trait Claiminfo_until {
     numberFormat.setMaximumFractionDigits(2)
 
     val tepOne = ods_policy_detail.select("ent_id", "policy_code")
-    val tepTwo = employer_liability_claims.select("policy_no", "final_payment", "pre_com").filter("length(pre_com)>0 or length(final_payment) > 0")
-    val tepThree = tepOne.join(tepTwo, ods_policy_detail("policy_code") === employer_liability_claims("policy_no"))
-      .filter("LENGTH(ent_id)>0")
+    val tepTwo = employer_liability_claims.select("policy_no", "final_payment", "pre_com")
+      .filter("length(pre_com)>0 or length(final_payment) > 0")
+    val tepThree = tepOne.join(tepTwo, ods_policy_detail("policy_code") === employer_liability_claims("policy_no")).filter("LENGTH(ent_id)>0")
     //      .show()
     //    |              ent_id|         policy_code|           policy_no|final_payment|pre_com|
     //    |0a789d56b7444d519...|  900000047702719243|  900000047702719243|             |   5000|
 
     //end_id | 金额总值(存到HBase中的pre_all_compensation)
-    val end: RDD[(String, String, String)] = tepThree.map(x => x).filter(x => {
-      val str = x.get(4).toString
-      val p = Pattern.compile("[\u4e00-\u9fa5]")
-      val m = p.matcher(str)
-      if (!m.find) true else false
-    }).map(x => {
-      val final_payment = x.get(3)
-      val pre_com = x.get(4)
-
-      val pattern = Pattern.compile("^[-\\+]?[.\\d]*$")
-      val m = pattern.matcher(final_payment+"").matches()
-
-      //如果最终赔付金额有值，就取最终金额，否则就取预估金额
-      val res = if (m)  final_payment.toString else pre_com.toString
-      (x.getString(0), res)
-    })
-      .filter(x => x._2 != "")
-      .map(x=>(x._1,x._2.toDouble))
-
+    val end: RDD[(String, String, String)] = tepThree.map(x => x)
+      .filter(x => {
+        val str = x.get(4).toString
+        val p = Pattern.compile("[\u4e00-\u9fa5]")
+        val m = p.matcher(str)
+        if (!m.find) true else false
+      })
+      .map(x => {
+        val final_payment = x.getAs[String]("final_payment")
+        val pre_com = x.getAs[String]("pre_com")
+        //如果最终赔付金额有值，就取最终金额，否则就取预估金额
+        val res = if (final_payment == "" || final_payment == null) pre_com else if (final_payment != "" || final_payment != null) final_payment else ""
+        (x.getString(0), res)
+      })
+      .filter(x => x._2 != "").filter(_._2 != ".")
+      .map(x => (x._1, x._2.toDouble))
       .reduceByKey(_ + _).map(x => {
-      (x._1, numberFormat.format(x._2), "pre_all_compensation")
+      //      (x._1, numberFormat.format(x._2), "pre_all_compensation")
+      (x._1, x._2.toString, "pre_all_compensation")
     })
     end
   }
+
 
   //死亡预估配额
   def pre_death_compensation(employer_liability_claims: DataFrame, ods_policy_detail: DataFrame): RDD[(String, String, String)] = {
@@ -470,23 +482,20 @@ trait Claiminfo_until {
       if (!m.find) true else false
     })
       .map(x => {
-        val final_payment = x.getString(3)
-        val pre_com = x.getString(4)
-
-        val pattern = Pattern.compile("^[-\\+]?[.\\d]*$")
-        val m = pattern.matcher(final_payment+"").matches()
-
-
+        val final_payment = x.getAs[String]("final_payment")
+        val pre_com = x.getAs[String]("pre_com")
+        //        val pattern = Pattern.compile("^[-\\+]?[.\\d]*$")
+        //        val m = pattern.matcher(final_payment + "").matches()
         //如果最终赔付金额有值，就取最终金额，否则就取预估金额
-        val res = if (m) final_payment else pre_com
+        val res = if (final_payment == "" || final_payment == null) pre_com else if (final_payment != "" || final_payment != null) final_payment else ""
         (x.getString(0), res)
       })
-
-      .filter(x => x._2 != "")
-      .map(x=>(x._1,x._2.toDouble))
+      .filter(x => x._2 != "").filter(_._2 != ".")
+      .map(x => (x._1, x._2.toDouble))
 
       .reduceByKey(_ + _).map(x => {
-      (x._1, numberFormat.format(x._2), "pre_death_compensation")
+      //      (x._1, numberFormat.format(x._2), "pre_death_compensation")
+      (x._1, x._2.toString, "pre_death_compensation")
     })
     //      .take(10).foreach(println(_))
     end
@@ -515,23 +524,19 @@ trait Claiminfo_until {
       if (!m.find) true else false
     })
       .map(x => {
-        val final_payment = x.getString(3)
-        val pre_com = x.getString(4)
-
-        val pattern = Pattern.compile("^[-\\+]?[.\\d]*$")
-        val m = pattern.matcher(final_payment+"").matches()
-
-
+        val final_payment = x.getAs[String]("final_payment")
+        val pre_com = x.getAs[String]("pre_com")
         //如果最终赔付金额有值，就取最终金额，否则就取预估金额
-        val res = if (m) final_payment else pre_com
+        val res = if (final_payment == "" || final_payment == null) pre_com else if (final_payment != "" || final_payment != null) final_payment else ""
         (x.getString(0), res)
       })
-      .filter(x => x._2 != "")
-      .map(x=>(x._1,x._2.toDouble))
+      .filter(x => x._2 != "").filter(_._2 != ".")
+      .map(x => (x._1, x._2.toDouble))
 
 
       .reduceByKey(_ + _).map(x => {
-      (x._1, numberFormat.format(x._2), "pre_dis_compensation")
+      //      (x._1, numberFormat.format(x._2), "pre_dis_compensation")
+      (x._1, x._2.toString, "pre_dis_compensation")
     })
     //      .take(10).foreach(println(_))
     end
@@ -559,22 +564,18 @@ trait Claiminfo_until {
       val m = p.matcher(str)
       if (!m.find) true else false
     }).map(x => {
-        val final_payment = x.getString(3)
-        val pre_com = x.getString(4)
-
-      val pattern = Pattern.compile("^[-\\+]?[.\\d]*$")
-      val m = pattern.matcher(final_payment+"").matches()
-
-
+      val final_payment = x.getAs[String]("final_payment")
+      val pre_com = x.getAs[String]("pre_com")
       //如果最终赔付金额有值，就取最终金额，否则就取预估金额
-        val res = if (m) final_payment else pre_com
-        (x.getString(0), res)
-      })
-      .filter(x => x._2 != "")
-      .map(x=>(x._1,x._2.toDouble))
+      val res = if (final_payment == "" || final_payment == null) pre_com else if (final_payment != "" || final_payment != null) final_payment else ""
+      (x.getString(0), res)
+    })
+      .filter(x => x._2 != "").filter(_._2 != ".")
+      .map(x => (x._1, x._2.toDouble))
 
       .reduceByKey(_ + _).map(x => {
-      (x._1, numberFormat.format(x._2), "pre_wt_compensation")
+      //      (x._1, numberFormat.format(x._2), "pre_wt_compensation")
+      (x._1, x._2.toString, "pre_wt_compensation")
     })
     //      .take(10).foreach(println(_))
     end
@@ -602,23 +603,19 @@ trait Claiminfo_until {
       if (!m.find) true else false
     })
       .map(x => {
-        val final_payment = x.getString(3)
-        val pre_com = x.getString(4)
-
-        val pattern = Pattern.compile("^[-\\+]?[.\\d]*$")
-        val m = pattern.matcher(final_payment+"").matches()
-
-
+        val final_payment = x.getAs[String]("final_payment")
+        val pre_com = x.getAs[String]("pre_com")
         //如果最终赔付金额有值，就取最终金额，否则就取预估金额
-        val res = if (m) final_payment else pre_com
+        val res = if (final_payment == "" || final_payment == null) pre_com else if (final_payment != "" || final_payment != null) final_payment else ""
         (x.getString(0), res)
       })
-      .filter(x => x._2 != "")
-      .map(x=>(x._1,x._2.toDouble))
+      .filter(x => x._2 != "").filter(_._2 != ".")
+      .map(x => (x._1, x._2.toDouble))
 
 
       .reduceByKey(_ + _).map(x => {
-      (x._1, numberFormat.format(x._2), "pre_nwt_compensation")
+      //      (x._1, numberFormat.format(x._2), "pre_nwt_compensation")
+      (x._1, x._2.toString, "pre_nwt_compensation")
     })
     end
     //      .take(10).foreach(println(_))
@@ -643,7 +640,8 @@ trait Claiminfo_until {
       val final_payment = x.getString(3)
       (x.getString(0), final_payment.toDouble)
     }).reduceByKey(_ + _).map(x => {
-      (x._1, numberFormat.format(x._2), "all_compensation")
+      //      (x._1, numberFormat.format(x._2), "all_compensation")
+      (x._1, x._2.toString, "all_compensation")
     })
     end
 
@@ -718,13 +716,42 @@ trait Claiminfo_until {
       //ent_id | 没人每天的保费
       (x._1, x._4.toDouble)
     }).union(bf_sum).reduceByKey(_ + _).map(x => {
-      (x._1, numberFormat.format(x._2), "charged_premium")
+      //      (x._1, numberFormat.format(x._2), "charged_premium")
+      (x._1, x._2.toString, "charged_premium")
     })
     //      .take(10).foreach(println(_))
     end
   }
 
-  //企业拒赔次数
+  //已赚保费新
+  def charged_premium_new(sqlContext: HiveContext, location_mysql_url: String, prop: Properties, ods_policy_detail: DataFrame): RDD[(String, String, String)] = {
+    import sqlContext.implicits._
+    val ods_policy_charged_month = sqlContext.read.jdbc(location_mysql_url, "ods_policy_charged_month", prop).mapPartitions(par => {
+      val now: Date = new Date()
+      val dateFormatOne: SimpleDateFormat = new SimpleDateFormat("yyyyMMdd")
+      val now_Date = dateFormatOne.format(now)
+      par.map(x => {
+        (x.getAs[String]("policy_id"),
+          x.getAs[java.math.BigDecimal]("charged_premium"),
+          x.getAs[String]("day_id"))
+      }).filter(_._3.toDouble <= now_Date.toDouble)
+    }).toDF("policy_id", "charged_premium", "day_id")
+
+
+    val end: RDD[(String, String, String)] = ods_policy_charged_month.join(ods_policy_detail, "policy_id").map(x => {
+      val ent_id = x.getAs[String]("ent_id")
+      val charged_premium = x.getAs[java.math.BigDecimal]("charged_premium").toString.toDouble
+      (ent_id, charged_premium)
+    }).reduceByKey((x1, x2) => {
+      x1 + x2
+    }).map(x => {
+      (x._1, x._2 + "", "charged_premium")
+    })
+    end
+  }
+
+
+  //企业拒赔次数我
   def ent_rejected_count(employer_liability_claims: DataFrame, ods_policy_detail: DataFrame): RDD[(String, String, String)] = {
     val tepOne = ods_policy_detail.select("ent_id", "policy_code")
     val tepTwo = employer_liability_claims.select("policy_no", "status", "id")
@@ -788,7 +815,8 @@ trait Claiminfo_until {
       (sum, count)
     }).map(x => {
       val avg = x._2._1 / x._2._2
-      (x._1, numberFormat.format(avg), "avg_aging_risk")
+      //      (x._1, numberFormat.format(avg), "avg_aging_risk")
+      (x._1, avg.toString, "avg_aging_risk")
     })
     end
     //    .take(10).foreach(println(_))
@@ -823,19 +851,20 @@ trait Claiminfo_until {
     //      .show()
     //    |              ent_id|         policy_code|           policy_no|risk_period|
     //    |0a789d56b7444d519...|  900000047702719243|  900000047702719243|         57|
-    val total = tepThree.map(x => {
+    val total: RDD[(String, Double)] = tepThree.map(x => {
       val risk_period = x.get(3).toString.toDouble
       val ent_id = x.getString(0).toString
       (ent_id, risk_period)
     })
     //求出周期小于3的次数,并求出有多少个
-    val threeNumber = total.reduceByKey((x1, x2) => {
-      val before = if (x1 < 3) 1 else 0
-      val after = if (x2 < 3) 1 else 0
-      before + after
-    }).map(x => {
-      (x._1, x._2)
-    })
+    val threeNumber = total.filter(_._2 < 3.0).map(x => (x._1, 1.0)).reduceByKey(_ + _)
+    //    val threeNumber = total.reduceByKey((x1, x2) => {
+    //      val before = if (x1 < 3) 1 else 0
+    //      val after = if (x2 < 3) 1 else 0
+    //      before + after
+    //    }).map(x => {
+    //      (x._1, x._2)
+    //    })
 
     //总共有多少个
     val sum_Number = total.map(x => {
@@ -871,36 +900,16 @@ trait Claiminfo_until {
     //该企业发生死亡的人数
     //    |              ent_id|         policy_code|           policy_no|case_type|
     //    |0a789d56b7444d519...|  900000047702719243|  900000047702719243|       创伤|
-    val dath_number = tepThree.map(
-      x => {
-        (x.getString(0), x.getString(3))
-      }
-    ).filter(x => if (x._2 == "死亡") true else false).map(x => {
-      (x._1, 1)
-    }).reduceByKey(_ + _).map(x => (x._1, x._2))
+    val dath_number = tepThree.map(x => (x.getString(0), x.getString(3))).filter(x => if (x._2 == "死亡") true else false).map(x => (x._1, 1)).reduceByKey(_ + _).map(x => (x._1, x._2))
     //该企业发生残疾的人数
-    val can_number = tepThree.map(
-      x => {
-        (x.getString(0), x.getString(3))
-      }
-    ).filter(x => if (x._2 == "残疾") true else false).map(x => {
-      (x._1, 1)
-    }).reduceByKey(_ + _).map(x => (x._1, x._2))
+    val can_number = tepThree.map(x => (x.getString(0), x.getString(3))).filter(x => if (x._2 == "残疾") true else false).map(x => (x._1, 1)).reduceByKey(_ + _).map(x => (x._1, x._2))
+
     //该企业的总次数
-    val total_number = tepThree.map(
-      x => {
-        (x.getString(0), x.getString(3))
-      }
-    ).map(x => {
-      (x._1, 1)
-    }).reduceByKey(_ + _).map(x => x)
+    val total_number = tepThree.map(x => (x.getString(0), x.getString(3))).map(x => (x._1, 1)).reduceByKey(_ + _).map(x => x)
 
     val tepFour = dath_number.join(can_number).map(x => {
       //企业ID，该企业死亡人数，该企业残疾人数
-      (x._1, (x._2._1, x._2._2))
-    }).filter(x => {
-      if (x._2._1 > 0 || x._2._2 > 0) true else false
-    })
+      (x._1, (x._2._1, x._2._2))}).filter(x => if (x._2._1 > 0 || x._2._2 > 0) true else false)
     val end: RDD[(String, String, String)] = tepFour.join(total_number).map(x => {
       //企业ID，该企业死亡人数，该企业残疾人数,总人数
       val ent_id = x._1
@@ -908,13 +917,15 @@ trait Claiminfo_until {
       val disabilityNum = x._2._1._2.toDouble
       val totalNum = x._2._2
       val gailv = (deathNum + disabilityNum) / totalNum.toDouble
-      (ent_id, numberFormat.format(gailv), "largecase_rate")
+      //      (ent_id, numberFormat.format(gailv), "largecase_rate")
+      (ent_id, gailv.toString, "largecase_rate")
     })
     end
   }
 
   //工种风险等级入hbase
-  def ent_work_risk_r_To_Hbase(ent_work_risk_r: RDD[(String, String, String)], columnFamily1: String, conf_fs: Configuration, tableName: String, conf: Configuration): Unit = {
+  def ent_work_risk_r_To_Hbase(ent_work_risk_r: RDD[(String, String, String)], columnFamily1: String, conf_fs: Configuration, tableName: String, conf: Configuration): Unit
+  = {
     val zero_f = ent_work_risk_r.filter(_._3 == "0").map(x => (x._1, x._2, s"worktype_${x._3}_count")).distinct
     val one_f = ent_work_risk_r.filter(_._3 == "1").map(x => (x._1, x._2, s"worktype_${x._3}_count")).distinct
     val two_f = ent_work_risk_r.filter(_._3 == "2").map(x => (x._1, x._2, s"worktype_${x._3}_count")).distinct

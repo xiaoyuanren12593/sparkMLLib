@@ -14,11 +14,11 @@ javacOptions ++= Seq("-encoding", "UTF-8")
 
 libraryDependencies ++= Seq(
   //hive
-    "org.apache.spark" %% "spark-hive" % "1.6.1",
-//  "org.apache.spark" %% "spark-hive" % "1.6.1" % "provided",
+//    "org.apache.spark" %% "spark-hive" % "1.6.1",
+  "org.apache.spark" %% "spark-hive" % "1.6.1" % "provided",
 
-    "com.databricks" %% "spark-csv" % "1.4.0",
-//  "com.databricks" %% "spark-csv" % "1.4.0" % "provided",
+//    "com.databricks" %% "spark-csv" % "1.4.0",
+  "com.databricks" %% "spark-csv" % "1.4.0" % "provided",
 
 
   //Alibaba-json
@@ -41,14 +41,14 @@ libraryDependencies ++= Seq(
   "mysql" % "mysql-connector-java" % "5.1.36" % "provided",
 
 
-    "org.apache.spark" % "spark-mllib_2.10" % "1.6.1",
-//  "org.apache.spark" % "spark-mllib_2.10" % "1.6.1" % "provided",
+//    "org.apache.spark" % "spark-mllib_2.10" % "1.6.1",
+  "org.apache.spark" % "spark-mllib_2.10" % "1.6.1" % "provided",
 
   "joda-time" % "joda-time" % "2.9.9",
 
   //sparkStreaming
-    "org.apache.spark" %% "spark-streaming-kafka" % "1.6.1",
-//  "org.apache.spark" %% "spark-streaming-kafka" % "1.6.1" % "provided",
+//    "org.apache.spark" %% "spark-streaming-kafka" % "1.6.1",
+  "org.apache.spark" %% "spark-streaming-kafka" % "1.6.1" % "provided",
 
 
 
@@ -58,14 +58,14 @@ libraryDependencies ++= Seq(
 
 
   //hbase
-//      "org.apache.hbase" % "hbase-client" % "1.2.0" % "provided",
-//      "org.apache.hbase" % "hbase-common" % "1.2.0" % "provided",
-//      "org.apache.hbase" % "hbase-server" % "1.2.0" % "provided",
-//      "org.apache.hbase" % "hbase-hadoop-compat" % "1.2.0" % "provided"
-  "org.apache.hbase" % "hbase-hadoop-compat" % "1.2.0",
-  "org.apache.hbase" % "hbase-client" % "1.2.0",
-  "org.apache.hbase" % "hbase-common" % "1.2.0",
-  "org.apache.hbase" % "hbase-server" % "1.2.0"
+      "org.apache.hbase" % "hbase-client" % "1.2.0" % "provided",
+      "org.apache.hbase" % "hbase-common" % "1.2.0" % "provided",
+      "org.apache.hbase" % "hbase-server" % "1.2.0" % "provided",
+      "org.apache.hbase" % "hbase-hadoop-compat" % "1.2.0" % "provided"
+//  "org.apache.hbase" % "hbase-hadoop-compat" % "1.2.0",
+//  "org.apache.hbase" % "hbase-client" % "1.2.0",
+//  "org.apache.hbase" % "hbase-common" % "1.2.0",
+//  "org.apache.hbase" % "hbase-server" % "1.2.0"
 
 ).map(
   _.excludeAll(ExclusionRule(organization = "org.mortbay.jetty"))

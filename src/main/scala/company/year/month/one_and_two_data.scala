@@ -1,7 +1,7 @@
 package company.year.month
 
 import java.io.File
-import java.sql.{DriverManager, Timestamp}
+import java.sql.DriverManager
 import java.util.Properties
 
 import org.apache.spark.rdd.RDD
@@ -60,8 +60,11 @@ object one_and_two_data extends year_until {
   //表1.0数据
   def get_one(sqlContext: HiveContext, prop: Properties, url: String): DataFrame
   = {
-    val plc_policy_preserve = sqlContext.read.jdbc(url, "plc_policy_preserve", prop).withColumnRenamed("update_time", "a_update_time").withColumnRenamed("create_time", "a_create_time").withColumnRenamed("id", "a_id").withColumnRenamed("status", "a_status").withColumnRenamed("policy_id", "a_policy_id").withColumnRenamed("policy_code", "a_policy_code").persist(StorageLevel.MEMORY_ONLY)
-    sqlContext.read.jdbc(url, "plc_policy_preserve_insured", prop).withColumnRenamed("status", "b_status").withColumnRenamed("create_time", "b_create_time").withColumnRenamed("update_time", "b_update_time").withColumnRenamed("id", "b_id").registerTempTable("b")
+    val plc_policy_preserve = sqlContext.read.jdbc(url, "plc_policy_preserve", prop).withColumnRenamed("update_time", "a_update_time").withColumnRenamed("create_time", "a_create_time").withColumnRenamed("id", "a_id").withColumnRenamed("status", "a_status").withColumnRenamed("policy_id", "a_policy_id")
+      .withColumnRenamed("policy_code", "a_policy_code").persist(StorageLevel.MEMORY_ONLY)
+    sqlContext.read.jdbc(url, "plc_policy_preserve_insured", prop).where("remark != 'obsolete' or remark is null")
+      .withColumnRenamed("status", "b_status").withColumnRenamed("create_time", "b_create_time")
+      .withColumnRenamed("update_time", "b_update_time").withColumnRenamed("id", "b_id").registerTempTable("b")
 
     //将sql中的回车替换掉
     sqlContext.sql("select  regexp_replace(work_type,'\\n','') as work_type_new ,regexp_replace(cert_no,'\\n','') as cert_no_new,* from b")
@@ -89,7 +92,9 @@ object one_and_two_data extends year_until {
         .drop("work_type_mk").drop("name_mk")
 
 
-    val plc_policy_preserve_insured_child = sqlContext.read.jdbc(url, "plc_policy_preserve_insured_child", prop).withColumnRenamed("id", "c_id").withColumnRenamed("create_time", "c_create_time").withColumnRenamed("update_time", "c_update_time").persist(StorageLevel.MEMORY_ONLY)
+    val plc_policy_preserve_insured_child = sqlContext.read.jdbc(url, "plc_policy_preserve_insured_child", prop)
+      .withColumnRenamed("id", "c_id").withColumnRenamed("create_time", "c_create_time")
+      .withColumnRenamed("update_time", "c_update_time").persist(StorageLevel.MEMORY_ONLY)
     val b_policy = sqlContext.read.jdbc(url, "b_policy", prop).select("id", "insurance_policy_no").withColumnRenamed("id", "d_id").persist(StorageLevel.MEMORY_ONLY)
 
     val tep_one = plc_policy_preserve.join(plc_policy_preserve_insured, plc_policy_preserve("a_id") === plc_policy_preserve_insured("preserve_id"), "left")
@@ -240,21 +245,38 @@ object one_and_two_data extends year_until {
 
     //业务数据一条都不能少，因此将过滤掉的与非过滤掉的进行整合
     val tep_four = sqlContext.sql("select mk_inc,c_start_date,c_end_date from end_one").map(x => {
-      val inc_dec_order_no = x.getAs[String]("mk_inc")
       val c_start_date = x.getAs[String]("c_start_date")
       val c_end_date = x.getAs[String]("c_end_date")
-      val one = if (c_start_date == "null") Double.PositiveInfinity else currentTimeL(c_start_date.toString.substring(0, 19))
-      val two = if (c_end_date == "null") 0 else currentTimeL(c_end_date.toString.substring(0, 19))
-      (inc_dec_order_no, (one, two))
+      val one = if (c_start_date == "null" || c_start_date == null) currentTimeL(c_end_date.toString.substring(0, 19)).toDouble else currentTimeL(c_start_date.toString.substring(0, 19)).toDouble
+      val two = if (c_end_date == "null" || c_end_date == null) currentTimeL(c_start_date.toString.substring(0, 19)).toDouble else currentTimeL(c_end_date.toString.substring(0, 19)).toDouble
+      (x.getAs[String]("mk_inc"), (one, two))
     }).reduceByKey((x1, x2) => {
       val one = if (x1._1 <= x2._1) x1._1 else x2._1
       val two = if (x1._2 >= x2._2) x1._2 else x2._2
       (one, two)
     }).map(x => {
-      val one = if (x._2._1 == Double.PositiveInfinity) "null" else get_current_date(x._2._1.toLong)
-      val two = if (x._2._2 == 0) "null" else get_current_date(x._2._2)
+      val one = get_current_date(x._2._1.toLong)
+      val two = get_current_date(x._2._2.toLong)
       (x._1, one, two)
-    }).toDF("mk_inc", "c_final_start_date", "c_final_end_date") //.persist(StorageLevel.MEMORY_ONLY_SER)
+    })
+      .toDF("mk_inc", "c_final_start_date", "c_final_end_date")
+    //    //业务数据一条都不能少，因此将过滤掉的与非过滤掉的进行整合
+    //    val tep_four = sqlContext.sql("select mk_inc,c_start_date,c_end_date from end_one").map(x => {
+    //      val inc_dec_order_no = x.getAs[String]("mk_inc")
+    //      val c_start_date = x.getAs[String]("c_start_date")
+    //      val c_end_date = x.getAs[String]("c_end_date")
+    //      val one = if (c_start_date == "null" || c_start_date == null) Double.PositiveInfinity else currentTimeL(c_start_date.toString.substring(0, 19))
+    //      val two = if (c_end_date == "null" || c_end_date == null) 0 else currentTimeL(c_end_date.toString.substring(0, 19))
+    //      (inc_dec_order_no, (one, two))
+    //    }).reduceByKey((x1, x2) => {
+    //      val one = if (x1._1 <= x2._1) x1._1 else x2._1
+    //      val two = if (x1._2 >= x2._2) x1._2 else x2._2
+    //      (one, two)
+    //    }).map(x => {
+    //      val one = if (x._2._1 == Double.PositiveInfinity) "null" else get_current_date(x._2._1.toLong)
+    //      val two = if (x._2._2 == 0) "null" else get_current_date(x._2._2)
+    //      (x._1, one, two)
+    //    }).toDF("mk_inc", "c_final_start_date", "c_final_end_date") //.persist(StorageLevel.MEMORY_ONLY_SER)
 
     val end_final = tep_three.join(tep_four, "mk_inc")
     end_final.selectExpr("" +
@@ -311,9 +333,26 @@ object one_and_two_data extends year_until {
     )
   }
 
+
+  //删除hdfs的文件，后输出
+  def delete(master: String, path: String, tep_end: RDD[String]): Unit = {
+    println("Begin delete!--" + master + path)
+    val output = new org.apache.hadoop.fs.Path(master + path)
+    val hdfs = org.apache.hadoop.fs.FileSystem.get(
+      new java.net.URI(master), new org.apache.hadoop.conf.Configuration())
+    // 删除输出目录
+    if (hdfs.exists(output)) {
+      hdfs.delete(output, true)
+      println("delete!--" + master + path)
+      tep_end.repartition(1).saveAsTextFile(path)
+    } else tep_end.repartition(1).saveAsTextFile(path)
+
+  }
+
   def main(args: Array[String]): Unit = {
     val lines: Iterator[String] = Source.fromURL(getClass.getResource("/config_scala.properties")).getLines
     val url: String = lines.filter(_.contains("location_mysql_url")).map(_.split("==")(1)).mkString("")
+    val hdfs_url: String = lines.filter(_.contains("hdfs_url")).map(_.split("==")(1)).mkString("")
 
     System.setProperty("HADOOP_USER_NAME", "hdfs")
     val conf_s = new SparkConf().setAppName("wuYu")
@@ -333,6 +372,7 @@ object one_and_two_data extends year_until {
     val fields_name = end_one.schema.map(x => x.name)
     val end_dataFrame = end_one.map(x => x).union(end_two.map(x => x))
 
+
     //得到字段对应的值
     val field_value = end_dataFrame.map(x => {
       x.toSeq.map(x => if (x == null) "null" else x.toString).toArray
@@ -341,24 +381,23 @@ object one_and_two_data extends year_until {
     //字段对应的值
     val value_tepTwo = field_value.map(r => Row(r: _*))
     //大表生成DF
-    val big = sqlContext.createDataFrame(value_tepTwo, schema_tepOne)
+    val big_before = sqlContext.createDataFrame(value_tepTwo, schema_tepOne)
 
 
-    //存入哪张表中
-    val table_name = "ods_policy_preserve_detail_vt"
-    big.insertInto(s"odsdb_prd.$table_name", overwrite = true)
-    /*
-     * 存入mysql
-     **/
-    val tep_end = big.map(_.mkString("mk6"))
-    //得到时间戳
-    val timeMillions = System.currentTimeMillis
-    //HDFS需要传的路径
-    val path_hdfs = s"file:///share/${table_name}_$timeMillions"
-    //本地需要传的路径
-    val path = s"/share/${table_name}_$timeMillions"
-    //每天新创建一个目录，将数据写入到新目录中
-    toMsql(tep_end, path_hdfs, path, table_name, url)
+    //要过滤的数据
+    val odr_id = sqlContext.read.jdbc(url, "odr_policy", prop)
+      .where("insure_code!='1500001'")
+      .select("id").withColumnRenamed("id", "odr_id").cache
+
+    val big = big_before.join(odr_id, big_before("policy_id") === odr_id("odr_id"),"left").drop("odr_id")
+
+    val table_name = "ods_policy_preserve_detail"
+    big.insertInto(s"odsdb_prd.$table_name", overwrite = true) //存入哪张表中
+    val tep_end: RDD[String] = big.map(_.mkString("mk6")).map(x => {
+      val arrArray = x.split("mk6").map(x => if (x == "null" || x == null) "" else x)
+      arrArray.mkString("mk6")
+    }) //存入mysql
+    delete(hdfs_url, "/oozie/mysqlData/ods_policy_preserve_detail", tep_end) //删除后，输出到文件中
 
   }
 }

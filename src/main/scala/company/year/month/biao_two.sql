@@ -17,9 +17,9 @@ SELECT
   FROM
     odsdb.b_policy_preservation_subject_person_master X
   WHERE x.inc_dec_order_no = a.inc_dec_order_no) AS pre_start_date,
-  (SELECT
     MAX(x.end_date)
   FROM
+  (SELECT
     odsdb.b_policy_preservation_subject_person_master X
   WHERE x.inc_dec_order_no = a.inc_dec_order_no) AS pre_end_date,
   a.create_time AS pre_create_time,

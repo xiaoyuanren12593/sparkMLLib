@@ -16,6 +16,7 @@ import org.apache.spark.rdd.RDD
 
 /**
   * Created by MK on 2018/7/16.
+  * 雇主预警
   */
 object Early_warning extends early_until {
   //遍历某目录下所有的文件和子文件
@@ -33,12 +34,12 @@ object Early_warning extends early_until {
     val connection = DriverManager.getConnection(url)
     //通过连接创建statement
     var statement = connection.createStatement()
-    //    val sql1 = s"truncate table odsdb.$table_name"
+    val sql1 = s"DELETE FROM odsdb.$table_name WHERE day_id='${getDay.split(" ")(0).replace("-", "")}'"
 
     val sql2 = s"load data infile '$path'  into table odsdb.$table_name fields terminated by ';'"
     statement = connection.createStatement()
     //先删除数据，在导入数据
-    //    statement.execute(sql1)
+    statement.execute(sql1)
     statement.execute(sql2)
   }
 
@@ -73,7 +74,7 @@ object Early_warning extends early_until {
 
 
       val addPersons: Double = cur_insured_persons.toDouble - yesterday_insured_persons.toDouble
-      val ringRatio: Double = addPersons / yesterday_insured_persons
+      val ringRatio: Double = if (yesterday_insured_persons == 0) 0.00 else addPersons / yesterday_insured_persons
       (
         ent_name,
         yesterday_insured_persons,
@@ -272,10 +273,13 @@ object Early_warning extends early_until {
   }
 
   def main(args: Array[String]): Unit = {
+    System.setProperty("HADOOP_USER_NAME", "hdfs")
+
+
     val lines: Iterator[String] = Source.fromURL(getClass.getResource("/config_scala.properties")).getLines
     val url: String = lines.filter(_.contains("location_mysql_url")).map(_.split("==")(1)).mkString("")
     val conf_spark: SparkConf = new SparkConf().setAppName("piwik").set("spark.sql.broadcastTimeout", "36000")
-    //      .setMaster("local[4]")
+//          .setMaster("local[4]")
     val sc = new SparkContext(conf_spark)
     val sqlContext: HiveContext = new HiveContext(sc)
 
