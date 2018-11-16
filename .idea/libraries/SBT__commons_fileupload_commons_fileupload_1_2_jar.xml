@@ -1,9 +1,0 @@
-<component name="libraryTable">
-  <library name="SBT: commons-fileupload:commons-fileupload:1.2:jar">
-    <CLASSES>
-      <root url="jar://F:/sbt_Package/ivy-repository/cache/commons-fileupload/commons-fileupload/jars/commons-fileupload-1.2.jar!/" />
-    </CLASSES>
-    <JAVADOC />
-    <SOURCES />
-  </library>
-</component>

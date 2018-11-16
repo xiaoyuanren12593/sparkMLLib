@@ -1,9 +1,0 @@
-<component name="libraryTable">
-  <library name="SBT: com.google.protobuf:protobuf-java:2.5.0:jar">
-    <CLASSES>
-      <root url="jar://F:/sbt_Package/ivy-repository/cache/com.google.protobuf/protobuf-java/bundles/protobuf-java-2.5.0.jar!/" />
-    </CLASSES>
-    <JAVADOC />
-    <SOURCES />
-  </library>
-</component>

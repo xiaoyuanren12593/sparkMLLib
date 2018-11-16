@@ -1,9 +1,0 @@
-<component name="libraryTable">
-  <library name="SBT: org.antlr:antlr-runtime:3.4:jar">
-    <CLASSES>
-      <root url="jar://F:/sbt_Package/ivy-repository/cache/org.antlr/antlr-runtime/jars/antlr-runtime-3.4.jar!/" />
-    </CLASSES>
-    <JAVADOC />
-    <SOURCES />
-  </library>
-</component>

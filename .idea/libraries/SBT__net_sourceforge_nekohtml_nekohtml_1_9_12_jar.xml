@@ -1,9 +1,0 @@
-<component name="libraryTable">
-  <library name="SBT: net.sourceforge.nekohtml:nekohtml:1.9.12:jar">
-    <CLASSES>
-      <root url="jar://F:/sbt_Package/ivy-repository/cache/net.sourceforge.nekohtml/nekohtml/jars/nekohtml-1.9.12.jar!/" />
-    </CLASSES>
-    <JAVADOC />
-    <SOURCES />
-  </library>
-</component>

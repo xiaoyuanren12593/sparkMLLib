@@ -1,9 +1,0 @@
-<component name="libraryTable">
-  <library name="SBT: com.alibaba:fastjson:1.2.24:jar">
-    <CLASSES>
-      <root url="jar://F:/sbt_Package/ivy-repository/cache/com.alibaba/fastjson/jars/fastjson-1.2.24.jar!/" />
-    </CLASSES>
-    <JAVADOC />
-    <SOURCES />
-  </library>
-</component>

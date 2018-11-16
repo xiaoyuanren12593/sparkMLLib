@@ -1,9 +1,0 @@
-<component name="libraryTable">
-  <library name="SBT: com.clearspring.analytics:stream:2.7.0:jar">
-    <CLASSES>
-      <root url="jar://F:/sbt_Package/ivy-repository/cache/com.clearspring.analytics/stream/jars/stream-2.7.0.jar!/" />
-    </CLASSES>
-    <JAVADOC />
-    <SOURCES />
-  </library>
-</component>

@@ -1,9 +1,0 @@
-<component name="libraryTable">
-  <library name="SBT: net.sf.py4j:py4j:0.9:jar">
-    <CLASSES>
-      <root url="jar://F:/sbt_Package/ivy-repository/cache/net.sf.py4j/py4j/jars/py4j-0.9.jar!/" />
-    </CLASSES>
-    <JAVADOC />
-    <SOURCES />
-  </library>
-</component>

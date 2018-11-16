@@ -1,9 +1,0 @@
-<component name="libraryTable">
-  <library name="SBT: com.sun.xml.bind:jaxb-core:2.2.7:jar">
-    <CLASSES>
-      <root url="jar://F:/sbt_Package/ivy-repository/cache/com.sun.xml.bind/jaxb-core/jars/jaxb-core-2.2.7.jar!/" />
-    </CLASSES>
-    <JAVADOC />
-    <SOURCES />
-  </library>
-</component>

@@ -1,9 +1,0 @@
-<component name="libraryTable">
-  <library name="SBT: xom:xom:1.2.5:jar">
-    <CLASSES>
-      <root url="jar://F:/sbt_Package/ivy-repository/cache/xom/xom/jars/xom-1.2.5.jar!/" />
-    </CLASSES>
-    <JAVADOC />
-    <SOURCES />
-  </library>
-</component>

@@ -1,9 +1,0 @@
-<component name="libraryTable">
-  <library name="SBT: org.apache.hadoop:hadoop-auth:2.2.0:jar">
-    <CLASSES>
-      <root url="jar://F:/sbt_Package/ivy-repository/cache/org.apache.hadoop/hadoop-auth/jars/hadoop-auth-2.2.0.jar!/" />
-    </CLASSES>
-    <JAVADOC />
-    <SOURCES />
-  </library>
-</component>

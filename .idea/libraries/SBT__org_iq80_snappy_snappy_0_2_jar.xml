@@ -1,9 +1,0 @@
-<component name="libraryTable">
-  <library name="SBT: org.iq80.snappy:snappy:0.2:jar">
-    <CLASSES>
-      <root url="jar://F:/sbt_Package/ivy-repository/cache/org.iq80.snappy/snappy/jars/snappy-0.2.jar!/" />
-    </CLASSES>
-    <JAVADOC />
-    <SOURCES />
-  </library>
-</component>

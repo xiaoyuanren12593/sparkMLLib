@@ -1,9 +1,0 @@
-<component name="libraryTable">
-  <library name="SBT: org.jpmml:pmml-schema:1.1.15:jar">
-    <CLASSES>
-      <root url="jar://F:/sbt_Package/ivy-repository/cache/org.jpmml/pmml-schema/jars/pmml-schema-1.1.15.jar!/" />
-    </CLASSES>
-    <JAVADOC />
-    <SOURCES />
-  </library>
-</component>

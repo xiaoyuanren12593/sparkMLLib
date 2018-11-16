@@ -1,9 +1,0 @@
-<component name="libraryTable">
-  <library name="SBT: com.thoughtworks.paranamer:paranamer:2.6:jar">
-    <CLASSES>
-      <root url="jar://F:/sbt_Package/ivy-repository/cache/com.thoughtworks.paranamer/paranamer/jars/paranamer-2.6.jar!/" />
-    </CLASSES>
-    <JAVADOC />
-    <SOURCES />
-  </library>
-</component>

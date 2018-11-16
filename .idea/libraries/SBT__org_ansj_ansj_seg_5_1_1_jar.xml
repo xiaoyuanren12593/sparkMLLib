@@ -1,9 +1,0 @@
-<component name="libraryTable">
-  <library name="SBT: org.ansj:ansj_seg:5.1.1:jar">
-    <CLASSES>
-      <root url="jar://F:/sbt_Package/ivy-repository/cache/org.ansj/ansj_seg/jars/ansj_seg-5.1.1.jar!/" />
-    </CLASSES>
-    <JAVADOC />
-    <SOURCES />
-  </library>
-</component>

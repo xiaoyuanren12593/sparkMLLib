@@ -1,9 +1,0 @@
-<component name="libraryTable">
-  <library name="SBT: com.101tec:zkclient:0.3:jar">
-    <CLASSES>
-      <root url="jar://F:/sbt_Package/ivy-repository/cache/com.101tec/zkclient/jars/zkclient-0.3.jar!/" />
-    </CLASSES>
-    <JAVADOC />
-    <SOURCES />
-  </library>
-</component>
