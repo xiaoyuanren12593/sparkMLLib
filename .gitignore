@@ -2,5 +2,5 @@
 target/
 metastore_db/
 odsdb_prd.mkceshi/
-project/
+project/project/
 derby.log
