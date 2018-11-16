@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="SBT: com.typesafe.scala-logging:scala-logging-slf4j_2.11:2.1.2:jar">
+    <CLASSES>
+      <root url="jar://F:/sbt_Package/ivy-repository/cache/com.typesafe.scala-logging/scala-logging-slf4j_2.11/jars/scala-logging-slf4j_2.11-2.1.2.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

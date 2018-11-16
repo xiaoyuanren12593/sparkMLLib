@@ -396,7 +396,6 @@ trait until {
       date = cd.getTime
     }
     arr
-
   }
 
   //企业风险::得到城市的编码

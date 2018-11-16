@@ -5,19 +5,32 @@ name := "bzn_spark_need"
 version := "0.1"
 
 scalaVersion := "2.10.4"
+//scalaVersion := Seq("2.11.7", "2.10.4")
 
 
-resolvers += "Restlet Repositories" at "http://maven.restlet.org" //有些依赖包的地址
+//resolvers +=
+resolvers ++= Seq(
+  "Restlet Repositories" at "http://maven.restlet.org", //有些依赖包的地址
+  "Spark Packages Repo" at "http://dl.bintray.com/spark-packages/maven"
+)
 
 //挡在java项目中写中文时，编译会报错，加上该行就行了
 javacOptions ++= Seq("-encoding", "UTF-8")
 
 libraryDependencies ++= Seq(
+  //spark-neo4j
+  //  "neo4j-contrib" % "neo4j-spark-connector" % "2.1.0-M4",
+  "neo4j-contrib" % "neo4j-spark-connector" % "2.1.0-M4" % "provided",
+
+  //通过驱动器来实现neo4j(写sql)
+  "org.neo4j.driver" % "neo4j-java-driver" % "1.0.4",
+  //    "org.neo4j.driver" % "neo4j-java-driver" % "1.0.4" % "provided",
+
   //hive
-//    "org.apache.spark" %% "spark-hive" % "1.6.1",
+  //  "org.apache.spark" %% "spark-hive" % "1.6.1",
   "org.apache.spark" %% "spark-hive" % "1.6.1" % "provided",
 
-//    "com.databricks" %% "spark-csv" % "1.4.0",
+  //    "com.databricks" %% "spark-csv" % "1.4.0",
   "com.databricks" %% "spark-csv" % "1.4.0" % "provided",
 
 
@@ -29,49 +42,53 @@ libraryDependencies ++= Seq(
     * https://mvnrepository.com/artifact/org.ansj/ansj_seg
     * https://mvnrepository.com/artifact/org.nlpcn/nlp-lang
     **/
-  //      "org.ansj" % "ansj_seg" % "5.1.1",
-  //      "org.nlpcn" % "nlp-lang" % "1.7.2",
-  "org.ansj" % "ansj_seg" % "5.1.1" % "provided",
-  "org.nlpcn" % "nlp-lang" % "1.7.2" % "provided",
+  "org.ansj" % "ansj_seg" % "5.1.1",
+  "org.nlpcn" % "nlp-lang" % "1.7.2",
+  //  "org.ansj" % "ansj_seg" % "5.1.1" % "provided",
+  //  "org.nlpcn" % "nlp-lang" % "1.7.2" % "provided",
 
   /**
     * mysql connect
     **/
-  //      "mysql" % "mysql-connector-java" % "5.1.36",
-  "mysql" % "mysql-connector-java" % "5.1.36" % "provided",
+  "mysql" % "mysql-connector-java" % "5.1.36",
+  //    "mysql" % "mysql-connector-java" % "5.1.36" % "provided",
 
 
-//    "org.apache.spark" % "spark-mllib_2.10" % "1.6.1",
+  //      "org.apache.spark" % "spark-mllib_2.10" % "1.6.1",
   "org.apache.spark" % "spark-mllib_2.10" % "1.6.1" % "provided",
 
   "joda-time" % "joda-time" % "2.9.9",
 
   //sparkStreaming
-//    "org.apache.spark" %% "spark-streaming-kafka" % "1.6.1",
+  //  "org.apache.spark" %% "spark-streaming" % "1.6.1",
+  //  "org.apache.spark" %% "spark-streaming-kafka" % "1.6.1",
+  "org.apache.spark" %% "spark-streaming" % "1.6.1" % "provided",
   "org.apache.spark" %% "spark-streaming-kafka" % "1.6.1" % "provided",
-
 
 
   //redis-client
   "redis.clients" % "jedis" % "2.9.0",
-  //  "redis.clients" % "jedis" % "2.9.0"%"provided",
+  //  "redis.clients" % "jedis" % "2.9.0" % "provided",
 
 
   //hbase
-      "org.apache.hbase" % "hbase-client" % "1.2.0" % "provided",
-      "org.apache.hbase" % "hbase-common" % "1.2.0" % "provided",
-      "org.apache.hbase" % "hbase-server" % "1.2.0" % "provided",
-      "org.apache.hbase" % "hbase-hadoop-compat" % "1.2.0" % "provided"
-//  "org.apache.hbase" % "hbase-hadoop-compat" % "1.2.0",
-//  "org.apache.hbase" % "hbase-client" % "1.2.0",
-//  "org.apache.hbase" % "hbase-common" % "1.2.0",
-//  "org.apache.hbase" % "hbase-server" % "1.2.0"
+  "org.apache.hbase" % "hbase-client" % "1.2.0" % "provided",
+  "org.apache.hbase" % "hbase-common" % "1.2.0" % "provided",
+  "org.apache.hbase" % "hbase-server" % "1.2.0" % "provided",
+  "org.apache.hbase" % "hbase-hadoop-compat" % "1.2.0" % "provided"
+  //          "org.apache.hbase" % "hbase-hadoop-compat" % "1.2.0",
+  //"org.apache.hbase" % "hbase-client" % "1.2.0",
+  //"org.apache.hbase" % "hbase-common" % "1.2.0",
+  //"org.apache.hbase" % "hbase-server" % "1.2.0"
 
 ).map(
   _.excludeAll(ExclusionRule(organization = "org.mortbay.jetty"))
 ).map(
   _.excludeAll(ExclusionRule(organization = "javax.servlet"))
 )
+
+
+
 //这条语句打开了assembly的插件功能
 assemblySettings
 
@@ -99,6 +116,7 @@ mergeStrategy in assembly := {
   //如果后缀是.properties的文件，合并策略采用（MergeStrategy.first）第一个出现的文件
   case PathList(ps@_*) if ps.last endsWith ".properties" => MergeStrategy.first
   case PathList(ps@_*) if ps.last endsWith "Absent.class" => MergeStrategy.first
+  case PathList(ps@_*) if ps.last endsWith ".xml" => MergeStrategy.first
   case PathList("com", "esotericsoftware", xs@_*) => MergeStrategy.first
   case x =>
     val oldStrategy = (mergeStrategy in assembly).value
