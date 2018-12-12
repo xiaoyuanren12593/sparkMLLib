@@ -1,4 +1,4 @@
-import AssemblyKeys._
+import sbtassembly.Plugin.AssemblyKeys._
 
 name := "bzn_spark_need"
 
@@ -18,23 +18,22 @@ resolvers ++= Seq(
 javacOptions ++= Seq("-encoding", "UTF-8")
 
 libraryDependencies ++= Seq(
-  //spark-neo4j
-  //  "neo4j-contrib" % "neo4j-spark-connector" % "2.1.0-M4",
-  "neo4j-contrib" % "neo4j-spark-connector" % "2.1.0-M4" % "provided",
+  //  spark-neo4j
+  "neo4j-contrib" % "neo4j-spark-connector" % "2.1.0-M4",
+  //  "neo4j-contrib" % "neo4j-spark-connector" % "2.1.0-M4" % "provided",
 
-  //通过驱动器来实现neo4j(写sql)
-  "org.neo4j.driver" % "neo4j-java-driver" % "1.0.4",
-  //    "org.neo4j.driver" % "neo4j-java-driver" % "1.0.4" % "provided",
+  //  通过驱动器来实现neo4j(写sql)
+  //  "org.neo4j.driver" % "neo4j-java-driver" % "1.0.4",
+  "org.neo4j.driver" % "neo4j-java-driver" % "1.0.4" % "provided",
 
-  //hive
-  //  "org.apache.spark" %% "spark-hive" % "1.6.1",
-  "org.apache.spark" %% "spark-hive" % "1.6.1" % "provided",
+  //  hive
+  "org.apache.spark" %% "spark-hive" % "1.6.1",
+  //  "org.apache.spark" %% "spark-hive" % "1.6.1" % "provided",
 
-  //    "com.databricks" %% "spark-csv" % "1.4.0",
-  "com.databricks" %% "spark-csv" % "1.4.0" % "provided",
+  "com.databricks" %% "spark-csv" % "1.4.0",
+  //  "com.databricks" %% "spark-csv" % "1.4.0" % "provided",
 
-
-  //Alibaba-json
+  //  Alibaba-json
   "com.alibaba" % "fastjson" % "1.2.24",
 
   /**
@@ -47,39 +46,39 @@ libraryDependencies ++= Seq(
   //  "org.ansj" % "ansj_seg" % "5.1.1" % "provided",
   //  "org.nlpcn" % "nlp-lang" % "1.7.2" % "provided",
 
-  /**
-    * mysql connect
-    **/
+  //  mysql connect
   "mysql" % "mysql-connector-java" % "5.1.36",
-  //    "mysql" % "mysql-connector-java" % "5.1.36" % "provided",
-
-
-  //      "org.apache.spark" % "spark-mllib_2.10" % "1.6.1",
-  "org.apache.spark" % "spark-mllib_2.10" % "1.6.1" % "provided",
+  //  "mysql" % "mysql-connector-java" % "5.1.36" % "provided",
 
   "joda-time" % "joda-time" % "2.9.9",
 
-  //sparkStreaming
-  //  "org.apache.spark" %% "spark-streaming" % "1.6.1",
-  //  "org.apache.spark" %% "spark-streaming-kafka" % "1.6.1",
-  "org.apache.spark" %% "spark-streaming" % "1.6.1" % "provided",
-  "org.apache.spark" %% "spark-streaming-kafka" % "1.6.1" % "provided",
-
-
-  //redis-client
+  //  redis-client
   "redis.clients" % "jedis" % "2.9.0",
   //  "redis.clients" % "jedis" % "2.9.0" % "provided",
 
+  // spark-mllib
+  //  "org.apache.spark" % "spark-mllib_2.10" % "1.6.1",
 
-  //hbase
+  // sparkStreaming
+  //  "org.apache.spark" %% "spark-streaming" % "1.6.1",
+  //  "org.apache.spark" %% "spark-streaming-kafka" % "1.6.1",
+
+  //  hbase
+  //  "org.apache.hbase" % "hbase-client" % "1.2.0",
+  //  "org.apache.hbase" % "hbase-common" % "1.2.0",
+  //  "org.apache.hbase" % "hbase-server" % "1.2.0",
+  //  "org.apache.hbase" % "hbase-hadoop-compat" % "1.2.0"
+
+  // sparkStreaming
+  "org.apache.spark" %% "spark-streaming" % "1.6.1" % "provided",
+  "org.apache.spark" %% "spark-streaming-kafka" % "1.6.1" % "provided",
+  // spark-mllib
+  "org.apache.spark" % "spark-mllib_2.10" % "1.6.1" % "provided",
+  //  hbase
   "org.apache.hbase" % "hbase-client" % "1.2.0" % "provided",
   "org.apache.hbase" % "hbase-common" % "1.2.0" % "provided",
   "org.apache.hbase" % "hbase-server" % "1.2.0" % "provided",
   "org.apache.hbase" % "hbase-hadoop-compat" % "1.2.0" % "provided"
-  //          "org.apache.hbase" % "hbase-hadoop-compat" % "1.2.0",
-  //"org.apache.hbase" % "hbase-client" % "1.2.0",
-  //"org.apache.hbase" % "hbase-common" % "1.2.0",
-  //"org.apache.hbase" % "hbase-server" % "1.2.0"
 
 ).map(
   _.excludeAll(ExclusionRule(organization = "org.mortbay.jetty"))

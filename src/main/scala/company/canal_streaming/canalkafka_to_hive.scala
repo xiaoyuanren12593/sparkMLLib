@@ -35,7 +35,7 @@ object canalkafka_to_hive {
       * init sparkStream couchbase kafka
       **/
     val conf = new SparkConf().setAppName("CouchbaseKafka")
-//      .setMaster("local[2]")
+    //  .setMaster("local[2]")
     val sc = new SparkContext(conf)
     val ssc: StreamingContext = new StreamingContext(sc, Seconds(10))
     ssc.checkpoint("hdfs://namenode1.cdh:8020/model_data/hive_four")

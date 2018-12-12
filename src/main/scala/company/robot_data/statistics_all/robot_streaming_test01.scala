@@ -2,7 +2,6 @@ package company.robot_data.statistics_all
 
 import java.util.Properties
 
-import Gbk_UTF.Write_mk
 import com.alibaba.fastjson.{JSON, JSONArray, JSONObject}
 import company.robot_data.robot_until_base
 import kafka.serializer.StringDecoder
@@ -226,10 +225,10 @@ object robot_streaming_test01 extends robot_until_base.until {
                   before_just_one_jsonObject.put("workLevel", all_value.getString("ai_level"))
                   before_just_one_jsonObject.put("insuranceCompany", all_value.getString("insurance_company"))
                   json_topic_end_work.put("standardWork", before_just_one_jsonObject)
-                  Write_mk.pr(s"${str}mk6${json_topic_end_work.toJSONString}")
+//                  Write_mk.pr(s"${str}mk6${json_topic_end_work.toJSONString}")
                 })
                 if(work_robot.length==0) {
-                  Write_mk.pr(s"${str}mk6${null}")
+//                  Write_mk.pr(s"${str}mk6${null}")
 
                 }
 

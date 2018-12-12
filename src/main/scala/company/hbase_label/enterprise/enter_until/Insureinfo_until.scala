@@ -149,7 +149,8 @@ trait Insureinfo_until {
     //      .show()
     //    |         policy_id|   insured_cert_no|insured_work_type|insure_policy_status|              ent_id|
     //    |122008268007673856|44132219951005661X|              服务员|                   1|10e11fd0b1a7488db...|
-    val result = ss.join(tepThree, ss("insured_work_type") === tepThree("work_type")).where("insure_policy_status='1' and ai_level is not null").filter("ai_level=1").filter("LENGTH(ent_id)>0")
+    val result = ss.join(tepThree, ss("insured_work_type") === tepThree("work_type")).where("insure_policy_status='1' and ai_level is not null")
+      .filter("LENGTH(ent_id)>0")
     //      .show()
     //    |         policy_id|   insured_cert_no|insured_work_type|insure_policy_status|              ent_id|work_type|ai_level|
     //    |122008268007673856|44132219951005661X|              服务员|                   1|10e11fd0b1a7488db...|      服务员|       1|
@@ -159,12 +160,18 @@ trait Insureinfo_until {
       ((x.getString(4), x.getString(2)), 1)
     }).reduceByKey(_ + _).map(x => {
       (x._1._1, (x._1._2, x._2))
-    }).reduceByKey((x1, x2) => {
-      val res = if (x1._2 > x2._2) x1 else x2
-      res
+    }).groupByKey().flatMap(x => {
+      val ent_first_craft_opt = x._2.toArray.sortBy(_._2)(Ordering[Int].reverse).lift(0)
+      // 返回工种列表
+      List((x._1, ent_first_craft_opt))
     }).map(x => {
-      (x._1, s"${x._2._1}|${x._2._2}", "ent_first_craft")
-    })
+      if (x._2.isDefined) {
+        (x._1, s"${x._2.get._1}|${x._2.get._2}", "ent_first_craft")
+      } else {
+        ("", "", "")
+      }
+    }).filter(_._1 != "")
+
     end
   }
 
@@ -177,26 +184,30 @@ trait Insureinfo_until {
     //      .show()
     //    |         policy_id|   insured_cert_no|insured_work_type|insure_policy_status|              ent_id|
     //    |122008268007673856|44132219951005661X|              服务员|                   1|10e11fd0b1a7488db...|
-    val result = ss.join(tepThree, ss("insured_work_type") === tepThree("work_type")).where("insure_policy_status='1' and ai_level is not null").filter("ai_level=2").filter("LENGTH(ent_id)>0")
+    val result = ss.join(tepThree, ss("insured_work_type") === tepThree("work_type")).where("insure_policy_status='1' and ai_level is not null")
+      .filter("ai_level=2").filter("LENGTH(ent_id)>0")
     //      .show()
     //    |         policy_id|   insured_cert_no|insured_work_type|insure_policy_status|              ent_id|work_type|ai_level|
     //    |122008268007673856|44132219951005661X|              服务员|                   1|10e11fd0b1a7488db...|      服务员|       1|
 
     //求出在该企业第二工种出现最多的次数
+
     val end = result.map(x => {
       ((x.getString(4), x.getString(2)), 1)
     }).reduceByKey(_ + _).map(x => {
       (x._1._1, (x._1._2, x._2))
-    }).reduceByKey((x1, x2) => {
-      val res = if (x1._2 > x2._2) {
-        x1
-      } else {
-        x2
-      }
-      res
+    }).groupByKey().flatMap(x => {
+      val ent_second_craft_opt = x._2.toArray.sortBy(_._2)(Ordering[Int].reverse).lift(1)
+      // 返回工种列表
+      List((x._1, ent_second_craft_opt))
     }).map(x => {
-      (x._1, s"${x._2._1}|${x._2._2}", "ent_second_craft")
-    })
+      if (x._2.isDefined) {
+        (x._1, s"${x._2.get._1}|${x._2.get._2}", "ent_second_craft")
+      } else {
+        ("", "", "")
+      }
+    }).filter(_._1 != "")
+
     end
   }
 
@@ -209,7 +220,8 @@ trait Insureinfo_until {
     //      .show()
     //    |         policy_id|   insured_cert_no|insured_work_type|insure_policy_status|              ent_id|
     //    |122008268007673856|44132219951005661X|              服务员|                   1|10e11fd0b1a7488db...|
-    val result = ss.join(tepThree, ss("insured_work_type") === tepThree("work_type")).where("insure_policy_status='1' and ai_level is not null").filter("ai_level=3").filter("LENGTH(ent_id)>0")
+    val result = ss.join(tepThree, ss("insured_work_type") === tepThree("work_type")).where("insure_policy_status='1' and ai_level is not null")
+      .filter("ai_level=3").filter("LENGTH(ent_id)>0")
     //      .show()
     //    |         policy_id|   insured_cert_no|insured_work_type|insure_policy_status|              ent_id|work_type|ai_level|
     //    |122008268007673856|44132219951005661X|              服务员|                   1|10e11fd0b1a7488db...|      服务员|       1|
@@ -219,16 +231,18 @@ trait Insureinfo_until {
       ((x.getString(4), x.getString(2)), 1)
     }).reduceByKey(_ + _).map(x => {
       (x._1._1, (x._1._2, x._2))
-    }).reduceByKey((x1, x2) => {
-      val res = if (x1._2 > x2._2) {
-        x1
-      } else {
-        x2
-      }
-      res
+    }).groupByKey().flatMap(x => {
+      val ent_third_craft_opt = x._2.toArray.sortBy(_._2)(Ordering[Int].reverse).lift(2)
+      // 返回工种列表
+      List((x._1, ent_third_craft_opt))
     }).map(x => {
-      (x._1, s"${x._2._1}|${x._2._2}", "ent_third_craft")
-    })
+      if (x._2.isDefined) {
+        (x._1, s"${x._2.get._1}|${x._2.get._2}", "ent_third_craft")
+      } else {
+        ("", "", "")
+      }
+    }).filter(_._1 != "")
+
     end
   }
 
@@ -239,7 +253,8 @@ trait Insureinfo_until {
     val tepThree = d_work_level.select("work_type", "ai_level")
     val tepFour = employer_liability_claims.select("policy_no", "final_payment").filter("LENGTH(final_payment)>0")
     val ss = tepOne.join(tepTwo, "policy_id")
-    val result = ss.join(tepThree, ss("insured_work_type") === tepThree("work_type")).where("insure_policy_status='1' and ai_level is not null").filter("LENGTH(ent_id)>0")
+    val result = ss.join(tepThree, ss("insured_work_type") === tepThree("work_type")).where("insure_policy_status='1' and ai_level is not null")
+      .filter("LENGTH(ent_id)>0")
     //      .show()
     //    |           policy_id|   insured_cert_no|insured_work_type|insure_policy_status|              ent_id|         policy_code|work_type|ai_level|
     //    |  155459451304939520|370281199110107321|             出库检验|                   1|ddc05b821562470fa...|  HL1100000098000823|     出库检验|       3|
@@ -415,11 +430,11 @@ trait Insureinfo_until {
 
 
     import sqlContext.implicits._
-        val dim_1 = sqlContext.read.jdbc(location_mysql_url_dwdb, "dim_product", prop).select("product_code", "dim_1").where("dim_1 in ('外包雇主','骑士保','大货车')").map(x => x.getAs[String]("product_code")).collect
-//    val dim_1 = sqlContext.sql("select * from dim_product").select("product_code", "dim_1").where("dim_1 in ('外包雇主','骑士保','大货车')").map(x => x.getAs[String]("product_code")).collect
+    val dim_1 = sqlContext.read.jdbc(location_mysql_url_dwdb, "dim_product", prop).select("product_code", "dim_1").where("dim_1 in ('外包雇主','骑士保','大货车')").map(x => x.getAs[String]("product_code")).collect
+    //    val dim_1 = sqlContext.sql("select * from dim_product").select("product_code", "dim_1").where("dim_1 in ('外包雇主','骑士保','大货车')").map(x => x.getAs[String]("product_code")).collect
 
-        val ods_policy_detail: DataFrame = sqlContext.read.jdbc(location_mysql_url, "ods_policy_detail", prop).where("policy_status in ('1','0')").select("ent_id", "policy_id", "insure_code")
-//    val ods_policy_detail: DataFrame = sqlContext.sql("select * from ods_policy_detail").where("policy_status in ('1','0')").select("ent_id", "policy_id", "insure_code")
+    val ods_policy_detail: DataFrame = sqlContext.read.jdbc(location_mysql_url, "ods_policy_detail", prop).where("policy_status in ('1','0')").select("ent_id", "policy_id", "insure_code")
+    //    val ods_policy_detail: DataFrame = sqlContext.sql("select * from ods_policy_detail").where("policy_status in ('1','0')").select("ent_id", "policy_id", "insure_code")
 
     val tep_ods_one = ods_policy_detail.map(x => (x.getAs[String]("insure_code"), x)).filter(x => if (dim_1.contains(x._1)) true else false)
       .map(x => {
