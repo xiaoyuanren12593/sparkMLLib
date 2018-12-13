@@ -207,7 +207,7 @@ trait cha_Insureinfo_until {
       }).toDF("ent_name", "type", "numbers", "qual")
 
     val end: RDD[(String, String, String)] = ods_ent_guzhu_salesman_channel.toDF("channel_name", "ent_name").join(ent_id, "ent_name")
-      .map(x => (x.getAs[String]("channel_name"), (x.getAs[String]("type"), x.getAs[String]("numbers").toDouble)))
+      .map(x => (x.getAs[String]("channel_name"), (x.getAs[String]("type"), x.getAs[String]("numbers").toInt)))
       .reduceByKey((x1, x2) => if (x1._2 > x2._2) x1 else x2)
       .map(x => {
         (en_before.getOrElse(x._1, "null"), s"${x._2._1}|${x._2._2}", str)
