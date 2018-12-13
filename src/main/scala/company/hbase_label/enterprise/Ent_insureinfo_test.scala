@@ -2,7 +2,6 @@ package company.hbase_label.enterprise
 
 import java.util.Properties
 
-import company.hbase_label.enterprise.Ent_insureinfo.toHbase
 import company.hbase_label.enterprise.enter_until.Insureinfo_until
 import company.hbase_label.until
 import org.apache.spark.sql.DataFrame
@@ -19,7 +18,8 @@ object Ent_insureinfo_test extends Insureinfo_until with until {
     //              也可以理解为出险表，可以这样想，我生病了去看病，要报销，这就可以是一个数据
     //    ods_policy_detail：保单表
     //    dim_product	企业产品信息表
-    val ods_policy_detail: DataFrame = sqlContext.sql("select * from odsdb_prd.ods_policy_detail").cache()
+    val ods_policy_detail: DataFrame = sqlContext.sql("select * from odsdb_prd.ods_policy_detail")
+      .cache()
     //被保人明细表
     val ods_policy_insured_detail = sqlContext.sql("select * from odsdb_prd.ods_policy_insured_detail")
     //保全明细表

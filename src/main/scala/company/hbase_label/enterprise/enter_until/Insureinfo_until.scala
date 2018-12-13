@@ -185,7 +185,7 @@ trait Insureinfo_until {
     //    |         policy_id|   insured_cert_no|insured_work_type|insure_policy_status|              ent_id|
     //    |122008268007673856|44132219951005661X|              服务员|                   1|10e11fd0b1a7488db...|
     val result = ss.join(tepThree, ss("insured_work_type") === tepThree("work_type")).where("insure_policy_status='1' and ai_level is not null")
-      .filter("ai_level=2").filter("LENGTH(ent_id)>0")
+      .filter("LENGTH(ent_id)>0")
     //      .show()
     //    |         policy_id|   insured_cert_no|insured_work_type|insure_policy_status|              ent_id|work_type|ai_level|
     //    |122008268007673856|44132219951005661X|              服务员|                   1|10e11fd0b1a7488db...|      服务员|       1|
@@ -221,7 +221,7 @@ trait Insureinfo_until {
     //    |         policy_id|   insured_cert_no|insured_work_type|insure_policy_status|              ent_id|
     //    |122008268007673856|44132219951005661X|              服务员|                   1|10e11fd0b1a7488db...|
     val result = ss.join(tepThree, ss("insured_work_type") === tepThree("work_type")).where("insure_policy_status='1' and ai_level is not null")
-      .filter("ai_level=3").filter("LENGTH(ent_id)>0")
+      .filter("LENGTH(ent_id)>0")
     //      .show()
     //    |         policy_id|   insured_cert_no|insured_work_type|insure_policy_status|              ent_id|work_type|ai_level|
     //    |122008268007673856|44132219951005661X|              服务员|                   1|10e11fd0b1a7488db...|      服务员|       1|
