@@ -18,20 +18,9 @@ resolvers ++= Seq(
 javacOptions ++= Seq("-encoding", "UTF-8")
 
 libraryDependencies ++= Seq(
-  //  spark-neo4j
-  "neo4j-contrib" % "neo4j-spark-connector" % "2.1.0-M4",
-  //  "neo4j-contrib" % "neo4j-spark-connector" % "2.1.0-M4" % "provided",
-
   //  通过驱动器来实现neo4j(写sql)
   //  "org.neo4j.driver" % "neo4j-java-driver" % "1.0.4",
   "org.neo4j.driver" % "neo4j-java-driver" % "1.0.4" % "provided",
-
-  //  hive
-  "org.apache.spark" %% "spark-hive" % "1.6.1",
-  //  "org.apache.spark" %% "spark-hive" % "1.6.1" % "provided",
-
-  "com.databricks" %% "spark-csv" % "1.4.0",
-  //  "com.databricks" %% "spark-csv" % "1.4.0" % "provided",
 
   //  Alibaba-json
   "com.alibaba" % "fastjson" % "1.2.24",
@@ -56,29 +45,42 @@ libraryDependencies ++= Seq(
   "redis.clients" % "jedis" % "2.9.0",
   //  "redis.clients" % "jedis" % "2.9.0" % "provided",
 
+  // ===================================================================
+  //  spark-neo4j
+  "neo4j-contrib" % "neo4j-spark-connector" % "2.1.0-M4",
+  // spark-csv
+  "com.databricks" %% "spark-csv" % "1.4.0",
+  //  hive
+  "org.apache.spark" %% "spark-hive" % "1.6.1",
   // spark-mllib
-  //  "org.apache.spark" % "spark-mllib_2.10" % "1.6.1",
-
+  "org.apache.spark" % "spark-mllib_2.10" % "1.6.1",
   // sparkStreaming
-  //  "org.apache.spark" %% "spark-streaming" % "1.6.1",
-  //  "org.apache.spark" %% "spark-streaming-kafka" % "1.6.1",
-
+  "org.apache.spark" %% "spark-streaming" % "1.6.1",
+  "org.apache.spark" %% "spark-streaming-kafka" % "1.6.1",
   //  hbase
-  //  "org.apache.hbase" % "hbase-client" % "1.2.0",
-  //  "org.apache.hbase" % "hbase-common" % "1.2.0",
-  //  "org.apache.hbase" % "hbase-server" % "1.2.0",
-  //  "org.apache.hbase" % "hbase-hadoop-compat" % "1.2.0"
+  "org.apache.hbase" % "hbase-client" % "1.2.0",
+  "org.apache.hbase" % "hbase-common" % "1.2.0",
+  "org.apache.hbase" % "hbase-server" % "1.2.0",
+  "org.apache.hbase" % "hbase-hadoop-compat" % "1.2.0"
 
-  // sparkStreaming
-  "org.apache.spark" %% "spark-streaming" % "1.6.1" % "provided",
-  "org.apache.spark" %% "spark-streaming-kafka" % "1.6.1" % "provided",
-  // spark-mllib
-  "org.apache.spark" % "spark-mllib_2.10" % "1.6.1" % "provided",
-  //  hbase
-  "org.apache.hbase" % "hbase-client" % "1.2.0" % "provided",
-  "org.apache.hbase" % "hbase-common" % "1.2.0" % "provided",
-  "org.apache.hbase" % "hbase-server" % "1.2.0" % "provided",
-  "org.apache.hbase" % "hbase-hadoop-compat" % "1.2.0" % "provided"
+  // =========================================================================================
+
+  //  //  hive
+  //  "org.apache.spark" %% "spark-hive" % "1.6.1" % "provided",
+  //  //  spark-neo4j
+  //  "neo4j-contrib" % "neo4j-spark-connector" % "2.1.0-M4" % "provided",
+  //  //  spark-csv
+  //  "com.databricks" %% "spark-csv" % "1.4.0" % "provided",
+  //  // sparkStreaming
+  //  "org.apache.spark" %% "spark-streaming" % "1.6.1" % "provided",
+  //  "org.apache.spark" %% "spark-streaming-kafka" % "1.6.1" % "provided",
+  //  // spark-mllib
+  //  "org.apache.spark" % "spark-mllib_2.10" % "1.6.1" % "provided",
+  //  //  hbase
+  //  "org.apache.hbase" % "hbase-client" % "1.2.0" % "provided",
+  //  "org.apache.hbase" % "hbase-common" % "1.2.0" % "provided",
+  //  "org.apache.hbase" % "hbase-server" % "1.2.0" % "provided",
+  //  "org.apache.hbase" % "hbase-hadoop-compat" % "1.2.0" % "provided"
 
 ).map(
   _.excludeAll(ExclusionRule(organization = "org.mortbay.jetty"))
