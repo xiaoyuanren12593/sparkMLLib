@@ -1,7 +1,5 @@
 package company.hbase_label.channel.channel_trait
 
-import java.text.NumberFormat
-
 import com.alibaba.fastjson.JSON
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.DataFrame
@@ -16,14 +14,13 @@ trait cha_Insureinfo_until {
   //渠道人均保费:累计保费/累计投保人数
 
 
-
   //渠道首次投保至今月数
   def ent_fist_plc_month(before: RDD[(String, String)],
-                       ods_ent_guzhu_salesman_channel: RDD[(String, String)],
-                       sqlContext: HiveContext,
-                       en_before: collection.Map[String, String],
-                       str: String
-                      )
+                         ods_ent_guzhu_salesman_channel: RDD[(String, String)],
+                         sqlContext: HiveContext,
+                         en_before: collection.Map[String, String],
+                         str: String
+                        )
   : RDD[(String, String, String)]
   = {
     import sqlContext.implicits._
@@ -198,16 +195,25 @@ trait cha_Insureinfo_until {
   = {
     import sqlContext.implicits._
     //标签
-    val ent_id = before.map(x =>
-      (x._1, x._2.split(";").filter(_.contains(str)).take(1).mkString(""))
-    ).filter(_._2.length > 1)
+    val ent_id = before
+      .map(x =>
+        (x._1, x._2.split(";").filter(_.contains(str)).take(1).mkString(""))
+      )
+      .filter(_._2.length > 1)
       .map(end => {
         val before = JSON.parseObject(end._2)
-        (end._1, before.getString("value").split("\\|")(0), before.getString("value").split("\\|")(1), before.getString("qual"))
-      }).toDF("ent_name", "type", "numbers", "qual")
+        val beforeArray = before.getString("value").split("\\|")
+        if (beforeArray.size == 2) {
+          (end._1, beforeArray(0), beforeArray(1), before.getString("qual"))
+        } else {
+          ("", "", "", "")
+        }
+      })
+      .filter(x => x._1 != "")
+      .toDF("ent_name", "type", "numbers", "qual")
 
     val end: RDD[(String, String, String)] = ods_ent_guzhu_salesman_channel.toDF("channel_name", "ent_name").join(ent_id, "ent_name")
-      .map(x => (x.getAs[String]("channel_name"), (x.getAs[String]("type"), x.getAs[String]("numbers").toInt)))
+      .map(x => (x.getAs[String]("channel_name"), (x.getAs[String]("type"), x.getAs[String]("numbers").toDouble)))
       .reduceByKey((x1, x2) => if (x1._2 > x2._2) x1 else x2)
       .map(x => {
         (en_before.getOrElse(x._1, "null"), s"${x._2._1}|${x._2._2}", str)

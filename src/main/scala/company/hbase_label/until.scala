@@ -524,15 +524,13 @@ trait until {
     //设置查询的表名
     conf.set(TableInputFormat.INPUT_TABLE, "labels:label_user_enterprise_vT")
 
-    val usersRDD: RDD[(ImmutableBytesWritable, Result)] = sc.newAPIHadoopRDD(conf,
+    val usersRDD: RDD[(ImmutableBytesWritable, Result)] = sc.newAPIHadoopRDD(
+      conf,
       classOf[TableInputFormat],
       classOf[org.apache.hadoop.hbase.io.ImmutableBytesWritable],
       classOf[org.apache.hadoop.hbase.client.Result]
     )
     usersRDD
-
-
-
   }
 
   def KeyValueToString(keyValues: Array[KeyValue], json: JSONObject,ent_name:String): String = {
