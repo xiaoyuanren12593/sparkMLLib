@@ -1,11 +1,12 @@
 package company.hbase_label.enterprise
 
-import java.text.NumberFormat
+import java.text.{NumberFormat, SimpleDateFormat}
 import java.util.Properties
 import java.util.regex.Pattern
 
 import company.hbase_label.enterprise.enter_until.Claiminfo_until
 import company.hbase_label.until
+import org.apache.commons.cli.ParseException
 import org.apache.spark.broadcast.Broadcast
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.DataFrame
@@ -24,6 +25,21 @@ object Ent_claiminfo extends Claiminfo_until with until {
     m.find()
   }
 
+  def is_not_date(str: String): Boolean
+  = {
+    var convertSuccess: Boolean = true
+    // 指定日期格式为四位年/两位月份/两位日期，注意yyyy/MM/dd区分大小写；
+    var format = new SimpleDateFormat("yyyy/MM/dd")
+    // 设置lenient为false. 否则SimpleDateFormat会比较宽松地验证日期，比如2007/02/29会被接受，并转换成2007/03/01
+    try {
+      format.setLenient(false);
+      format.parse(str)
+    } catch {
+      case e => convertSuccess = false
+    };
+     convertSuccess
+  }
+
   //理由同上类 : 27
   //企业报案时效（小时）
   def ent_report_time(employer_liability_claims_r: DataFrame, ods_policy_detail_r: DataFrame): RDD[(String, String, String)] = {
@@ -38,7 +54,15 @@ object Ent_claiminfo extends Claiminfo_until with until {
       .map(x => x).filter(x => {
       val date3 = x.getString(1)
       val date4 = x.getString(2)
-      if (!is_not_chinese(date3) && !is_not_chinese(date4)) true else false
+      if (!is_not_chinese(date3) && !is_not_chinese(date4)) {
+        if(is_not_date(date3) && is_not_date(date4)) {
+          true
+        } else {
+          false
+        }
+      } else {
+        false
+      }
     }).map(x => {
       val date3 = x.getString(1)
       val date4 = x.getString(2)

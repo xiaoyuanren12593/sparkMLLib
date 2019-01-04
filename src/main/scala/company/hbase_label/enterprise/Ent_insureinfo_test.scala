@@ -1,9 +1,13 @@
 package company.hbase_label.enterprise
 
+import java.text.NumberFormat
 import java.util.Properties
 
+import company.hbase_label.enterprise.Ent_claiminfo.{Claminfo, _}
 import company.hbase_label.enterprise.enter_until.Insureinfo_until
 import company.hbase_label.until
+import org.apache.spark.broadcast.Broadcast
+import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.hive.HiveContext
 import org.apache.spark.{SparkConf, SparkContext}
@@ -43,6 +47,97 @@ object Ent_insureinfo_test extends Insureinfo_until with until {
     })
   }
 
+  def ent_report_time(employer_liability_claims_r: DataFrame, ods_policy_detail_r: DataFrame): RDD[(String, String, String)] = {
+    //report_date:报案日期
+    //risk_date:出险日期
+
+    val numberFormat = NumberFormat.getInstance
+    numberFormat.setMaximumFractionDigits(2)
+    val employer_liability_claims = employer_liability_claims_r.filter("length(report_date)>3 and length(risk_date)>3").select("policy_no", "report_date", "risk_date")
+      //    val employer_liability_claims = sqlContext.sql("select lc.policy_no, lc.report_date ,lc.risk_date from  odsdb_prd.employer_liability_claims lc")
+      //      .filter("length(report_date)>3 and length(risk_date)>3")
+      .map(x => x).filter(x => {
+      val date3 = x.getString(1)
+      val date3_ = x.getAs[String]("report_date")
+      val date4_ = x.getAs[String]("risk_date")
+      val date4 = x.getString(2)
+      if (!is_not_chinese(date3) && !is_not_chinese(date4))
+      {
+        if(is_not_date(date3) && is_not_date(date4)) {
+          true
+        } else {
+          false
+        }
+      } else {
+        false
+      }
+    }).map(x => {
+      val date3 = x.getString(1)
+      val date4 = x.getString(2)
+      println(date3 +"        "+date4)
+      val day_mix: Int = xg(date3, date4)
+      //日期相同的话，日期相减是0，因此如果是0的话，那么我们返回1天来进行计算，
+      val dm = if (day_mix == 0) 1 else day_mix
+      //保单号，出险与保险相差的天数(报>=出)
+      (x.getString(0), dm)
+    })
+    val ods_policy_detail = ods_policy_detail_r.select("ent_id", "policy_code")
+      //    val ods_policy_detail = sqlContext.sql("select pd.ent_id,pd.policy_code from odsdb_prd.ods_policy_detail pd")
+      .map(x => {
+      //police_code | ent_id
+      (x.getString(1), x.getString(0))
+    })
+    //根据保单ID做一个Join，找到我对应的在保单ID中的数据(企业ent_id在保单表中)
+    //ent_id，小时(存到了hbase中的ent_report_time)
+    val end_result: RDD[(String, String, String)] = employer_liability_claims.join(ods_policy_detail).map(x => {
+      val police_id = x._1 //police_id
+      val day_max = x._2._1 //相差的天数
+      val ent_id = x._2._2 // ent_id
+      (ent_id, day_max)
+    }).groupByKey.map(x => {
+      val su = x._2.map(x => x.toDouble).sum
+      val si = x._2.map(x => x.toDouble).size
+      val avg = su / si
+      val end_result = numberFormat.format(avg)
+      //      (x._1, end_result, "ent_report_time")
+      (x._1, avg.toString, "ent_report_time")
+    })
+    //      .take(10).foreach(println(_))
+    (end_result.foreach(println))
+    end_result
+  }
+
+  def Claminfo(sqlContext: HiveContext, sc: SparkContext) {
+
+    //HBaseConf
+    val conf = HbaseConf("labels:label_user_enterprise_vT")._1
+    val conf_fs = HbaseConf("labels:label_user_enterprise_vT")._2
+    val tableName = "labels:label_user_enterprise_vT"
+    val columnFamily1 = "claiminfo"
+
+    //    employer_liability_claims :雇主保理赔记录表    //已经报了案的
+    //            意思是：
+    //              也可以理解为出险表，可以这样想，我生病了去看病，要报销，这就可以是一个数据
+    //    ods_policy_detail：保单表
+    //    dim_product	企业产品信息表
+
+    val employer_liability_claims: DataFrame = sqlContext.sql("select * from odsdb_prd.employer_liability_claims").cache
+
+    val ods_policy_detail: DataFrame = sqlContext.sql("select * from odsdb_prd.ods_policy_detail").cache
+    val dim_product = sqlContext.sql("select * from odsdb_prd.dim_product").filter("product_type_2='蓝领外包'").select("product_code").cache()
+    val bro_dim: Broadcast[Array[String]] = sc.broadcast(dim_product.map(_.get(0).toString).collect)
+    val ods_policy_insured_charged = sqlContext.sql("select * from odsdb_prd.ods_policy_insured_charged")
+    val ods_policy_risk_period = sqlContext.sql("select * from odsdb_prd.ods_policy_risk_period").cache //ods_policy_risk_period:投保到报案
+    val ods_policy_insured_detail = sqlContext.sql("select * from odsdb_prd.ods_policy_insured_detail")
+    val d_work_level = sqlContext.sql("select * from odsdb_prd.d_work_level").cache
+    val ods_policy_preserve_detail = sqlContext.sql("select * from odsdb_prd.ods_policy_preserve_detail")
+
+//    employer_liability_claims.show(100)
+    //企业报案时效（小时）
+    val ent_report_time_r: RDD[(String, String, String)] = ent_report_time(employer_liability_claims, ods_policy_detail).distinct()
+//    toHbase(ent_report_time_r, columnFamily1, "ent_report_time", conf_fs, tableName, conf)
+  }
+
   def main(args: Array[String]): Unit = {
     val confs = new SparkConf()
       .setAppName("wuYu")
@@ -57,8 +152,11 @@ object Ent_insureinfo_test extends Insureinfo_until with until {
 
     val sc = new SparkContext(confs)
     val sqlContext: HiveContext = new HiveContext(sc)
+    Claminfo(sqlContext: HiveContext, sc)
+    //    Insure(sqlContext: HiveContext, location_mysql_url: String, location_mysql_url_dwdb: String, prop: Properties)
+//    val bool: Boolean = is_not_date("510222196505068016")
+//    if(is_not_date("2018/11/2")) println(true) else println(false)
 
-    Insure(sqlContext: HiveContext, location_mysql_url: String, location_mysql_url_dwdb: String, prop: Properties)
     sc.stop()
   }
 }

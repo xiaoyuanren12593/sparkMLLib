@@ -76,7 +76,7 @@ object PersonalClaimService extends until {
   //预估总赔付金额
   //pre_com:预估赔付金额
   def prepay_total(employer_liability_claims: DataFrame): RDD[(String, String, String)] = {
-    val end = employer_liability_claims.filter("length(cert_no)> 2").select("cert_no", "pre_com")
+    val end = employer_liability_claims.filter("length(cert_no)> 14").filter("pre_com is not null").select("cert_no", "pre_com")
       .map(x => x)
       .filter(x => {
         val pre_com = x.get(1).toString
@@ -85,9 +85,9 @@ object PersonalClaimService extends until {
         if (!m.find) true else false
       })
       .map(x => {
-        (x.getString(0), x.get(1).toString)
-      }).filter(_._2 != ".")
-
+        (x.getString(0).trim(), x.get(1).toString)
+      })
+      .filter(_._2 != ".").filter(_._2 != "#N/A")
       .map(x => (x._1, x._2.toDouble))
       .reduceByKey(_ + _).map(x => {
       (x._1, x._2.toInt + "", "prepay_total")
