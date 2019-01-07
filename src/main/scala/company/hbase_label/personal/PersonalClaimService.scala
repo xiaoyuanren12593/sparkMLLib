@@ -108,7 +108,7 @@ object PersonalClaimService extends until {
       .map(x => {
         (x.getString(0), x.get(1).toString)
       })
-     .filter(_._2 != ".")
+     .filter(_._2 != ".").filter(_._2 != "#N/A")
       .map(x => (x._1, x._2.toDouble))
 
       .reduceByKey(_ + _).map(x => {
@@ -131,7 +131,7 @@ object PersonalClaimService extends until {
       .map(x => {
         (x.getString(0), x.get(1).toString)
       })
-      .filter(_._2 != ".")
+      .filter(_._2 != ".").filter(_._2 != "#N/A")
       .map(x => (x._1, x._2.toDouble))
 
       .reduceByKey(_ + _).map(x => {
@@ -154,7 +154,7 @@ object PersonalClaimService extends until {
       .map(x => {
         (x.getString(0), x.get(1).toString)
       })
-      .filter(_._2 != ".")
+      .filter(_._2 != ".").filter(_._2 != "#N/A")
       .map(x => (x._1, x._2.toDouble))
 
       .reduceByKey(_ + _).map(x => {
@@ -177,7 +177,7 @@ object PersonalClaimService extends until {
       .map(x => {
         (x.getString(0), x.get(1).toString)
       })
-      .filter(_._2 != ".")
+      .filter(_._2 != ".").filter(_._2 != "#N/A")
       .map(x => (x._1, x._2.toDouble))
       .reduceByKey(_ + _).map(x => {
       (x._1, x._2.toInt + "", "prepay_notwork")
