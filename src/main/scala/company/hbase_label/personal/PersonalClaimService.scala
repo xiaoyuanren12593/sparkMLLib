@@ -215,7 +215,7 @@ object PersonalClaimService extends until {
       val result = if (x.get(1) == "" || x.get(1) == null) "0.0" else x.get(1).toString
       (x.getString(0), result)
     })
-      .filter(_._2 != ".")
+      .filter(_._2 != ".").filter(_._2 != "#N/A")
       .map(x => (x._1, x._2.toDouble))
       .reduceByKey(_ + _).map(x => {
       (x._1, x._2.toDouble)
