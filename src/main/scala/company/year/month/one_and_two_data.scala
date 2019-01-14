@@ -390,6 +390,7 @@ object one_and_two_data extends year_until {
       .select("id").withColumnRenamed("id", "odr_id").cache
 
     val big = big_before.join(odr_id, big_before("policy_id") === odr_id("odr_id"),"left").drop("odr_id")
+      .filter("insured_name is not null").filter("insured_name != 'null'")
 
     val table_name = "ods_policy_preserve_detail"
     big.insertInto(s"odsdb_prd.$table_name", overwrite = true) //存入哪张表中
