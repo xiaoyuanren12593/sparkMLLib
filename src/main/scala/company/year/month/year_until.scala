@@ -29,17 +29,21 @@ import scala.collection.mutable.ArrayBuffer
 trait year_until {
   //通过身份证号和注册保险时间 得到年龄
   def getAge (cert_no:String,end :String) = {
+    import java.text.SimpleDateFormat
+    val sdf: SimpleDateFormat = new SimpleDateFormat("yyyyMMdd")
+
     if(cert_no.length == 18){
-      import java.text.SimpleDateFormat
-      val sdf: SimpleDateFormat = new SimpleDateFormat("yyyyMMdd")
       //跨年的情况会出现问题哦
       //如果时间为：2016-03-18 11:59:59 和 2016-03-19 00:00:01的话差值为 1
-      val fDate = sdf.parse(cert_no.substring(6,14))
-      val oDate = sdf.parse(end)
-
-      val days = ((oDate.getTime - fDate.getTime) / (1000 * 3600 * 24))/365
-      days.toString
-    } else "-1"
+      if(end != null  && !"".equals(end) && !"null".equals(end)){
+        val fDate = sdf.parse(cert_no.substring(6,14))
+        val oDate = sdf.parse(end)
+        val days: Int = (((oDate.getTime - fDate.getTime) / (1000 * 3600 * 24))/365).toInt + 1
+        days.toString
+      }else
+        "-1"
+    } else
+      "-1"
   }
 
 
