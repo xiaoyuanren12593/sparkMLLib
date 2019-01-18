@@ -348,11 +348,12 @@ object baseinfo_merge_test extends year_until {
 
     //得到1.0表的数据 x
     val end_one = get_one(sqlContext: HiveContext, prop: Properties, url: String)
+//    end_one.show(10)
 
-//    //得到2.0表的数据
+    //得到2.0表的数据
     val end_two = get_two(sqlContext: HiveContext, prop: Properties, url: String)
-//    end_two.show()
-//    //得到字段名字
+//    end_two.show(10)
+    //得到字段名字
     val fields_name = end_one.schema.map(x => x.name)
     val end_dataFrame = end_one.map(x => x).union(end_two.map(x => x))
 //
