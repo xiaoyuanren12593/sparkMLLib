@@ -367,7 +367,7 @@ object baseinfo_merge_test extends year_until {
     //大表生成DF
     val big_before: DataFrame = sqlContext.createDataFrame(value_tepTwo, schema_tepOne)
 
-    println(big_before.count())
+//    println(big_before.count())
     //要过滤的数据
 //    val odr_id = sqlContext.read.jdbc(url, "odr_policy", prop)
 //      .where("insure_code!='1500001'")
