@@ -109,8 +109,8 @@ object baseinfo_merge_test extends year_until {
       .persist(StorageLevel.MEMORY_AND_DISK_SER)
 
     //将sql中的回车替换掉
-    sqlContext.sql("select  regexp_replace(work_type,'\\n','') as insured_work_type ,regexp_replace(cert_no,'\\n','') as insured_cert_no,* from a")
-      .drop("work_type").drop("cert_no")
+    sqlContext.sql("select  regexp_replace(name,'\\n','') as a_name , regexp_replace(work_type,'\\n','') as insured_work_type ,regexp_replace(cert_no,'\\n','') as insured_cert_no,* from a")
+      .drop("work_type").drop("cert_no").drop("name")
       .registerTempTable("a_new")
 
     val plc_policy_preserve_insured_version_one: DataFrame = sqlContext.sql("select * from a_new")
@@ -128,8 +128,8 @@ object baseinfo_merge_test extends year_until {
     val plc_policy_preserve_insured =
       plc_policy_preserve_insured_version_three
         .withColumn("insured_work_type", plc_policy_preserve_insured_version_three("work_type_mk"))
-        .withColumn("name", plc_policy_preserve_insured_version_three("name_mk"))
-        .drop("work_type_mk").drop("name_mk")
+        .withColumn("name", plc_policy_preserve_insured_version_three("a_name"))
+        .drop("work_type_mk").drop("a_name")
 
     val tep_one = plc_policy_preserve_insured.join(b,b("insured_id") === plc_policy_preserve_insured("a_id"),"left")
 
@@ -194,7 +194,6 @@ object baseinfo_merge_test extends year_until {
       .withColumnRenamed("policy_no", "aa_policy_no")
       .withColumnRenamed("insured_type", "a_insured_type")
       .withColumnRenamed("is_legal", "a_is_legal")
-      .withColumnRenamed("name", "a_name")
       .withColumnRenamed("sex", "insured_gender")
       .withColumnRenamed("cert_type", "insured_cert_type")
       .withColumnRenamed("cert_no", "a_insured_cert_no")
@@ -235,8 +234,8 @@ object baseinfo_merge_test extends year_until {
     b_policy_preservation_subject_person_master_after.registerTempTable("mk_ce")
 
 
-    sqlContext.sql("select  regexp_replace(work_type,'\\n','') as a_insured_work_type ,regexp_replace(a_insured_cert_no,'\\n','') as a_insured_cert_no_new,* from mk_ce")
-      .drop("work_type").drop("a_insured_cert_no")
+    sqlContext.sql("select  regexp_replace(name,'\\n','') as a_name, regexp_replace(work_type,'\\n','') as a_insured_work_type ,regexp_replace(a_insured_cert_no,'\\n','') as a_insured_cert_no_new,* from mk_ce")
+      .drop("work_type").drop("a_insured_cert_no").drop("name")
       .registerTempTable("a_new")
 
     val b_policy_preservation_subject_person_master_version_one: DataFrame = sqlContext.sql("select " +
