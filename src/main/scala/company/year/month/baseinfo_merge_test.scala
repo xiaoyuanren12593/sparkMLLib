@@ -281,7 +281,7 @@ object baseinfo_merge_test extends year_until {
       "insured_profession",
       "insured_mobile",
       "insured_industry",
-      "c_work_type as insured_work_type",
+      "insured_work_type",
       "insured_nation",
       "insured_company_name",
       "insured_company_phone",
