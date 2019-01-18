@@ -240,12 +240,12 @@ object baseinfo_merge_test extends year_until {
       .registerTempTable("a_new")
 
     val b_policy_preservation_subject_person_master_version_one: DataFrame = sqlContext.sql("select " +
-      "*,CASE WHEN mk_ce.`status` = '1'" +
+      "*,CASE WHEN a_new.`status` = '1'" +
       "    THEN '0'" +
       "    ELSE '1'" +
       "  END as insured_status, " +
-      "case when (mk_ce.`status`='1' and insured_end_date > now() and insured_start_date< now() ) then '1' else '2' end as insure_policy_status," +
-      "case when insured_cert_type ='1' and insured_start_date is not null then getAge(a_insured_cert_no,insured_start_date) else null end as age from a_new") //.persist(StorageLevel.MEMORY_ONLY_SER)
+      "case when (a_new.`status`='1' and insured_end_date > now() and insured_start_date< now() ) then '1' else '2' end as insure_policy_status," +
+      "case when insured_cert_type ='1' and insured_start_date is not null then getAge(a_insured_cert_no_new,insured_start_date) else null end as age from a_new") //.persist(StorageLevel.MEMORY_ONLY_SER)
 
     val fields_mk = b_policy_preservation_subject_person_master_version_one.schema.map(x => x.name) :+ "c_work_type_mk"
     val b_policy_preservation_subject_person_master_version_two = b_policy_preservation_subject_person_master_version_one.map(x => {
@@ -276,7 +276,7 @@ object baseinfo_merge_test extends year_until {
       "a_name as insured_name",
       "insured_gender",
       "insured_cert_type",
-      "a_insured_cert_no as insured_cert_no",
+      "a_insured_cert_no_new as insured_cert_no",
       "insured_birthday",
       "insured_profession",
       "insured_mobile",
