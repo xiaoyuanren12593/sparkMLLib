@@ -331,7 +331,7 @@ object baseinfo_merge_test extends year_until {
     System.setProperty("HADOOP_USER_NAME", "hdfs")
     val conf_s = new SparkConf()
       .setAppName("baseinfo_merge")
-      .setMaster("local[4]")
+//      .setMaster("local[4]")
       .set("spark.sql.broadcastTimeout", "36000")
       .set("spark.network.timeout", "36000")
       .set("spark.executor.heartbeatInterval","20000")
@@ -340,7 +340,7 @@ object baseinfo_merge_test extends year_until {
     val sqlContext: HiveContext = new HiveContext(sc)
 
     //创建uuid函数
-    sqlContext.udf.register("getUUID", () => (java.util.UUID.randomUUID() + "").replace("-", ""))
+    sqlContext.udf.register("getUUID", () => (java.util.UUID.randomUUID() + ""))
 
     sqlContext.udf.register("getAge", (cert_no:String,end :String) => getAge(cert_no,end))
 
@@ -355,7 +355,6 @@ object baseinfo_merge_test extends year_until {
 //    //得到字段名字
     val fields_name = end_one.schema.map(x => x.name)
     val end_dataFrame = end_one.map(x => x).union(end_two.map(x => x))
-//
 //
 //    //得到字段对应的值
     val field_value = end_dataFrame.map(x => {
@@ -377,13 +376,14 @@ object baseinfo_merge_test extends year_until {
 //    val big = big_before.join(odr_id, big_before("policy_id") === odr_id("odr_id"),"left").drop("odr_id")
 //      .where("insured_name is not null").where("insured_name != 'null'")
     //ods_policy_insured_detail
-//    val table_name = "ods_policy_insured_detail"
-//    big_before.insertInto(s"odsdb_prd.$table_name", overwrite = true) //存入哪张表中
-//    val tep_end: RDD[String] = big_before.map(_.mkString("mk6")).map(x => {
-//      val arrArray = x.split("mk6").map(x => if (x == "null" || x == null) "" else x)
-//      arrArray.mkString("mk6")
-//    }) //存入mysql
-//    delete(hdfs_url, "/oozie/mysqlData/ods_policy_preserve_detail", tep_end) //删除后，输出到文件中
+    val table_name = "ods_policy_insured_detail_xing"
+    big_before.insertInto(s"odsdb_prd.$table_name", overwrite = true) //存入哪张表中
+    val tep_end: RDD[String] = big_before.map(_.mkString("mk6")).map(x => {
+      val arrArray = x.split("mk6").map(x => if (x == "null" || x == null) "" else x)
+      arrArray.mkString("mk6")
+    }) //存入mysql
+    delete(hdfs_url, "/oozie/mysqlData/ods_policy_insured_detail_xing", tep_end) //删除后，输出到文件中
 
+    sc.stop()
   }
 }
