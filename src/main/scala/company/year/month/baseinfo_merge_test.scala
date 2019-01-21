@@ -66,6 +66,7 @@ object baseinfo_merge_test extends year_until {
       .withColumnRenamed("policy_id", "a_policy_id")
       .withColumnRenamed("insured_type", "a_insured_type")
       .withColumnRenamed("is_legal", "a_is_legal")
+      .withColumnRenamed("name","a_name")
       .withColumnRenamed("gender", "insured_gender")
       .withColumnRenamed("cert_type", "insured_cert_type")
       .withColumnRenamed("birthday", "insured_birthday")
@@ -109,8 +110,8 @@ object baseinfo_merge_test extends year_until {
       .persist(StorageLevel.MEMORY_AND_DISK_SER)
 
     //将sql中的回车替换掉
-    sqlContext.sql("select  regexp_replace(name,'\\n','') as a_name , regexp_replace(work_type,'\\n','') as insured_work_type ,regexp_replace(cert_no,'\\n','') as insured_cert_no,* from a")
-      .drop("work_type").drop("cert_no").drop("name")
+    sqlContext.sql("select regexp_replace(a_name,'\\n','') as a_name_new, regexp_replace(work_type,'\\n','') as insured_work_type ,regexp_replace(cert_no,'\\n','') as insured_cert_no,* from a")
+      .drop("work_type").drop("cert_no").drop("a_name")
       .registerTempTable("a_new")
 
     val plc_policy_preserve_insured_version_one: DataFrame = sqlContext.sql("select * from a_new")
@@ -118,7 +119,7 @@ object baseinfo_merge_test extends year_until {
     val fields_mk = plc_policy_preserve_insured_version_one.schema.map(x => x.name) :+ "work_type_mk" :+ "name_mk"
     val plc_policy_preserve_insured_version_two = plc_policy_preserve_insured_version_one.map(x => {
       val work = to_null(x.getAs[String]("insured_work_type"))
-      val name = to_null(x.getAs[String]("name"))
+      val name = to_null(x.getAs[String]("a_name_new"))
 
       (x.toSeq :+ work :+ name).map(x => if (x == null) "null" else x.toString)
     })
@@ -128,8 +129,8 @@ object baseinfo_merge_test extends year_until {
     val plc_policy_preserve_insured =
       plc_policy_preserve_insured_version_three
         .withColumn("insured_work_type", plc_policy_preserve_insured_version_three("work_type_mk"))
-        .withColumn("name", plc_policy_preserve_insured_version_three("a_name"))
-        .drop("work_type_mk").drop("a_name")
+        .withColumn("insured_name", plc_policy_preserve_insured_version_three("name_mk"))
+        .drop("work_type_mk").drop("name_mk")
 
     val tep_one = plc_policy_preserve_insured.join(b,b("insured_id") === plc_policy_preserve_insured("a_id"),"left")
 
@@ -149,7 +150,7 @@ object baseinfo_merge_test extends year_until {
       "a_policy_id as policy_id",
       "a_insured_type as insured_type",
       "a_is_legal as is_legal",
-      "name as insured_name",
+      "insured_name",
       "insured_gender",
       "insured_cert_type",
       "insured_cert_no",
@@ -179,7 +180,7 @@ object baseinfo_merge_test extends year_until {
       "child_start_date",
       "child_end_date",
       "child_create_time",
-      "getAge(insured_cert_no,insured_start_date) as age"
+      "getAgeFromBirthTime(insured_cert_no,insured_start_date) as age"
     )
     result
   }
@@ -194,6 +195,7 @@ object baseinfo_merge_test extends year_until {
       .withColumnRenamed("policy_no", "aa_policy_no")
       .withColumnRenamed("insured_type", "a_insured_type")
       .withColumnRenamed("is_legal", "a_is_legal")
+      .withColumnRenamed("name", "a_name")
       .withColumnRenamed("sex", "insured_gender")
       .withColumnRenamed("cert_type", "insured_cert_type")
       .withColumnRenamed("cert_no", "a_insured_cert_no")
@@ -234,8 +236,8 @@ object baseinfo_merge_test extends year_until {
     b_policy_preservation_subject_person_master_after.registerTempTable("mk_ce")
 
 
-    sqlContext.sql("select  regexp_replace(name,'\\n','') as a_name, regexp_replace(work_type,'\\n','') as a_insured_work_type ,regexp_replace(a_insured_cert_no,'\\n','') as a_insured_cert_no_new,* from mk_ce")
-      .drop("work_type").drop("a_insured_cert_no").drop("name")
+    sqlContext.sql("select regexp_replace(a_name,'\\n','') as a_name_new ,regexp_replace(work_type,'\\n','') as a_insured_work_type ,regexp_replace(a_insured_cert_no,'\\n','') as a_insured_cert_no_new,* from mk_ce")
+      .drop("work_type").drop("a_insured_cert_no").drop("a_name")
       .registerTempTable("a_new")
 
     val b_policy_preservation_subject_person_master_version_one: DataFrame = sqlContext.sql("select " +
@@ -244,18 +246,21 @@ object baseinfo_merge_test extends year_until {
       "    ELSE '1'" +
       "  END as insured_status, " +
       "case when (a_new.`status`='1' and insured_end_date > now() and insured_start_date< now() ) then '1' else '2' end as insure_policy_status," +
-      "case when insured_cert_type ='1' and insured_start_date is not null then getAge(a_insured_cert_no_new,insured_start_date) else null end as age from a_new") //.persist(StorageLevel.MEMORY_ONLY_SER)
+      "case when insured_cert_type ='1' and insured_start_date is not null then getAgeFromBirthTime(a_insured_cert_no_new,insured_start_date) else null end as age from a_new") //.persist(StorageLevel.MEMORY_ONLY_SER)
 
-    val fields_mk = b_policy_preservation_subject_person_master_version_one.schema.map(x => x.name) :+ "c_work_type_mk"
+    val fields_mk = b_policy_preservation_subject_person_master_version_one.schema.map(x => x.name) :+ "c_work_type_mk" :+ "name_new"
     val b_policy_preservation_subject_person_master_version_two = b_policy_preservation_subject_person_master_version_one.map(x => {
       val work = to_null(x.getAs[String]("a_insured_work_type"))
-      (x.toSeq :+ work).map(x => if (x == null) "null" else x.toString)
+      val name = to_null(x.getAs[String]("a_name_new"))
+      (x.toSeq :+ work :+ name).map(x => if (x == null) "null" else x.toString)
     })
 
     val value = b_policy_preservation_subject_person_master_version_two.map(r => Row(r: _*))
     val schema = StructType(fields_mk.map(fieldName => StructField(fieldName, StringType, nullable = true)))
     val b_policy_preservation_subject_person_master_version_three = sqlContext.createDataFrame(value, schema)
-    val b_policy_preservation_subject_person_master = b_policy_preservation_subject_person_master_version_three.withColumn("insured_work_type", b_policy_preservation_subject_person_master_version_three("c_work_type_mk")).drop("c_work_type_mk")
+    val b_policy_preservation_subject_person_master = b_policy_preservation_subject_person_master_version_three
+      .withColumn("insured_work_type", b_policy_preservation_subject_person_master_version_three("c_work_type_mk"))
+      .drop("c_work_type_mk")
 
     b.registerTempTable("b_new")
 
@@ -272,7 +277,7 @@ object baseinfo_merge_test extends year_until {
       "c_id as policy_id",
       "'' as insured_type",
       "a_is_legal as is_legal",
-      "a_name as insured_name",
+      "name_new as insured_name",
       "insured_gender",
       "insured_cert_type",
       "a_insured_cert_no_new as insured_cert_no",
@@ -345,26 +350,27 @@ object baseinfo_merge_test extends year_until {
     //创建uuid函数
     sqlContext.udf.register("getUUID", () => (java.util.UUID.randomUUID() + ""))
 
-    sqlContext.udf.register("getAge", (cert_no:String,end :String) => getAge(cert_no,end))
+    sqlContext.udf.register("getAgeFromBirthTime", (cert_no:String,end :String) => getAgeFromBirthTime(cert_no,end))
 
     val prop: Properties = new Properties
 
     //得到1.0表的数据 x
     val end_one = get_one(sqlContext: HiveContext, prop: Properties, url: String)
-//    end_one.show(10)
+//    end_one.selectExpr("insured_name like '%50周岁%'").show(10)
 
     //得到2.0表的数据
     val end_two = get_two(sqlContext: HiveContext, prop: Properties, url: String)
-//    end_two.show(10)
+//    end_one.selectExpr("insured_name like '%50周岁%'").show(10)
+//    end_one.show(10)
     //得到字段名字
     val fields_name = end_one.schema.map(x => x.name)
     val end_dataFrame = end_one.map(x => x).union(end_two.map(x => x))
 //
-//    //得到字段对应的值
+//    得到字段对应的值
     val field_value = end_dataFrame.map(x => {
       x.toSeq.map(x => if (x == null) "null" else x.toString).toArray
     })
-
+//
     val schema_tepOne = StructType(fields_name.map(fieldName => StructField(fieldName, StringType, nullable = true)))
     //字段对应的值
     val value_tepTwo = field_value.map(r => Row(r: _*))
