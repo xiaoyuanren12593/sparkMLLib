@@ -27,6 +27,63 @@ import scala.collection.mutable.ArrayBuffer
   * Created by a2589 on 2018/4/2.
   */
 trait year_until {
+
+  //精准的获取年龄
+  def getAgeFromBirthTime(cert_no: String,time:String): Int = {
+    if (cert_no.length == 18) {
+      if (time == null || "".equals(time) || "null".equals(time)) {
+        0
+      } else {
+        val formatter = DateTimeFormat.forPattern("YYYYMMdd")
+        val formatter1 = DateTimeFormat.forPattern("YYYY-MM-dd HH:mm:ss")
+        val birthTime = formatter.parseLocalDate(cert_no.substring(6, 14))
+        val selectYear = birthTime.getYear.toInt
+        val selectMonth = birthTime.getMonthOfYear.toInt
+        val selectDay = birthTime.getDayOfMonth.toInt
+        println(selectYear + "" + selectMonth + "" + selectDay)
+
+        // 得到当前时间的年、月、日
+        val localDate = formatter1.parseLocalDate(time)
+        val yearNow = localDate.getYear.toInt
+        val monthNow = localDate.getMonthOfYear.toInt
+        val dayNow = localDate.getDayOfMonth.toInt
+
+        // 用当前年月日减去生日年月日
+        val yearMinus = yearNow - selectYear
+        val monthMinus = monthNow - selectMonth
+        val dayMinus = dayNow - selectDay
+        var age = yearMinus // 先大致赋值
+        println(yearNow + "" + monthNow + "" + dayNow)
+        if (yearMinus < 0) { // 选了未来的年份
+          age = 0
+        }
+        else if (yearMinus == 0) { // 同年的，要么为1，要么为0
+          if (monthMinus < 0) { // 选了未来的月份
+            age = 0
+          }
+          else if (monthMinus == 0) { // 同月份的
+            if (dayMinus < 0) { // 选了未来的日期
+              age = 0
+            }
+            else if (dayMinus >= 0) age = 1
+          }
+          else if (monthMinus > 0) age = 1
+        }
+        else if (yearMinus > 0) if (monthMinus < 0) {
+          // 当前月>生日月
+        }
+        else if (monthMinus == 0) { // 同月份的，再根据日期计算年龄
+          if (dayMinus < 0) {
+          }
+          else if (dayMinus >= 0) age = age + 1
+        }
+        else if (monthMinus > 0) age = age + 1
+        age
+      }
+    } else
+      0
+  }
+
   //通过身份证号和注册保险时间 得到年龄
   def getAge (cert_no:String,end :String) = {
     import java.text.SimpleDateFormat
