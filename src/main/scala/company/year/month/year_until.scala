@@ -35,6 +35,7 @@ trait year_until {
         0
       } else {
         val formatter = DateTimeFormat.forPattern("YYYYMMdd")
+        var time_new  = time.substring(0,19)
         val formatter1 = DateTimeFormat.forPattern("YYYY-MM-dd HH:mm:ss")
         val birthTime = formatter.parseLocalDate(cert_no.substring(6, 14))
         val selectYear = birthTime.getYear.toInt
@@ -43,7 +44,7 @@ trait year_until {
         println(selectYear + "" + selectMonth + "" + selectDay)
 
         // 得到当前时间的年、月、日
-        val localDate = formatter1.parseLocalDate(time)
+        val localDate = formatter1.parseLocalDate(time_new)
         val yearNow = localDate.getYear.toInt
         val monthNow = localDate.getMonthOfYear.toInt
         val dayNow = localDate.getDayOfMonth.toInt
