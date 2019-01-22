@@ -380,7 +380,7 @@ object baseinfo_merge_test extends year_until {
     val table_name = "ods_policy_insured_detail_xing"
     big_before.insertInto(s"odsdb_prd.$table_name", overwrite = true) //存入哪张表中
     val tep_end: RDD[String] = big_before.map(_.mkString("mk6")).map(x => {
-      val arrArray = x.split("mk6").map(x => if (x == "null" || x == null) "null" else x)
+      val arrArray = x.split("mk6").map(x => if (x == "null" || x == null) "" else x)
       arrArray.mkString("mk6")
     }) //存入mysql
 
