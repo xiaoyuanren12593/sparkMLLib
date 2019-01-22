@@ -377,28 +377,12 @@ object baseinfo_merge_test extends year_until {
     //大表生成DF
     val big_before: DataFrame = sqlContext.createDataFrame(value_tepTwo, schema_tepOne)
 
-//    println(big_before.count())
-    //要过滤的数据
-//    val odr_id = sqlContext.read.jdbc(url, "odr_policy", prop)
-//      .where("insure_code!='1500001'")
-//      .select("id").withColumnRenamed("id", "odr_id").cache
-//
-//    val big = big_before.join(odr_id, big_before("policy_id") === odr_id("odr_id"),"left").drop("odr_id")
-//      .where("insured_name is not null").where("insured_name != 'null'")
-    //ods_policy_insured_detail
     val table_name = "ods_policy_insured_detail_xing"
     big_before.insertInto(s"odsdb_prd.$table_name", overwrite = true) //存入哪张表中
     val tep_end: RDD[String] = big_before.map(_.mkString("mk6")).map(x => {
-      val arrArray = x.split("mk6").map(x => if (x == "null" || x == null) "" else x)
+      val arrArray = x.split("mk6").map(x => if (x == "null" || x == null) null else x)
       arrArray.mkString("mk6")
     }) //存入mysql
-
-    val value = tep_end.filter(x => {
-      val length = x.split("mk6").length
-      if (length != 36) true else false
-    })
-
-    value.foreach(println)
 
     delete(hdfs_url, "/oozie/mysqlData/ods_policy_insured_detail_xing", tep_end) //删除后，输出到文件中
 
