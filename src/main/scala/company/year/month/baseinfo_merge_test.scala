@@ -260,7 +260,7 @@ object baseinfo_merge_test extends year_until {
     val b_policy_preservation_subject_person_master_version_three = sqlContext.createDataFrame(value, schema)
     val b_policy_preservation_subject_person_master = b_policy_preservation_subject_person_master_version_three
       .withColumn("insured_work_type", b_policy_preservation_subject_person_master_version_three("c_work_type_mk"))
-      .drop("c_work_type_mk")
+      .drop("c_work_type_mk").drop("a_insured_work_type").drop("a_name_new")
 
     b.registerTempTable("b_new")
 
@@ -389,9 +389,17 @@ object baseinfo_merge_test extends year_until {
     val table_name = "ods_policy_insured_detail_xing"
     big_before.insertInto(s"odsdb_prd.$table_name", overwrite = true) //存入哪张表中
     val tep_end: RDD[String] = big_before.map(_.mkString("mk6")).map(x => {
-      val arrArray = x.split("mk6").map(x => if (x == "null" || x == null) "null" else x)
+      val arrArray = x.split("mk6").map(x => if (x == "null" || x == null) "" else x)
       arrArray.mkString("mk6")
     }) //存入mysql
+
+    val value = tep_end.filter(x => {
+      val length = x.split("mk6").length
+      if (length != 36) true else false
+    })
+
+    value.foreach(println)
+
     delete(hdfs_url, "/oozie/mysqlData/ods_policy_insured_detail_xing", tep_end) //删除后，输出到文件中
 
     sc.stop()
