@@ -64,6 +64,8 @@ object Year_Month_Premium extends year_until {
   def month_premium(sqlContext: HiveContext, res: DataFrame, bp_bro: Broadcast[Array[String]]): RDD[(String, String, String, String, String, String, String, String, Double, String)]
   = {
 
+    println("        "+bp_bro.value.length)
+
     val ods_policy_product_plan = sqlContext.sql("select * from odsdb_prd.ods_policy_product_plan").filter("length(sku_price)>0 and sku_charge_type=1").cache()
 
     val tep_one = res.join(ods_policy_product_plan, "policy_code")
@@ -163,13 +165,16 @@ object Year_Month_Premium extends year_until {
     //    Logger.getLogger("org.apache.spark").setLevel(Level.WARN)
 
     val conf_s = new SparkConf().setAppName("wuYu")
-    //      .setMaster("local[2]")
+      .set("spark.sql.broadcastTimeout", "36000")
+      .set("spark.network.timeout", "36000")
+      .set("spark.executor.heartbeatInterval","20000")
+          .setMaster("local[2]")
     val sc = new SparkContext(conf_s)
     val sqlContext: HiveContext = new HiveContext(sc)
     val ods_policy_detail = sqlContext.sql("select * from odsdb_prd.ods_policy_detail").filter("policy_status in ('0','1')").cache()
     val ods_policy_insured_detail = sqlContext.sql("select * from odsdb_prd.ods_policy_insured_detail").filter("length(insured_start_date)>0 and length(insured_end_date)>0")
     val blue_package = sqlContext.sql("select * from odsdb_prd.dim_product").filter("product_type_2='蓝领外包'")
-    val bp = blue_package.map(x => x.getAs("product_code").toString).collect
+    val bp = blue_package.map(x => x.getAs("product_code").toString).collect()
     val bp_bro: Broadcast[Array[String]] = sc.broadcast(bp)
 
     import sqlContext.implicits._
@@ -213,7 +218,6 @@ object Year_Month_Premium extends year_until {
       toMsql(bzn_year, path_hdfs, path)
     }
   }
-
 
 }
 
