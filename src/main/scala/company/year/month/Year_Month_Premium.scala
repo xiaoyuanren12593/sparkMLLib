@@ -64,7 +64,6 @@ object Year_Month_Premium extends year_until {
   def month_premium(sqlContext: HiveContext, res: DataFrame, bp_bro: Broadcast[Array[String]]): RDD[(String, String, String, String, String, String, String, String, Double, String)]
   = {
 
-    println("        "+bp_bro.value.length)
 
     val ods_policy_product_plan = sqlContext.sql("select * from odsdb_prd.ods_policy_product_plan").filter("length(sku_price)>0 and sku_charge_type=1").cache()
 
@@ -77,6 +76,11 @@ object Year_Month_Premium extends year_until {
       numberFormat.setMaximumFractionDigits(4)
 
       rdd.flatMap(x => {
+
+        if(x.getAs("insure_code") != null && x.getAs("ent_id") != null ){
+
+        }
+
         val insure_code = x.getAs("insure_code").toString
         val policy_id = x.getAs("policy_id").toString
         val sku_price = x.getAs("sku_price").toString.toDouble
