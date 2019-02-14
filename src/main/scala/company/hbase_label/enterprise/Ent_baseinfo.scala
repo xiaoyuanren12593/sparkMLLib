@@ -24,6 +24,7 @@ object Ent_baseinfo extends Baseinfo_until with until {
     //计算该企业中:员工平均投保年龄(每个用户的投保日期-出生日期)求和后/企业的人数
     val ods_policy_insured_detail_table_age = ods_policy_insured_detail.filter("LENGTH(insured_start_date) > 1").select("policy_id", "insured_birthday", "insured_start_date")
     val join_qy_mx_age = ods_policy_detail_table_T.join(ods_policy_insured_detail_table_age, "policy_id")
+      .filter("ent_id is not null")
     //    |           policy_id|              ent_id|insured_birthday| insured_start_date|
     //    |6d04d7669ad34e488...|43294d3451c5411ab...|      1980-01-13|2017-08-04 00:00:00|
     val end: RDD[(String, String, String)] = join_qy_mx_age.map(x => {

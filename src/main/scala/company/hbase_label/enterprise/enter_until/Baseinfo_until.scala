@@ -109,6 +109,7 @@ trait Baseinfo_until extends until {
     val numberFormat = NumberFormat.getInstance
     val ods_policy_insured_detail_table = ods_policy_insured_detail.filter("LENGTH(insured_cert_no)=18").select("policy_id", "insured_name", "insured_cert_no")
     val join_qy_mx = ods_policy_detail_table_T.join(ods_policy_insured_detail_table, "policy_id")
+      .filter("ent_id is not null")
     //      |           policy_id|              ent_id|insured_name|   insured_cert_no|
     //      +--------------------+--------------------+------------+------------------+
     //      |6d04d7669ad34e488...|43294d3451c5411ab...|          文斌|110101198001138997|
@@ -192,6 +193,7 @@ trait Baseinfo_until extends until {
 
     //计算我该企业中有多少人投保了：返回的是企业ID，投保人数
     val j_after = before.join(after, "policy_id")
+      .filter("ent_id is not null")
     //    |         policy_id|              ent_id|policy_status|cur_insured_persons|insure_policy_status|
     //    |122008268007673856|10e11fd0b1a7488db...|            0| 44132219951005661X|                   1|
     //ent_id|COUNT(DISTINCT pid.insured_cert_no) as cur_insured_persons
