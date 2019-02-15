@@ -40,9 +40,13 @@ trait Policy_until {
   }
 
   //保费
-  def policy_premium(ods_policy_detail: DataFrame): RDD[(String, String, String)] = {
-    val end = ods_policy_detail.filter("length(policy_code) > 4").select("policy_code", "premium").map(x => {
-      (x.getString(0), x.get(1).toString, "policy_premium")
+  def policy_premium(ods_policy_detail: DataFrame) = {
+    val end: RDD[(String, String, String)] = ods_policy_detail.filter("length(policy_code) > 4").select("policy_code", "premium").map(x => {
+      if(x.get(1) == null){
+        (x.getString(0),"", "policy_premium")
+      }else{
+        (x.getString(0), x.get(1).toString, "policy_premium")
+      }
     })
     end
   }
