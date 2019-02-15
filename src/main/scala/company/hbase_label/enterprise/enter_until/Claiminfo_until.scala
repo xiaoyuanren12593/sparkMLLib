@@ -447,7 +447,7 @@ trait Claiminfo_until {
         val res = if (final_payment == "" || final_payment == null) pre_com else if (final_payment != "" || final_payment != null) final_payment else ""
         (x.getString(0), res)
       })
-      .filter(x => x._2 != "").filter(_._2 != ".")
+      .filter(x => x._2 != "").filter(_._2 != ".").filter(_._2 != "#N/A")
       .map(x => (x._1, x._2.toDouble))
       .reduceByKey(_ + _).map(x => {
       //      (x._1, numberFormat.format(x._2), "pre_all_compensation")
@@ -490,7 +490,7 @@ trait Claiminfo_until {
         val res = if (final_payment == "" || final_payment == null) pre_com else if (final_payment != "" || final_payment != null) final_payment else ""
         (x.getString(0), res)
       })
-      .filter(x => x._2 != "").filter(_._2 != ".")
+      .filter(x => x._2 != "").filter(_._2 != ".").filter(_._2 != "#N/A")
       .map(x => (x._1, x._2.toDouble))
 
       .reduceByKey(_ + _).map(x => {
@@ -530,7 +530,7 @@ trait Claiminfo_until {
         val res = if (final_payment == "" || final_payment == null) pre_com else if (final_payment != "" || final_payment != null) final_payment else ""
         (x.getString(0), res)
       })
-      .filter(x => x._2 != "").filter(_._2 != ".")
+      .filter(x => x._2 != "").filter(_._2 != ".").filter(_._2 != "#N/A")
       .map(x => (x._1, x._2.toDouble))
 
 
@@ -570,7 +570,7 @@ trait Claiminfo_until {
       val res = if (final_payment == "" || final_payment == null) pre_com else if (final_payment != "" || final_payment != null) final_payment else ""
       (x.getString(0), res)
     })
-      .filter(x => x._2 != "").filter(_._2 != ".")
+      .filter(x => x._2 != "").filter(_._2 != ".").filter(_._2 != "#N/A")
       .map(x => (x._1, x._2.toDouble))
 
       .reduceByKey(_ + _).map(x => {
@@ -609,7 +609,7 @@ trait Claiminfo_until {
         val res = if (final_payment == "" || final_payment == null) pre_com else if (final_payment != "" || final_payment != null) final_payment else ""
         (x.getString(0), res)
       })
-      .filter(x => x._2 != "").filter(_._2 != ".")
+      .filter(x => x._2 != "").filter(_._2 != ".").filter(_._2 != "#N/A")
       .map(x => (x._1, x._2.toDouble))
 
 
@@ -689,7 +689,7 @@ trait Claiminfo_until {
       (x.getString(0), x.get(1).toString, x.get(2).toString, x.get(3).toString)
     }).filter(x => {
       if (bro_dim.value.contains(x._3)) true else false
-    })
+    }).filter(_._2 != "#N/A")
     //求出保单表中的，保费.该保费是每月该企业所要缴纳的保费，每个月缴纳保费一次都会产生一个保单号
     val bf_sum: RDD[(String, Double)] = qt_data.map(x => {
       //ent_id | 保费
