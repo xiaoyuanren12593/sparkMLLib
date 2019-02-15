@@ -349,7 +349,7 @@ trait Insureinfo_until {
 
   //有效保单数
   def effective_policy(ods_policy_detail: DataFrame): RDD[(String, String, String)] = {
-    val tepOne = ods_policy_detail.where("policy_status in('0','1','7','9','10') and ent_id!=''").select("ent_id")
+    val tepOne = ods_policy_detail.where("policy_status in('0','1','7','9','10') and ent_id!=''").select("ent_id").filter("ent_id is not null")
     val end: RDD[(String, String, String)] = tepOne.map(x => {
       (x.getString(0), 1)
     }).reduceByKey(_ + _).map(x => {
@@ -377,7 +377,7 @@ trait Insureinfo_until {
 
   //累计投保人数 totalInsuredPersons（去重）对身份证号去重
   def total_insured_persons(ods_policy_detail: DataFrame, ods_policy_insured_detail: DataFrame): RDD[(String, String, String)] = {
-    val tepOne = ods_policy_detail.where("policy_status in('0','1', '7', '9', '10')").select("ent_id", "policy_id")
+    val tepOne = ods_policy_detail.where("policy_status in('0','1', '7', '9', '10')").select("ent_id", "policy_id").filter("ent_id is not null")
     val tepTwo = ods_policy_insured_detail.select("policy_id", "insure_policy_status", "insured_cert_no")
     val tepThree = tepOne.join(tepTwo, "policy_id")
     //      .show()
@@ -434,6 +434,7 @@ trait Insureinfo_until {
     //    val dim_1 = sqlContext.sql("select * from dim_product").select("product_code", "dim_1").where("dim_1 in ('外包雇主','骑士保','大货车')").map(x => x.getAs[String]("product_code")).collect
 
     val ods_policy_detail: DataFrame = sqlContext.read.jdbc(location_mysql_url, "ods_policy_detail", prop).where("policy_status in ('1','0')").select("ent_id", "policy_id", "insure_code")
+      .filter("ent_id is not null")
     //    val ods_policy_detail: DataFrame = sqlContext.sql("select * from ods_policy_detail").where("policy_status in ('1','0')").select("ent_id", "policy_id", "insure_code")
 
     val tep_ods_one = ods_policy_detail.map(x => (x.getAs[String]("insure_code"), x)).filter(x => if (dim_1.contains(x._1)) true else false)
@@ -456,7 +457,7 @@ trait Insureinfo_until {
     val numberFormat = NumberFormat.getInstance
     numberFormat.setMaximumFractionDigits(2)
 
-    val tepOne = ods_policy_detail.filter("policy_status in('0','1', '7', '9', '10') and ent_id!=''").select("ent_id", "premium")
+    val tepOne = ods_policy_detail.filter("policy_status in('0','1', '7', '9', '10') and ent_id!=''").select("ent_id", "premium").filter("ent_id is not null")
     //      .show()
     //    |              ent_id|    premium|
     //    |0a789d56b7444d519...| 62905.1200|

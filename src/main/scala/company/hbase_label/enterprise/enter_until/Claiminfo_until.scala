@@ -40,7 +40,7 @@ trait Claiminfo_until {
 
     val ods_policy_insured_detail = ods_policy_insured_detail_r.select("policy_id", "insured_cert_no", "insured_work_type", "insure_policy_status")
     //policy_id,ent_id
-    val ods_policy_detail = ods_policy_detail_r.select("policy_id", "ent_id")
+    val ods_policy_detail = ods_policy_detail_r.select("policy_id", "ent_id").filter("ent_id is not null")
     //work_type|ai_level
 
     val d_work_level = d_work_level_r.select("work_type", "ai_level")
@@ -95,7 +95,7 @@ trait Claiminfo_until {
     }).filter(_._2._2 > 2) //将大于2的次数过滤出去
 
 
-    val bd_id = ods_policy_detail.select("policy_id", "ent_id")
+    val bd_id = ods_policy_detail.select("policy_id", "ent_id").filter("ent_id is not null")
       //    val bd_id = sqlContext.sql("select policy_id, ent_id from odsdb_prd.ods_policy_detail")
       .map(x => {
       (x.getString(0), x.getString(1))
@@ -201,7 +201,7 @@ trait Claiminfo_until {
     //employer_liability_claims	雇主保理赔记录表（是通过policy_no进行记的，因为报案这张表是手动进行等级的因此，它没办法记住ID）
     val employer_liability_claims = employer_liability_claims_r.select("policy_no", "if_resubmit_paper")
     //    val employer_liability_claims = sqlContext.sql("select lc.policy_no,lc.if_resubmit_paper from odsdb_prd.employer_liability_claims lc")
-    val ods_policy_detail = ods_policy_detail_r.select("ent_id", "policy_code")
+    val ods_policy_detail = ods_policy_detail_r.select("ent_id", "policy_code").filter("ent_id is not null")
     //    val ods_policy_detail = sqlContext.sql("select pd.ent_id ,pd.policy_code from odsdb_prd.ods_policy_detail pd")
 
     //通过保单号对理赔表，进行join，该张意外险所对应的，在保单表中的信息
@@ -683,6 +683,7 @@ trait Claiminfo_until {
     val numberFormat = NumberFormat.getInstance
     numberFormat.setMaximumFractionDigits(2)
     val qt_data = ods_policy_detail.where("sku_charge_type!='2'")
+        .filter("ent_id is not null")
       .where("policy_status in ('0','1','7','9','10')")
       .select("ent_id", "premium", "insure_code", "policy_id").map(x => {
       (x.getString(0), x.get(1).toString, x.get(2).toString, x.get(3).toString)
@@ -738,7 +739,7 @@ trait Claiminfo_until {
     }).toDF("policy_id", "charged_premium", "day_id")
 
 
-    val end: RDD[(String, String, String)] = ods_policy_charged_month.join(ods_policy_detail, "policy_id").map(x => {
+    val end: RDD[(String, String, String)] = ods_policy_charged_month.join(ods_policy_detail, "policy_id").filter("ent_id is not null").map(x => {
       val ent_id = x.getAs[String]("ent_id")
       val charged_premium = x.getAs[java.math.BigDecimal]("charged_premium").toString.toDouble
       (ent_id, charged_premium)

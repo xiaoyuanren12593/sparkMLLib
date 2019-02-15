@@ -89,7 +89,10 @@ object membership_Level {
     import sqlContext.implicits._
     val dim_1 = sqlContext.read.jdbc(location_mysql_url_dwdb, "dim_product", prop).select("product_code", "dim_1").where("dim_1 in ('外包雇主','骑士保','大货车')").map(x => x.getAs[String]("product_code")).collect
 
-    val ods_policy_detail: DataFrame = sqlContext.read.jdbc(location_mysql_url, "ods_policy_detail", prop).where("policy_status in ('1','0')").select("ent_id", "policy_id", "insure_code")
+    val ods_policy_detail: DataFrame = sqlContext.read.jdbc(location_mysql_url, "ods_policy_detail", prop)
+      .where("policy_status in ('1','0')")
+      .select("ent_id", "policy_id", "insure_code")
+      .filter("ent_id is not null")
 
 
     val tep_ods_one = ods_policy_detail.map(x => (x.getAs[String]("insure_code"), x)).filter(x => if (dim_1.contains(x._1)) true else false)

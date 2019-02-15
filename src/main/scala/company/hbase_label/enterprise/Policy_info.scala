@@ -13,7 +13,7 @@ object Policy_info extends Policy_until with until {
   def policy_ent_id(ods_policy_detail: DataFrame, ent_enterprise_info: DataFrame): RDD[(String, String, String)] = {
     //user_id:用户信息表ID
     //找到我该企业的ID和
-    val tep_One = ods_policy_detail.filter("LENGTH(policy_code)>0").selectExpr("policy_code", "ent_id as user_id")
+    val tep_One = ods_policy_detail.filter("LENGTH(policy_code)>0").filter("ent_id is not null").selectExpr("policy_code", "ent_id as user_id")
     val tep_Two = ent_enterprise_info.selectExpr("id", "id as user_id", "create_time")
     //你是以user_id进行的join,假如说另外一张表的user_id中也有空，我这张表中也有空，那么就会空对空，发生笛卡儿积
     val tepThree = tep_One.join(tep_Two, "user_id").filter("length(user_id)>1 and length(create_time) > 12")
