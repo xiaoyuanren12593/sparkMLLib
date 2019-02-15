@@ -102,7 +102,7 @@ object membership_Level {
 
     val end = sqlContext.read.jdbc(location_mysql_url, "ods_policy_curr_insured", prop).join(tep_ods_one, "policy_id").map(x => {
       ((x.getAs[String]("ent_id"), x.getAs[String]("day_id")), x.getAs[Long]("curr_insured").toInt)
-    }).filter(_._1._2.toDouble <= now_Date.toDouble)
+    }).filter(_._1._2.toDouble == now_Date.toDouble)
 
     val end_all = end.reduceByKey(_ + _)
 
