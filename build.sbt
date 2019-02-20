@@ -13,15 +13,6 @@ resolvers ++= Seq(
   "central" at "https://maven.aliyun.com/repository/central"
 )
 
-//
-////libraryDependencies ++= Seq(
-////
-//).map(
-//  _.excludeAll(ExclusionRule(organization = "org.mortbay.jetty"))
-//).map(
-//  _.excludeAll(ExclusionRule(organization = "javax.servlet"))
-//)
-
 // 公共配置
 val commonSettings = Seq(
   version := "0.1",
