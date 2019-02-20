@@ -1,8 +1,9 @@
 package enterprise
 
-import java.text.NumberFormat
+import java.text.{NumberFormat, SimpleDateFormat}
 import java.util.Properties
-import enterprise.Ent_claiminfo
+import java.util.regex.Pattern
+
 import enterprise.enter_until.Claiminfo_until
 import enterprise.enter_until.Insureinfo_until
 import org.apache.spark.broadcast.Broadcast
@@ -14,6 +15,28 @@ import org.apache.spark.{SparkConf, SparkContext}
 import scala.io.Source
 
 object Ent_insureinfo_test extends Insureinfo_until with until  with Claiminfo_until{
+
+  def is_not_chinese(str: String): Boolean
+  = {
+    val p = Pattern.compile("[\u4e00-\u9fa5]")
+    val m = p.matcher(str)
+    m.find()
+  }
+
+  def is_not_date(str: String): Boolean
+  = {
+    var convertSuccess: Boolean = true
+    // 指定日期格式为四位年/两位月份/两位日期，注意yyyy/MM/dd区分大小写；
+    var format = new SimpleDateFormat("yyyy/MM/dd")
+    // 设置lenient为false. 否则SimpleDateFormat会比较宽松地验证日期，比如2007/02/29会被接受，并转换成2007/03/01
+    try {
+      format.setLenient(false);
+      format.parse(str)
+    } catch {
+      case e => convertSuccess = false
+    };
+    convertSuccess
+  }
 
   def Insure(sqlContext: HiveContext, location_mysql_url: String, location_mysql_url_dwdb: String, prop: Properties) {
     //    employer_liability_claims :雇主保理赔记录表

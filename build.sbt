@@ -52,7 +52,7 @@ val commonAssemblySettings = Seq(
 lazy val bznSparkNeed = (project in file("."))
   .aggregate(enterprise, personal)
   .settings(
-    libraryDependencies ++= enterpriseProvidedDeps)
+    libraryDependencies ++= enterpriseDeps)
   .settings(
     name := "bzn_spark_need"
   )
@@ -60,7 +60,7 @@ lazy val bznSparkNeed = (project in file("."))
 // 事例项目
 lazy val enterprise = (project in file("enterprise"))
   .settings(
-    libraryDependencies ++= enterpriseProvidedDeps)
+    libraryDependencies ++= enterpriseDeps)
   .settings(commonSettings)
   .settings(commonAssemblySettings)
   .settings(
