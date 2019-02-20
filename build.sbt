@@ -49,8 +49,10 @@ val commonAssemblySettings = Seq(
 )
 
 // 主工程
-lazy val sparkLadder = (project in file("."))
+lazy val bznSparkNeed = (project in file("."))
   .aggregate(enterprise, personal)
+  .settings(
+    libraryDependencies ++= commonDeps)
   .settings(
     name := "bzn_spark_need"
   )
