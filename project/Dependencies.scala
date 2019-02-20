@@ -67,7 +67,11 @@ object Dependencies {
     _.excludeAll(ExclusionRule(organization = "javax.servlet"))
   )
   // 企业标签本地引用
-  val enterpriseDeps = commonDeps ++ sparkDeps
+  val enterpriseDeps = (commonDeps ++ sparkDeps).map(
+    _.excludeAll(ExclusionRule(organization = "org.mortbay.jetty"))
+  ).map(
+    _.excludeAll(ExclusionRule(organization = "javax.servlet"))
+  )
 
   //---------------------------------------------个人模块标签------------------------------------------------------------
   // 个人标签打包时需要的引用
@@ -77,5 +81,9 @@ object Dependencies {
     _.excludeAll(ExclusionRule(organization = "javax.servlet"))
   )
   // 个人标签本地引用
-  val personalDeps = commonDeps ++ sparkDeps
+  val personalDeps = (commonDeps ++ sparkDeps).map(
+    _.excludeAll(ExclusionRule(organization = "org.mortbay.jetty"))
+  ).map(
+    _.excludeAll(ExclusionRule(organization = "javax.servlet"))
+  )
 }
