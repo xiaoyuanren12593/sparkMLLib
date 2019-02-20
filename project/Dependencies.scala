@@ -19,16 +19,15 @@ object Dependencies {
   val hbaseServer = "org.apache.hbase" % "hbase-server" % "1.2.0"
   val hbaseHadoopCompat = "org.apache.hbase" % "hbase-hadoop-compat" % "1.2.0"
 
-  // 其他Jar
+  // 数据库连接 Jar
   val neo4jJavaDriver = "org.neo4j.driver" % "neo4j-java-driver" % "1.0.4"
-  val ansjSeg = "org.ansj" % "ansj_seg" % "5.1.1"
-  val nlpLang = "org.nlpcn" % "nlp-lang" % "1.7.2"
   val mysqlConnectorJava = "mysql" % "mysql-connector-java" % "5.1.36"
   val jedis = "redis.clients" % "jedis" % "2.9.0"
-
-  // 编译时用
-  val commonDeps = Seq(sparkHive, sparkNeo4j, sparkCsv, sparkStreaming, sparkStreamingKafka, sparkMllib,
-    hbaseClient, hbaseCommon, hbaseServer, hbaseHadoopCompat, neo4jJavaDriver, ansjSeg, nlpLang, mysqlConnectorJava, jedis)
+  //  Alibaba-json
+  val fastjson = "com.alibaba" % "fastjson" % "1.2.24"
+  // spark 中文分词
+  val ansjSeg = "org.ansj" % "ansj_seg" % "5.1.1"
+  val nlpLang = "org.nlpcn" % "nlp-lang" % "1.7.2"
 
   //---------------------------------------------以下打包使用------------------------------------------------------------
   //  hive
@@ -47,17 +46,36 @@ object Dependencies {
   val hbaseCommonProvided = "org.apache.hbase" % "hbase-common" % "1.2.0" % "provided"
   val hbaseServerProvided = "org.apache.hbase" % "hbase-server" % "1.2.0" % "provided"
   val hbaseHadoopCompatProvided = "org.apache.hbase" % "hbase-hadoop-compat" % "1.2.0" % "provided"
+  //---------------------------------------------以上打包使用------------------------------------------------------------
 
-  // 其他Jar
-  val neo4jJavaDriverProvided = "org.neo4j.driver" % "neo4j-java-driver" % "1.0.4" % "provided"
-  val ansjSegProvided = "org.ansj" % "ansj_seg" % "5.1.1" % "provided"
-  val nlpLangProvided = "org.nlpcn" % "nlp-lang" % "1.7.2" % "provided"
-  val mysqlConnectorJavaProvided = "mysql" % "mysql-connector-java" % "5.1.36" % "provided"
-  val jedisProvided = "redis.clients" % "jedis" % "2.9.0" % "provided"
+  //---------------------------------------------标签分组------------------------------------------------------------
+  // 公共引用
+  val commonDeps = Seq(neo4jJavaDriver, mysqlConnectorJava, jedis, fastjson, ansjSeg, nlpLang)
+  // 打包时大数据处理需要的引用
+  val sparkDeps = Seq(sparkHive, sparkNeo4j, sparkCsv, sparkStreaming, sparkStreamingKafka, sparkMllib, hbaseClient,
+    hbaseCommon, hbaseServer, hbaseHadoopCompat)
+  // 打包时大数据处理需要过滤的引用
+  val sparkProvidedDeps = Seq(sparkHiveProvided, sparkNeo4jProvided, sparkCsvProvided, sparkStreamingProvided,
+    sparkStreamingKafkaProvided, sparkMllibProvided, hbaseClientProvided, hbaseCommonProvided, hbaseServerProvided,
+    hbaseHadoopCompatProvided)
 
-  // 打包时用
-  val commonProvidedDeps = Seq(sparkHiveProvided, sparkNeo4jProvided, sparkCsvProvided,
-    sparkStreamingProvided, sparkStreamingKafkaProvided, sparkMllibProvided, hbaseClientProvided, hbaseCommonProvided,
-    hbaseServerProvided, hbaseHadoopCompatProvided, neo4jJavaDriverProvided, ansjSegProvided, nlpLangProvided,
-    mysqlConnectorJavaProvided, jedisProvided)
+  //---------------------------------------------企业模块标签------------------------------------------------------------
+  // 企业标签打包时需要的引用
+  val enterpriseProvidedDeps = (commonDeps ++ sparkProvidedDeps).map(
+    _.excludeAll(ExclusionRule(organization = "org.mortbay.jetty"))
+  ).map(
+    _.excludeAll(ExclusionRule(organization = "javax.servlet"))
+  )
+  // 企业标签本地引用
+  val enterpriseDeps = commonDeps ++ sparkDeps
+
+  //---------------------------------------------个人模块标签------------------------------------------------------------
+  // 个人标签打包时需要的引用
+  val personalProvidedDeps = (commonDeps ++ sparkProvidedDeps).map(
+    _.excludeAll(ExclusionRule(organization = "org.mortbay.jetty"))
+  ).map(
+    _.excludeAll(ExclusionRule(organization = "javax.servlet"))
+  )
+  // 个人标签本地引用
+  val personalDeps = commonDeps ++ sparkDeps
 }

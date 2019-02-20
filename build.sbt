@@ -60,7 +60,7 @@ lazy val bznSparkNeed = (project in file("."))
 // 事例项目
 lazy val enterprise = (project in file("enterprise"))
   .settings(
-    libraryDependencies ++= commonDeps)
+    libraryDependencies ++= enterpriseDeps)
   .settings(commonSettings)
   .settings(commonAssemblySettings)
   .settings(
@@ -73,7 +73,7 @@ lazy val enterprise = (project in file("enterprise"))
 // 事例项目
 lazy val personal = (project in file("personal"))
   .settings(
-    libraryDependencies ++= commonDeps)
+    libraryDependencies ++= personalDeps)
   .settings(commonSettings)
   .settings(commonAssemblySettings)
   .settings(
