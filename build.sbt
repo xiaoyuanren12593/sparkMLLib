@@ -60,7 +60,7 @@ lazy val sparkLadder = (project in file("."))
 // 事例项目
 lazy val enterprise = (project in file("enterprise"))
   .settings(
-    libraryDependencies ++= enterpriseDeps)
+    libraryDependencies ++= enterpriseProvidedDeps)
   .settings(commonSettings)
   .settings(commonAssemblySettings)
   .settings(
