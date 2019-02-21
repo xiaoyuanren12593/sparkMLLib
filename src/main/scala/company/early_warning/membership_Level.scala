@@ -93,24 +93,58 @@ object membership_Level {
       .where("policy_status in ('1','0')")
       .select("ent_id", "policy_id", "insure_code")
       .filter("ent_id is not null")
-
+    //    ods_policy_detail.foreach(println)
 
     val tep_ods_one = ods_policy_detail.map(x => (x.getAs[String]("insure_code"), x)).filter(x => if (dim_1.contains(x._1)) true else false)
       .map(x => {
         (x._2.getAs[String]("ent_id"), x._2.getAs[String]("policy_id"), x._2.getAs[String]("insure_code"))
       }).toDF("ent_id", "policy_id", "insure_code").cache
 
-    val end = sqlContext.read.jdbc(location_mysql_url, "ods_policy_curr_insured", prop).join(tep_ods_one, "policy_id").map(x => {
+    //    tep_ods_one.foreach(println)
+    import sqlContext.implicits._
+    var res = sqlContext.read.jdbc(location_mysql_url, "ods_policy_curr_insured", prop)
+    val res_new = tep_ods_one.join(res, tep_ods_one("policy_id") === res("policy_id"), "left")
+
+    val end = res_new.map(x => {
       ((x.getAs[String]("ent_id"), x.getAs[String]("day_id")), x.getAs[Long]("curr_insured").toInt)
     }).filter(_._1._2.toDouble == now_Date.toDouble)
+    //    val end = sqlContext.read.jdbc(location_mysql_url, "ods_policy_curr_insured", prop).join(tep_ods_one, "policy_id").map(x => {
+    //      ((x.getAs[String]("ent_id"), x.getAs[String]("day_id")), x.getAs[Long]("curr_insured").toInt)
+    //    }).filter(_._1._2.toDouble == now_Date.toDouble)
 
+    val end_ent_all = res_new.map(x => {
+      ((x.getAs[String]("ent_id"), x.getAs[String]("day_id")), x.getAs[Long]("curr_insured").toInt)
+    }).filter(_._1._2.toDouble <= now_Date.toDouble)
+      .map(x => {
+        (x._1._1,"")
+      }).distinct()
+
+    //    end_ent_all.foreach(println)
+
+    //    end.foreach(println)
     val end_all = end.reduceByKey(_ + _)
 
       .map(x => ((x._1._1, x._1._2.substring(0, 6)), x._2))
       .reduceByKey((x1, x2) => {
         if (x1 >= x2) x1 else x2
       }).map(x => (x._1._1, (x._1._2.toInt, x._2)))
-    end_all
+
+    var res_last: RDD[(String, (String, Option[(Int, Int)]))] = end_ent_all.leftOuterJoin(end_all)
+
+    var theEndRes: RDD[(String, (Int, Int))] = res_last.map(x => {
+      var key = x._1.toString
+
+      if(x._2._2.getOrElse("").toString.equals("")){
+        (key,(now_Date.substring(0,6).toInt,"0".toInt))
+      }else{
+        (key,(x._2._2.get._1.toInt,x._2._2.get._2.toInt))
+      }
+    })
+
+//    theEndRes.foreach(println)
+//    println("---------")
+    //    end_all.foreach(println)
+    theEndRes
   }
 
   //遍历某目录下所有的文件和子文件
