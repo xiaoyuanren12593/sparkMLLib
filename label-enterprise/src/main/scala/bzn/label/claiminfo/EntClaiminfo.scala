@@ -1,10 +1,10 @@
-package enterprise
+package bzn.label.claiminfo
 
 import java.text.{NumberFormat, SimpleDateFormat}
 import java.util.Properties
 import java.util.regex.Pattern
 
-import enterprise.enter_until.Claiminfo_until
+import bzn.common.Until
 import org.apache.spark.broadcast.Broadcast
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.DataFrame
@@ -13,8 +13,7 @@ import org.apache.spark.{SparkConf, SparkContext}
 
 import scala.io.Source
 
-
-object Ent_claiminfo extends Claiminfo_until with until {
+object EntClaiminfo extends ClaiminfoUntil {
 
   def is_not_chinese(str: String): Boolean
   = {

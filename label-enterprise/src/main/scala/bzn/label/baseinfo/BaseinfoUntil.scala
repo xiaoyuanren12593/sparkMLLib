@@ -1,11 +1,11 @@
-package enterprise.enter_until
+package bzn.label.baseinfo
 
 import java.text.NumberFormat
 import java.time.LocalDateTime
 import java.time.format.{DateTimeFormatter, DateTimeFormatterBuilder}
 import java.time.temporal.ChronoField
 
-import enterprise.until
+import bzn.common.Until
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.DataFrame
 import sun.util.calendar.CalendarUtils.mod
@@ -13,12 +13,9 @@ import sun.util.calendar.CalendarUtils.mod
 /**
   * Created by a2589 on 2018/4/3.
   */
-trait Baseinfo_until extends until {
+trait BaseinfoUntil extends Until {
   //得到投保人投保了多少年(麻烦)
-  def year_tb_one(before: String,
-                  after: String)
-  : String
-  = {
+  def year_tb_one(before: String, after: String): String = {
     val formatter_before = DateTimeFormatter.ofPattern("yyyy-MM-dd")
     val qs_hs: DateTimeFormatter = new DateTimeFormatterBuilder().append(formatter_before)
       .parseDefaulting(ChronoField.HOUR_OF_DAY, 0)
@@ -67,9 +64,7 @@ trait Baseinfo_until extends until {
     * @param ods_policy_detail 保单级别信息总表	保单级别综合数据
     * @return RDD 返回企业ID，产品编码，编码别名
     **/
-  def qy_cp(ods_policy_detail: DataFrame)
-  : RDD[(String, String, String)]
-  = {
+  def qy_cp(ods_policy_detail: DataFrame): RDD[(String, String, String)] = {
     //企业产品ID :insure_code(产品代码)
     val qy_Producer = ods_policy_detail.where("policy_status in ('0','1','7','9','10')")
       .filter("length(insure_code) > 0").select("ent_id", "insure_code", "policy_status")
@@ -85,9 +80,7 @@ trait Baseinfo_until extends until {
 
   //该企业男女比例
   def qy_sex(ods_policy_insured_detail: DataFrame,
-             ods_policy_detail_table_T: DataFrame)
-  : RDD[(String, String, String)]
-  = {
+             ods_policy_detail_table_T: DataFrame): RDD[(String, String, String)] = {
     /**
       * --  女生在该企业的占比,根据保单ID作join，对企业ID进行groupBy
       * -- 男生在该企业的占比
@@ -146,9 +139,7 @@ trait Baseinfo_until extends until {
   }
 
   //企业的人员规模
-  def qy_gm(ent_sum_level: DataFrame)
-  : RDD[(String, String, String)]
-  = {
+  def qy_gm(ent_sum_level: DataFrame): RDD[(String, String, String)] = {
     //企业人员规模：end_id(企业id) ,ent_scale(人数)
     val end = ent_sum_level.where("length(ent_id)>0").select("ent_id", "ent_scale")
       .map(x => {
@@ -158,9 +149,7 @@ trait Baseinfo_until extends until {
   }
 
   //企业品牌影响力
-  def qy_pp(ent_sum_level: DataFrame)
-  : RDD[(String, String, String)]
-  = {
+  def qy_pp(ent_sum_level: DataFrame): RDD[(String, String, String)] = {
     //企业品牌影响力 ：end_id(企业id) ,ent_influence_level(企业的等级)
     val end = ent_sum_level.where("length(ent_id)>0").select("ent_id", "ent_influence_level")
       .map(x => {
@@ -170,11 +159,8 @@ trait Baseinfo_until extends until {
   }
 
   //企业潜在人员规模
-  def qy_qz(ods_policy_detail: DataFrame,
-            ods_policy_insured_detail: DataFrame,
-            ent_sum_level: DataFrame)
-  : RDD[(String, String, String)]
-  = {
+  def qy_qz(ods_policy_detail: DataFrame, ods_policy_insured_detail: DataFrame,
+            ent_sum_level: DataFrame): RDD[(String, String, String)] = {
     //ods_policy_insured_detail :被保人清单
     //ods_policy_detail：保单明细表
     //ent_sum_level:企业等级（包括企业的ID和总人数）
@@ -228,11 +214,8 @@ trait Baseinfo_until extends until {
   }
 
   //企业类型
-  def ent_type(ent_enterprise_info: DataFrame,
-               d_id_certificate: DataFrame,
-               ods_policy_detail_table: DataFrame)
-  : RDD[(String, String, String)]
-  = {
+  def ent_type(ent_enterprise_info: DataFrame, d_id_certificate: DataFrame,
+               ods_policy_detail_table: DataFrame): RDD[(String, String, String)] = {
     //以前的user_id已经不能通过他进行join了
     val tepOne = ent_enterprise_info.selectExpr("id", "triangle_status", "id as ent_id")
     val tepTwo = d_id_certificate.select("id_nub", "certificate").where("length(certificate)>0")

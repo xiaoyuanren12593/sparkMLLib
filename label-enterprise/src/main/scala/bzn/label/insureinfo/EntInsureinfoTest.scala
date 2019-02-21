@@ -1,11 +1,10 @@
-package enterprise
+package bzn.label.insureinfo
 
 import java.text.{NumberFormat, SimpleDateFormat}
 import java.util.Properties
 import java.util.regex.Pattern
 
-import enterprise.enter_until.Claiminfo_until
-import enterprise.enter_until.Insureinfo_until
+import bzn.label.claiminfo.ClaiminfoUntil
 import org.apache.spark.broadcast.Broadcast
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.DataFrame
@@ -14,7 +13,7 @@ import org.apache.spark.{SparkConf, SparkContext}
 
 import scala.io.Source
 
-object Ent_insureinfo_test extends Insureinfo_until with until  with Claiminfo_until{
+object EntInsureinfoTest extends InsureinfoUntil with ClaiminfoUntil {
 
   def is_not_chinese(str: String): Boolean
   = {
@@ -83,9 +82,8 @@ object Ent_insureinfo_test extends Insureinfo_until with until  with Claiminfo_u
       val date3_ = x.getAs[String]("report_date")
       val date4_ = x.getAs[String]("risk_date")
       val date4 = x.getString(2)
-      if (!is_not_chinese(date3) && !is_not_chinese(date4))
-      {
-        if(is_not_date(date3) && is_not_date(date4)) {
+      if (!is_not_chinese(date3) && !is_not_chinese(date4)) {
+        if (is_not_date(date3) && is_not_date(date4)) {
           true
         } else {
           false
@@ -96,7 +94,7 @@ object Ent_insureinfo_test extends Insureinfo_until with until  with Claiminfo_u
     }).map(x => {
       val date3 = x.getString(1)
       val date4 = x.getString(2)
-      println(date3 +"        "+date4)
+      println(date3 + "        " + date4)
       val day_mix: Int = xg(date3, date4)
       //日期相同的话，日期相减是0，因此如果是0的话，那么我们返回1天来进行计算，
       val dm = if (day_mix == 0) 1 else day_mix
@@ -157,7 +155,7 @@ object Ent_insureinfo_test extends Insureinfo_until with until  with Claiminfo_u
     employer_liability_claims.show(100)
     //企业报案时效（小时）
     val ent_report_time_r: RDD[(String, String, String)] = ent_report_time(employer_liability_claims, ods_policy_detail).distinct()
-//    toHbase(ent_report_time_r, columnFamily1, "ent_report_time", conf_fs, tableName, conf)
+    //    toHbase(ent_report_time_r, columnFamily1, "ent_report_time", conf_fs, tableName, conf)
   }
 
   def main(args: Array[String]): Unit = {
@@ -176,8 +174,8 @@ object Ent_insureinfo_test extends Insureinfo_until with until  with Claiminfo_u
     val sqlContext: HiveContext = new HiveContext(sc)
     Claminfo(sqlContext: HiveContext, sc)
     //    Insure(sqlContext: HiveContext, location_mysql_url: String, location_mysql_url_dwdb: String, prop: Properties)
-//    val bool: Boolean = is_not_date("510222196505068016")
-//    if(is_not_date("2018/11/2")) println(true) else println(false)
+    //    val bool: Boolean = is_not_date("510222196505068016")
+    //    if(is_not_date("2018/11/2")) println(true) else println(false)
 
     sc.stop()
   }

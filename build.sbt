@@ -41,28 +41,43 @@ val commonAssemblySettings = Seq(
 
 // 主工程
 lazy val bznSparkNeed = (project in file("."))
-  .aggregate(enterprise, personal)
+  .aggregate(labelEnterprise, labelPersonal)
   .settings(
     libraryDependencies ++= enterpriseDeps)
   .settings(
-    name := "bzn_spark_need"
+    name := "bznSparkNeed"
   )
 
 // 事例项目
-lazy val enterprise = (project in file("enterprise"))
+lazy val util = (project in file("util"))
   .settings(
-    libraryDependencies ++= enterpriseDeps)
+    libraryDependencies ++= enterpriseProvidedDeps)
   .settings(commonSettings)
   .settings(commonAssemblySettings)
   .settings(
     //指定类的名字
     //    mainClass in assembly := Some("com.ladder.example.hive.SparkHiveExample"),
     //定义jar包的名字
-    assemblyJarName in assembly := "sbt-enterprise.jar"
+    assemblyJarName in assembly := "bzn-util.jar"
   )
 
 // 事例项目
-lazy val personal = (project in file("personal"))
+lazy val labelEnterprise = (project in file("label-enterprise"))
+  .dependsOn(util)
+  .settings(
+    libraryDependencies ++= enterpriseProvidedDeps)
+  .settings(commonSettings)
+  .settings(commonAssemblySettings)
+  .settings(
+    //指定类的名字
+    //    mainClass in assembly := Some("com.ladder.example.hive.SparkHiveExample"),
+    //定义jar包的名字
+    assemblyJarName in assembly := "bzn-label-enterprise.jar"
+  )
+
+// 事例项目
+lazy val labelPersonal = (project in file("label-personal"))
+  .dependsOn(util)
   .settings(
     libraryDependencies ++= personalDeps)
   .settings(commonSettings)
@@ -71,5 +86,5 @@ lazy val personal = (project in file("personal"))
     //指定类的名字
     //    mainClass in assembly := Some("com.ladder.example.hive.SparkHiveExample"),
     //定义jar包的名字
-    assemblyJarName in assembly := "sbt-personal.jar"
+    assemblyJarName in assembly := "bzn-personal.jar"
   )

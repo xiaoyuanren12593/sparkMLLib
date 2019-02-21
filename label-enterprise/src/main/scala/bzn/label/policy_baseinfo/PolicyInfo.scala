@@ -1,12 +1,11 @@
-package enterprise
+package bzn.label.policy_baseinfo
 
-import enterprise.enter_until.Policy_until
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.hive.HiveContext
 import org.apache.spark.{SparkConf, SparkContext}
 
-object Policy_info extends Policy_until with until {
+object PolicyInfo extends PolicyUntil {
 
   //订单企业ID
   def policy_ent_id(ods_policy_detail: DataFrame, ent_enterprise_info: DataFrame): RDD[(String, String, String)] = {

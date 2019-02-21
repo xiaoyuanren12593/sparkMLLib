@@ -1,15 +1,14 @@
-package enterprise
+package bzn.label.baseinfo
 
 import java.text.NumberFormat
 
-import enterprise.enter_until.Baseinfo_until
+import bzn.common.Until
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.hive.HiveContext
 import org.apache.spark.{SparkConf, SparkContext}
 
-
-object Ent_baseinfo extends Baseinfo_until with until {
+object EntBaseinfo extends BaseinfoUntil {
 //12
   //企业的投保平均年龄(因为其有用到接口中的方法，因此无法放到接口中，只能放到该类中，防止序列化)
   def qy_avg(ods_policy_insured_detail: DataFrame, ods_policy_detail_table_T: DataFrame)

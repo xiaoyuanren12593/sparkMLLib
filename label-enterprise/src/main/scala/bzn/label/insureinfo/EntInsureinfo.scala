@@ -1,9 +1,9 @@
-package enterprise
+package bzn.label.insureinfo
 
 import java.text.SimpleDateFormat
 import java.util.{Calendar, Properties}
 
-import enterprise.enter_until.Insureinfo_until
+import bzn.common.Until
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.hive.HiveContext
@@ -13,7 +13,7 @@ import org.joda.time.format.DateTimeFormat
 
 import scala.io.Source
 
-object Ent_insureinfo extends Insureinfo_until with until {
+object EntInsureinfo extends InsureinfoUntil {
   //21
   //首次投保至今月数
   def ent_fist_plc_month(ods_policy_detail: DataFrame): RDD[(String, String, String)] = {

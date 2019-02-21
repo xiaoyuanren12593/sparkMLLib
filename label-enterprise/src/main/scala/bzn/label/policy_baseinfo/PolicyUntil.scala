@@ -1,12 +1,13 @@
-package enterprise.enter_until
+package bzn.label.policy_baseinfo
 
+import bzn.common.Until
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.DataFrame
 
 /**
   * Created by a2589 on 2018/4/3.
   */
-trait Policy_until {
+trait PolicyUntil extends Until {
 
   //产品编号
   def policy_insure_code(ods_policy_detail: DataFrame): RDD[(String, String, String)] = {

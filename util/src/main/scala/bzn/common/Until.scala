@@ -1,4 +1,4 @@
-package enterprise
+package bzn.common
 
 import java.text.{NumberFormat, SimpleDateFormat}
 import java.util.regex.Pattern
@@ -25,7 +25,7 @@ import scala.collection.mutable.ArrayBuffer
 /**
   * Created by a2589 on 2018/4/2.
   */
-trait until {
+trait Until {
   //Hbase执行truncate操作
   def truncate_hbase(sc: SparkContext, table: String): Unit
   = {
@@ -83,9 +83,9 @@ trait until {
   //将hfile存到Hbase中
   def toHbase(result: RDD[(String, String, String)], columnFamily1: String, column: String, conf_fs: Configuration, tableName: String, conf: Configuration)
   = {
-//    val stagingFolder = s"hdfs://namenode1.cdh:8020/oozie/hfile/$columnFamily1/$column"
-//    val stagingFolders = s"hdfs://namenode1.cdh:8020/oozie/hfile/$columnFamily1"
-        val stagingFolder = s"/oozie/hfile/$columnFamily1/$column"
+    //    val stagingFolder = s"hdfs://namenode1.cdh:8020/oozie/hfile/$columnFamily1/$column"
+    //    val stagingFolders = s"hdfs://namenode1.cdh:8020/oozie/hfile/$columnFamily1"
+    val stagingFolder = s"/oozie/hfile/$columnFamily1/$column"
     //创建hbase的链接,利用默认的配置文件,实际上读取的hbase的master地址
     val hdfs = FileSystem.get(conf_fs)
     val path = new Path(stagingFolder)
@@ -512,7 +512,7 @@ trait until {
 
 
   //得到企业标签数据
-  def getHbase_value(sc:SparkContext): RDD[(ImmutableBytesWritable, Result)]  ={
+  def getHbase_value(sc: SparkContext): RDD[(ImmutableBytesWritable, Result)] = {
     /**
       * 第一步:创建一个JobConf
       **/
@@ -533,7 +533,7 @@ trait until {
     usersRDD
   }
 
-  def KeyValueToString(keyValues: Array[KeyValue], json: JSONObject,ent_name:String): String = {
+  def KeyValueToString(keyValues: Array[KeyValue], json: JSONObject, ent_name: String): String = {
 
     val it = keyValues.iterator
     val res = new StringBuilder
@@ -551,7 +551,7 @@ trait until {
       json.put("value", value)
       res.append(json.toString + ";")
     }
-    s"${ent_name}mk6${ res.substring(0, res.length - 1)}"
+    s"${ent_name}mk6${res.substring(0, res.length - 1)}"
 
   }
 

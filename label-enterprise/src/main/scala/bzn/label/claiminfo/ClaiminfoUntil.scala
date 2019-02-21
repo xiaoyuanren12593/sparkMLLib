@@ -1,10 +1,10 @@
-package enterprise.enter_until
+package bzn.label.claiminfo
 
 import java.text.{NumberFormat, SimpleDateFormat}
-import java.util.{Date, Properties}
 import java.util.regex.Pattern
+import java.util.{Date, Properties}
 
-import enterprise.until
+import bzn.common.Until
 import org.apache.hadoop.conf.Configuration
 import org.apache.spark.broadcast.Broadcast
 import org.apache.spark.rdd.RDD
@@ -14,7 +14,7 @@ import org.apache.spark.sql.hive.HiveContext
 /**
   * Created by a2589 on 2018/4/3.
   */
-trait Claiminfo_until extends until{
+trait ClaiminfoUntil extends Until {
 
   //计算2个日期相隔多好天
   def xg(date3: String, date4: String): Int = {
@@ -118,7 +118,8 @@ trait Claiminfo_until extends until{
   }
 
   //月均出现概率,每百人月均出险概率（逻辑改为:  每百人出险人数=总出险概率*100）
-  def ent_monthly_risk(employer_liability_claims_r: DataFrame, ods_policy_detail_r: DataFrame, ods_policy_insured_detail_r: DataFrame): RDD[(String, String, String)] = {
+  def ent_monthly_risk(employer_liability_claims_r: DataFrame, ods_policy_detail_r: DataFrame,
+                       ods_policy_insured_detail_r: DataFrame): RDD[(String, String, String)] = {
 
     //    ods_policy_detail	:保单详细表
     //    ods_policy_insured_detail :被保人详细表（一张保单可以对应多个被保人）
@@ -138,7 +139,8 @@ trait Claiminfo_until extends until{
     //      " pd.ent_id," +
     //      " pd.policy_code" +
     //      " from odsdb_prd.ods_policy_detail pd").filter("length(ent_id)>0")
-    val t1: RDD[(String, Int)] = employer_liability_claims.join(ods_policy_detail_before, employer_liability_claims("policy_no") === ods_policy_detail_before("policy_code"))
+    val t1: RDD[(String, Int)] = employer_liability_claims.join(ods_policy_detail_before,
+      employer_liability_claims("policy_no") === ods_policy_detail_before("policy_code"))
       .map(x => {
         val policy_no = x.getString(0)
         val ent_id = x.getString(1)
@@ -196,7 +198,8 @@ trait Claiminfo_until extends until{
   }
 
   //材料完整度
-  def ent_material_integrity(employer_liability_claims_r: DataFrame, ods_policy_detail_r: DataFrame): RDD[(String, String, String)] = {
+  def ent_material_integrity(employer_liability_claims_r: DataFrame,
+                             ods_policy_detail_r: DataFrame): RDD[(String, String, String)] = {
 
     //employer_liability_claims	雇主保理赔记录表（是通过policy_no进行记的，因为报案这张表是手动进行等级的因此，它没办法记住ID）
     val employer_liability_claims = employer_liability_claims_r.select("policy_no", "if_resubmit_paper")
@@ -262,7 +265,8 @@ trait Claiminfo_until extends until{
     //case_close_date:结案日期
     //paper_finish_date:材料补充完成日期（比如我生病了: 会出事一些病例之类的，这些都是资料）
     //finish_days:结案时效 (材料补充完成日期，到我结案了，隔了多少天)
-    val tep_one_new = employer_liability_claims.filter("LENGTH(finish_days)<10 and LENGTH(finish_days)> 0").select("policy_no", "finish_days")
+    val tep_one_new = employer_liability_claims
+      .filter("LENGTH(finish_days)<10 and LENGTH(finish_days)> 0").select("policy_no", "finish_days")
     val tep_two_new = ods_policy_detail.filter("LENGTH(ent_id)>0").select("policy_code", "ent_id")
     val tep_three = tep_one_new.join(tep_two_new, tep_one_new("policy_no") === tep_two_new("policy_code"))
     //          .show()
@@ -909,7 +913,8 @@ trait Claiminfo_until extends until{
 
     val tepFour = dath_number.join(can_number).map(x => {
       //企业ID，该企业死亡人数，该企业残疾人数
-      (x._1, (x._2._1, x._2._2))}).filter(x => if (x._2._1 > 0 || x._2._2 > 0) true else false)
+      (x._1, (x._2._1, x._2._2))
+    }).filter(x => if (x._2._1 > 0 || x._2._2 > 0) true else false)
     val end: RDD[(String, String, String)] = tepFour.join(total_number).map(x => {
       //企业ID，该企业死亡人数，该企业残疾人数,总人数
       val ent_id = x._1
