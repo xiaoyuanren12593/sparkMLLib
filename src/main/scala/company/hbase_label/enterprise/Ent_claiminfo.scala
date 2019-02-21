@@ -177,7 +177,9 @@ object Ent_claiminfo extends Claiminfo_until with until {
     //    val employer_liability_claims = sqlContext.createDataFrame(value, schema) //.show()
 
 
-    val ods_policy_detail: DataFrame = sqlContext.sql("select * from odsdb_prd.ods_policy_detail").cache
+    import sqlContext.implicits._
+    val ods_policy_detail: DataFrame = sqlContext.sql("select * from odsdb_prd.ods_policy_detail")
+      .filter("ent_id = '24e44683a8b7d175905318bf35b4cf85'").cache
     val dim_product = sqlContext.sql("select * from odsdb_prd.dim_product").filter("product_type_2='蓝领外包'").select("product_code").cache()
     val bro_dim: Broadcast[Array[String]] = sc.broadcast(dim_product.map(_.get(0).toString).collect)
     val ods_policy_insured_charged = sqlContext.sql("select * from odsdb_prd.ods_policy_insured_charged")
@@ -249,7 +251,7 @@ object Ent_claiminfo extends Claiminfo_until with until {
 
 
     //预估总赔付金额
-    val pre_all_compensation_r = pre_all_compensation(employer_liability_claims, ods_policy_detail).distinct()
+    val pre_all_compensation_r = pre_all_compensation(sqlContext,bro_dim,employer_liability_claims, ods_policy_detail).distinct()
     toHbase(pre_all_compensation_r, columnFamily1, "pre_all_compensation", conf_fs, tableName, conf)
 
 
