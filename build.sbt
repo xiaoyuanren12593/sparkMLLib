@@ -41,7 +41,7 @@ val commonAssemblySettings = Seq(
 
 // 主工程
 lazy val bznSparkNeed = (project in file("."))
-  .aggregate(labelEnterprise, labelPersonal)
+  .aggregate(JobEnterprise, JobPersonal)
   .settings(
     libraryDependencies ++= enterpriseDeps)
   .settings(
@@ -62,7 +62,7 @@ lazy val util = (project in file("util"))
   )
 
 // 事例项目
-lazy val labelEnterprise = (project in file("label-enterprise"))
+lazy val JobEnterprise = (project in file("job-enterprise"))
   .dependsOn(util)
   .settings(
     libraryDependencies ++= enterpriseProvidedDeps)
@@ -76,7 +76,7 @@ lazy val labelEnterprise = (project in file("label-enterprise"))
   )
 
 // 事例项目
-lazy val labelPersonal = (project in file("label-personal"))
+lazy val JobPersonal = (project in file("job-personal"))
   .dependsOn(util)
   .settings(
     libraryDependencies ++= personalDeps)

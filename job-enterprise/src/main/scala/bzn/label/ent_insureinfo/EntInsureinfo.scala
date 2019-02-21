@@ -1,4 +1,4 @@
-package bzn.label.insureinfo
+package bzn.label.ent_insureinfo
 
 import java.text.SimpleDateFormat
 import java.util.{Calendar, Properties}

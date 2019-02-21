@@ -1,4 +1,4 @@
-package bzn.label.baseinfo
+package bzn.label.ent_baseinfo
 
 import java.text.NumberFormat
 import java.time.LocalDateTime

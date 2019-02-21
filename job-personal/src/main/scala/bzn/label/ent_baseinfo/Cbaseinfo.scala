@@ -1,4 +1,4 @@
-package bzn.label.baseinfo
+package bzn.label.ent_baseinfo
 
 import bzn.common.Until
 import org.apache.spark.rdd.RDD
