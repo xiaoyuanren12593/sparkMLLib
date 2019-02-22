@@ -178,7 +178,7 @@ object Ent_claiminfo extends Claiminfo_until with until {
 
 
     val ods_policy_detail: DataFrame = sqlContext.sql("select * from odsdb_prd.ods_policy_detail").cache
-    val dim_product = sqlContext.sql("select * from odsdb_prd.dim_product").filter("product_type_2='蓝领外包' and p.dim_1 in ('外包雇主', '骑士保', '大货车')").select("product_code").cache()
+    val dim_product = sqlContext.sql("select * from odsdb_prd.dim_product").filter("product_type_2='蓝领外包' and dim_1 in ('外包雇主', '骑士保', '大货车')").select("product_code").cache()
     val bro_dim: Broadcast[Array[String]] = sc.broadcast(dim_product.map(_.get(0).toString).collect)
     val ods_policy_insured_charged = sqlContext.sql("select * from odsdb_prd.ods_policy_insured_charged")
     val ods_policy_risk_period = sqlContext.sql("select * from odsdb_prd.ods_policy_risk_period").cache //ods_policy_risk_period:投保到报案
