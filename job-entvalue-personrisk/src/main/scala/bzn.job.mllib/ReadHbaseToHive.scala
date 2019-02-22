@@ -19,7 +19,7 @@ import org.apache.spark.{SparkConf, SparkContext}
   * Created by MK on 2018/4/18.
   * 已在oozie中每天更新表
   */
-object read_hbaseTo_hive extends Until {
+object ReadHbaseToHive extends Until {
   def bolZero(str: String): String = if (str == null) "0" else str
 
   //读取个人标签的数据
