@@ -48,7 +48,7 @@ lazy val bznSparkNeed = (project in file("."))
   )
 
 // 事例项目
-lazy val util = (project in file("util"))
+lazy val jobUtil = (project in file("job-util"))
   .settings(
     libraryDependencies ++= enterpriseProvidedDeps)
   .settings(commonSettings)
@@ -62,7 +62,7 @@ lazy val util = (project in file("util"))
 
 // 企业相关
 lazy val jobEnterprise = (project in file("job-enterprise"))
-  .dependsOn(util)
+  .dependsOn(jobUtil)
   .settings(
     libraryDependencies ++= enterpriseProvidedDeps)
   .settings(commonSettings)
@@ -76,7 +76,7 @@ lazy val jobEnterprise = (project in file("job-enterprise"))
 
 // 个人相关
 lazy val jobPersonal = (project in file("job-personal"))
-  .dependsOn(util)
+  .dependsOn(jobUtil)
   .settings(
     libraryDependencies ++= personalDeps)
   .settings(commonSettings)
@@ -90,7 +90,7 @@ lazy val jobPersonal = (project in file("job-personal"))
 
 // 企业价值与个人风险
 lazy val jobEntValuePersonRisk = (project in file("job-entvalue-personrisk"))
-  .dependsOn(util)
+  .dependsOn(jobUtil)
   .settings(
     libraryDependencies ++= personalDeps)
   .settings(commonSettings)
@@ -104,7 +104,7 @@ lazy val jobEntValuePersonRisk = (project in file("job-entvalue-personrisk"))
 
 // 企业价值与个人风险
 lazy val jobEtlBi3 = (project in file("job-etl-bi3"))
-  .dependsOn(util)
+  .dependsOn(jobUtil)
   .settings(
     libraryDependencies ++= personalDeps)
   .settings(commonSettings)
@@ -118,7 +118,7 @@ lazy val jobEtlBi3 = (project in file("job-etl-bi3"))
 
 // 企业价值与个人风险
 lazy val jobEtlPiwik = (project in file("job-etl-piwik"))
-  .dependsOn(util)
+  .dependsOn(jobUtil)
   .settings(
     libraryDependencies ++= personalDeps)
   .settings(commonSettings)
@@ -132,7 +132,7 @@ lazy val jobEtlPiwik = (project in file("job-etl-piwik"))
 
 // 企业价值与个人风险
 lazy val jobEtlRedis = (project in file("job-etl-redis"))
-  .dependsOn(util)
+  .dependsOn(jobUtil)
   .settings(
     libraryDependencies ++= personalDeps)
   .settings(commonSettings)

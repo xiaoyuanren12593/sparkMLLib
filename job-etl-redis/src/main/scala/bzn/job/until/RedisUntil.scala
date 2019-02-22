@@ -15,7 +15,7 @@ import scala.util.control.Breaks.{break, breakable}
   * Created by MK on 2018/10/9.
   * 基础函数处理
   */
-trait Until {
+trait RedisUntil {
   //得到预测的结果案情
   def getProduct_result(robot_data_json_before: Array[String], result_str: String, stop: StopRecognition)
   : Array[(String, Int, String, String, Integer, String, String, String, String, String, String, String, String)] = {

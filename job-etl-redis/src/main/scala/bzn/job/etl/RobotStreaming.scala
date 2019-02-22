@@ -2,7 +2,7 @@ package bzn.job.etl
 
 import java.util.Properties
 
-import bzn.job.until.Until
+import bzn.job.until.RedisUntil
 import com.alibaba.fastjson.{JSON, JSONArray, JSONObject}
 import kafka.serializer.StringDecoder
 import org.ansj.recognition.impl.StopRecognition
@@ -26,7 +26,7 @@ import scala.io.Source
   * 创建机器人回话的同时也要处理工种类型
   **/
 
-object RobotStreaming extends Until {
+object RobotStreaming extends RedisUntil {
   /**
     * 机器人工种回答
     **/
