@@ -346,8 +346,8 @@ object membership_Level {
 
       //取得最大的日期对应的在保人数(所有企业相加)--对应的也是渠道下所有企业的当前在保人数
       val max_month_people = month_ent.reduce((x1, x2) => if (x1._1 >= x2._1) x1 else x2)._2.toDouble
-      val jiner = x._2.map(_._1._2.toDouble).toArray.distinct.sum //所有的金额
-      val yizhauan = x._2.map(_._1._3.toDouble).toArray.distinct.sum //所有的已赚
+      val jiner = x._2.map(_._1._2.toDouble).toArray.sum //所有的金额
+      val yizhauan = x._2.map(_._1._3.toDouble).toArray.sum //所有的已赚
       //已赔率=(预估赔付or实际赔付)/已赚保费*100%
       val reimbursement_rate = jiner / yizhauan
 
