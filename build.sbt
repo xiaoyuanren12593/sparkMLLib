@@ -41,7 +41,7 @@ val commonAssemblySettings = Seq(
 
 // 主工程
 lazy val bznSparkNeed = (project in file("."))
-  .aggregate(jobEnterprise, jobPersonal)
+  .aggregate(jobEnterprise, jobPersonal, jobentValuePersonRisk)
   .settings(
     libraryDependencies ++= enterpriseDeps)
   .settings(
@@ -61,7 +61,7 @@ lazy val util = (project in file("util"))
     assemblyJarName in assembly := "bzn-util.jar"
   )
 
-// 事例项目
+// 企业相关
 lazy val jobEnterprise = (project in file("job-enterprise"))
   .dependsOn(util)
   .settings(
@@ -75,7 +75,7 @@ lazy val jobEnterprise = (project in file("job-enterprise"))
     assemblyJarName in assembly := "bzn-label-enterprise.jar"
   )
 
-// 事例项目
+// 个人相关
 lazy val jobPersonal = (project in file("job-personal"))
   .dependsOn(util)
   .settings(
@@ -87,4 +87,18 @@ lazy val jobPersonal = (project in file("job-personal"))
     //    mainClass in assembly := Some("com.ladder.example.hive.SparkHiveExample"),
     //定义jar包的名字
     assemblyJarName in assembly := "bzn-personal.jar"
+  )
+
+// 企业价值与个人风险
+lazy val jobentValuePersonRisk = (project in file("job-entvalue-personrisk"))
+  .dependsOn(util)
+  .settings(
+    libraryDependencies ++= personalDeps)
+  .settings(commonSettings)
+  .settings(commonAssemblySettings)
+  .settings(
+    //指定类的名字
+    //    mainClass in assembly := Some("com.ladder.example.hive.SparkHiveExample"),
+    //定义jar包的名字
+    assemblyJarName in assembly := "bzn-entvalue-personrisk.jar"
   )
