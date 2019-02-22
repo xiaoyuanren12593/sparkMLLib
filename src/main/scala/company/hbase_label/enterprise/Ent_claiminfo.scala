@@ -6,7 +6,6 @@ import java.util.regex.Pattern
 
 import company.hbase_label.enterprise.enter_until.Claiminfo_until
 import company.hbase_label.until
-import org.apache.commons.cli.ParseException
 import org.apache.spark.broadcast.Broadcast
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.DataFrame
@@ -177,9 +176,8 @@ object Ent_claiminfo extends Claiminfo_until with until {
     //    val employer_liability_claims = sqlContext.createDataFrame(value, schema) //.show()
 
 
-    import sqlContext.implicits._
-    val ods_policy_detail: DataFrame = sqlContext.sql("select * from odsdb_prd.ods_policy_detail")
-      .filter("ent_id = '24e44683a8b7d175905318bf35b4cf85'").cache
+
+    val ods_policy_detail: DataFrame = sqlContext.sql("select * from odsdb_prd.ods_policy_detail").cache
     val dim_product = sqlContext.sql("select * from odsdb_prd.dim_product").filter("product_type_2='蓝领外包'").select("product_code").cache()
     val bro_dim: Broadcast[Array[String]] = sc.broadcast(dim_product.map(_.get(0).toString).collect)
     val ods_policy_insured_charged = sqlContext.sql("select * from odsdb_prd.ods_policy_insured_charged")
