@@ -1,4 +1,4 @@
-package bzn.job.label.ent_insureinfo
+package ent_insureinfo
 
 import java.text.{NumberFormat, SimpleDateFormat}
 import java.util.Properties

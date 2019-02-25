@@ -1,4 +1,4 @@
-package bzn.job.label.channel_insureinfo
+package channel_insureinfo
 
 import java.util.Properties
 
