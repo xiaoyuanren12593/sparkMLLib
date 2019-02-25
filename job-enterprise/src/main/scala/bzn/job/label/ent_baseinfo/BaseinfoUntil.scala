@@ -69,6 +69,7 @@ trait BaseinfoUntil extends Until {
     val qy_Producer = ods_policy_detail
       .where("policy_status in ('0','1','7','9','10')")
       .filter("length(insure_code) > 0")
+      .filter("ent_id is not null")
       .select("ent_id", "insure_code", "policy_status")
 
     val end: RDD[(String, String, String)] = qy_Producer
@@ -108,6 +109,7 @@ trait BaseinfoUntil extends Until {
       .filter("LENGTH(insured_cert_no)=18")
       .select("policy_id", "insured_name", "insured_cert_no")
     val join_qy_mx = ods_policy_detail_table_T.join(ods_policy_insured_detail_table, "policy_id")
+      .filter("ent_id is not null")
     //      |           policy_id|              ent_id|insured_name|   insured_cert_no|
     //      +--------------------+--------------------+------------+------------------+
     //      |6d04d7669ad34e488...|43294d3451c5411ab...|          文斌|110101198001138997|
@@ -187,6 +189,7 @@ trait BaseinfoUntil extends Until {
 
     //计算我该企业中有多少人投保了：返回的是企业ID，投保人数
     val j_after = before.join(after, "policy_id")
+      .filter("ent_id is not null")
     //ent_id|police_id|policy_status|cur_insured_persons|insure_policy_status
     val end = j_after.map(x => (x.getString(1), (x.getString(0), x.getString(2), x.getString(3), x.getString(4))))
       .filter(_._2._3.length == 18)
@@ -224,6 +227,7 @@ trait BaseinfoUntil extends Until {
     val tepThree = tepOne.join(tepTwo, tepOne("triangle_status") === tepTwo("id_nub"))
     val end = ods_policy_detail_table
       .select("ent_id", "policy_status")
+      .filter("ent_id is not null")
       .join(tepThree, "ent_id")
       .filter("policy_status in ('0','1','7','9','10')")
     val et: RDD[(String, String, String)] = end.map(x => (x.getString(2), x.getString(5), "ent_type"))

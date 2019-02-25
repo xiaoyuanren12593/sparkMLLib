@@ -74,21 +74,25 @@ object YearMonthPremium extends YearUntil {
       numberFormat.setMaximumFractionDigits(4)
 
       rdd.flatMap(x => {
-        val insure_code = x.getAs("insure_code").toString
+        var insure_code = ""
+        var ent_id = ""
+        if(x.getAs("insure_code") != null   ){
+          insure_code = x.getAs("insure_code").toString
+        }
+        if(x.getAs("ent_id") != null){
+          ent_id = x.getAs("ent_id").toString
+        }
+
         val policy_id = x.getAs("policy_id").toString
         val sku_price = x.getAs("sku_price").toString.toDouble
         val insured_id = x.getAs("insured_id").toString
         val insured_cert_no = x.getAs("insured_cert_no").toString
 
-        val insured_start_date = x.getAs[String]("insured_start_date").split(" ")(0)
-          .replaceAll("-", "")
-          .replaceAll("/", "")
-        val insured_end_date = x.getAs[String]("insured_end_date").split(" ")(0)
-          .replaceAll("-", "")
-          .replaceAll("/", "")
+        val insured_start_date = x.getAs("insured_start_date").toString.split(" ")(0).replaceAll("-", "").replaceAll("/", "")
+        val insured_end_date = x.getAs("insured_end_date").toString.split(" ")(0).replaceAll("-", "").replaceAll("/", "")
 
         val insure_policy_status = x.getAs("insure_policy_status").toString
-        val ent_id = x.getAs("ent_id").toString
+
         // sku_charge_type:1是月单，2是年单子
         //判断是年单还是月单
         //如果是月单，则计算的是我当月的平均保费使用的字段是:insured_start_date,insured_end_date
@@ -98,12 +102,13 @@ object YearMonthPremium extends YearUntil {
 
         val res = getBeg_End_one_two(insured_start_date, insured_end_date).map(day_id => {
           val sku_day_price = numberFormat.format(sku_price / month_number)
-          (insure_code, policy_id, sku_day_price, insured_id, insured_cert_no, insured_start_date,
-            insured_end_date, insure_policy_status, day_id, sku_price, ent_id)
+          (insure_code, policy_id, sku_day_price, insured_id, insured_cert_no, insured_start_date, insured_end_date, insure_policy_status, day_id, sku_price, ent_id)
         })
+
+        //        res.foreach(println)
         res
       })
-    }).filter(x => if (bp_bro.value.contains(x._1)) true else false)
+    }).filter(x => !x.equals("")).filter(x => if (bp_bro.value.contains(x._1)) true else false)
     val to_hive = bzn_year.map(x => (x._2, x._3, x._4, x._5, x._6, x._7, x._8, x._9, x._10, x._11))
     to_hive
   }
@@ -125,40 +130,42 @@ object YearMonthPremium extends YearUntil {
       numberFormat.setMaximumFractionDigits(4)
 
       rdd.flatMap(x => {
-        val insure_code = x.getAs("insure_code").toString
+        var insure_code = ""
+        var ent_id = ""
+        if(x.getAs("insure_code") != null   ){
+          insure_code = x.getAs("insure_code").toString
+        }
+        if(x.getAs("ent_id") != null){
+          ent_id = x.getAs("ent_id").toString
+        }
+
         val policy_id = x.getAs("policy_id").toString
         val sku_price = x.getAs("sku_price").toString.toDouble
         val insured_id = x.getAs("insured_id").toString
         val insured_cert_no = x.getAs("insured_cert_no").toString
 
-        val start_date = x.getAs[String]("start_date").split(" ")(0)
-          .replaceAll("-", "")
-          .replaceAll("/", "")
-        val end_date = x.getAs[String]("end_date").split(" ")(0)
-          .replaceAll("-", "")
-          .replaceAll("/", "")
+        val start_date = x.getAs("start_date").toString.split(" ")(0).replaceAll("-", "").replaceAll("/", "")
+        val end_date = x.getAs("end_date").toString.split(" ")(0).replaceAll("-", "").replaceAll("/", "")
 
-        val insured_start_date = x.getAs[String]("insured_start_date").split(" ")(0)
-          .replaceAll("-", "")
-          .replaceAll("/", "")
-        val insured_end_date = x.getAs[String]("insured_end_date").split(" ")(0)
-          .replaceAll("-", "")
-          .replaceAll("/", "")
+        val insured_start_date = x.getAs("insured_start_date").toString.split(" ")(0).replaceAll("-", "").replaceAll("/", "")
+        val insured_end_date = x.getAs("insured_end_date").toString.split(" ")(0).replaceAll("-", "").replaceAll("/", "")
 
         val insure_policy_status = x.getAs("insure_policy_status").toString
-        val ent_id = x.getAs("ent_id").toString
         // sku_charge_type:1是月单，2是年单子
+
 
         //判断是年单还是月单
         //如果是月单，则计算的是我当月的平均保费使用的字段是:insured_start_date,insured_end_date
         //如果是年单，则计算的是我当年的平均保费使用的字段是:start_date,end_date
+
         //保单层面的循环天数
         val date_number = getBeg_End_one_two(start_date, end_date).size
 
+
         val res = getBeg_End_one_two(insured_start_date, insured_end_date).map(day_id => {
+          //          val sku_day_price = if (sku_charge_type == "1") numberFormat.format(sku_price / month_number) else numberFormat.format(sku_price / date_number)
           val sku_day_price = numberFormat.format(sku_price / date_number)
-          (insure_code, policy_id, sku_day_price, insured_id, insured_cert_no, insured_start_date, insured_end_date,
-            insure_policy_status, day_id, sku_price, ent_id)
+          (insure_code, policy_id, sku_day_price, insured_id, insured_cert_no, insured_start_date, insured_end_date, insure_policy_status, day_id, sku_price, ent_id)
         })
         res
       })
@@ -172,23 +179,26 @@ object YearMonthPremium extends YearUntil {
   def main(args: Array[String]): Unit = {
 
     System.setProperty("HADOOP_USER_NAME", "hdfs")
+    //    Logger.getLogger("org.apache.spark").setLevel(Level.WARN)
+
+    val conf_s = new SparkConf().setAppName("wuYu")
+      .set("spark.sql.broadcastTimeout", "36000")
+      .set("spark.network.timeout", "36000")
+      .set("spark.executor.heartbeatInterval","20000")
+    //          .setMaster("local[2]")
+    val sc = new SparkContext(conf_s)
+    val sqlContext: HiveContext = new HiveContext(sc)
+    val ods_policy_detail = sqlContext.sql("select * from odsdb_prd.ods_policy_detail").filter("policy_status in ('0','1')").cache()
+    val ods_policy_insured_detail = sqlContext.sql("select * from odsdb_prd.ods_policy_insured_detail").filter("length(insured_start_date)>0 and length(insured_end_date)>0")
+    val blue_package = sqlContext.sql("select * from odsdb_prd.dim_product").filter("product_type_2='蓝领外包'")
+    val bp = blue_package.map(x => x.getAs("product_code").toString).collect()
+    val bp_bro: Broadcast[Array[String]] = sc.broadcast(bp)
 
     import sqlContext.implicits._
 
-    val conf_s = new SparkConf().setAppName("wuYu")
-    //      .setMaster("local[2]")
-    val sc = new SparkContext(conf_s)
-    val sqlContext: HiveContext = new HiveContext(sc)
-    val ods_policy_detail = sqlContext.sql("select * from odsdb_prd.ods_policy_detail")
-      .filter("policy_status in ('0','1')")
-      .cache()
-    val ods_policy_insured_detail = sqlContext.sql("select * from odsdb_prd.ods_policy_insured_detail")
-      .filter("length(insured_start_date)>0 and length(insured_end_date)>0")
-    val blue_package = sqlContext.sql("select * from odsdb_prd.dim_product").filter("product_type_2='蓝领外包'")
-    val bp = blue_package.map(x => x.getAs("product_code").toString).collect
-    val bp_bro: Broadcast[Array[String]] = sc.broadcast(bp)
-
-    //存入hive
+    /**
+      * 存入hive
+      **/
     val res: DataFrame = ods_policy_detail.join(ods_policy_insured_detail, "policy_id")
 
     val month = month_premium(sqlContext: HiveContext, res: DataFrame, bp_bro: Broadcast[Array[String]])
@@ -199,7 +209,10 @@ object YearMonthPremium extends YearUntil {
     //为true表示覆盖
     to_hive.insertInto("odsdb_prd.ods_policy_insured_charged_vt", overwrite = true)
 
-    //存入mysql
+    /*
+      * 存入mysql
+      **/
+
     //得到时间戳
     val timeMillions = System.currentTimeMillis()
     //HDFS需要传的路径
@@ -211,6 +224,7 @@ object YearMonthPremium extends YearUntil {
     val exis = new File(path)
     //每天新创建一个目录，将数据写入到新目录中
     if (exis.exists()) {
+
       val cmd = "sh /share/deleteFile.sh " + path + "/"
       val p = Runtime.getRuntime.exec(cmd)
       p.waitFor()
