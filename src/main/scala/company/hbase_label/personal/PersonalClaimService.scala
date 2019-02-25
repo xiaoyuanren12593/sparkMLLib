@@ -282,7 +282,15 @@ object PersonalClaimService extends until {
     val numberFormat = NumberFormat.getInstance
     numberFormat.setMaximumFractionDigits(2)
 
-    val end = employer_liability_claims.filter("length(cert_no) >2 ").select("cert_no", "time_effect").map(x => {
+    val end = employer_liability_claims.filter("length(cert_no) >2 ").select("cert_no", "time_effect")
+      .map(z => z)
+      //过滤不是数字
+      .filter(t => {
+      var time_effect_length: Int = t.get(1).toString.trim.length
+      println(t.get(1).toString + "" +t.get(1).toString.trim.length)
+      if (time_effect_length > 4) false else true
+     })
+      .map(x => {
       val res = if (x.get(1) == "" || x.get(1) == null) 0.0 else x.get(1).toString.toDouble
       (x.getString(0), (res, 1))
     }).reduceByKey((x1, x2) => {

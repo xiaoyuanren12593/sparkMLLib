@@ -16,7 +16,7 @@ import scala.io.Source
 /**
   * Created by MK on 2018/7/5.
   */
-object one_and_two_data extends year_until {
+object one_and_two_data_test extends year_until {
   //遍历某目录下所有的文件和子文件
   def subDir(dir: File): Iterator[File]
   = {
@@ -75,7 +75,7 @@ object one_and_two_data extends year_until {
     val plc_policy_preserve_insured_version_one: DataFrame = sqlContext.sql("select work_type as work_type_new,* from b_new")
       .drop("work_type").withColumnRenamed("work_type_new", "work_type")
 
-    val fields_mk = plc_policy_preserve_insured_version_one.schema.map(x => x.name) :+ "work_type_mk" :+ "name_mk"
+    val fields_mk: Seq[String] = plc_policy_preserve_insured_version_one.schema.map(x => x.name) :+ "work_type_mk" :+ "name_mk"
     val plc_policy_preserve_insured_version_two = plc_policy_preserve_insured_version_one.map(x => {
       val work = to_null(x.getAs[String]("work_type"))
       val name = to_null(x.getAs[String]("name"))
@@ -155,6 +155,7 @@ object one_and_two_data extends year_until {
       "c_create_time as child_create_time",
       "c_update_time as child_update_time"
     )
+
     end
   }
 
@@ -206,7 +207,6 @@ object one_and_two_data extends year_until {
       "    THEN '0'" +
       "    ELSE '1'" +
       "  END as insured_status,work_type as c_work_type from mk_ce").drop("work_type") //.persist(StorageLevel.MEMORY_ONLY_SER)
-
 
     val fields_mk = b_policy_preservation_subject_person_master_version_one.schema.map(x => x.name) :+ "c_work_type_mk"
     val b_policy_preservation_subject_person_master_version_two = b_policy_preservation_subject_person_master_version_one.map(x => {
@@ -356,7 +356,7 @@ object one_and_two_data extends year_until {
 
     System.setProperty("HADOOP_USER_NAME", "hdfs")
     val conf_s = new SparkConf().setAppName("wuYu")
-//      .setMaster("local[4]")
+      .setMaster("local[4]")
     val sc = new SparkContext(conf_s)
     val sqlContext: HiveContext = new HiveContext(sc)
     sqlContext.udf.register("getUUID", () => (java.util.UUID.randomUUID() + "").replace("-", ""))
@@ -365,6 +365,7 @@ object one_and_two_data extends year_until {
 
     //得到1.0表的数据
     val end_one = get_one(sqlContext: HiveContext, prop: Properties, url: String)
+//
     //得到2.0表的数据
     val end_two = get_two(sqlContext: HiveContext, prop: Properties, url: String)
 
@@ -381,7 +382,7 @@ object one_and_two_data extends year_until {
     //字段对应的值
     val value_tepTwo = field_value.map(r => Row(r: _*))
     //大表生成DF
-    val big_before = sqlContext.createDataFrame(value_tepTwo, schema_tepOne)
+    val big_before: DataFrame = sqlContext.createDataFrame(value_tepTwo, schema_tepOne)
 
 
     //要过滤的数据
@@ -390,15 +391,16 @@ object one_and_two_data extends year_until {
       .select("id").withColumnRenamed("id", "odr_id").cache
 
     val big = big_before.join(odr_id, big_before("policy_id") === odr_id("odr_id"),"left").drop("odr_id")
-      .where("insured_name is not null").where("insured_name != 'null'")
+      .filter("insured_name is not null").filter("insured_name != 'null'")
 
-    val table_name = "ods_policy_preserve_detail"
+    val table_name = "ods_policy_preserve_detail_vt"
+////      sqlContext.sql("select * from odsdb_prd.ods_policy_preserve_detail limit 10").show()
     big.insertInto(s"odsdb_prd.$table_name", overwrite = true) //存入哪张表中
-    val tep_end: RDD[String] = big.map(_.mkString("mk6")).map(x => {
-      val arrArray = x.split("mk6").map(x => if (x == "null" || x == null) "" else x)
-      arrArray.mkString("mk6")
-    }) //存入mysql
-    delete(hdfs_url, "/oozie/mysqlData/ods_policy_preserve_detail", tep_end) //删除后，输出到文件中
+//    val tep_end: RDD[String] = big.map(_.mkString("mk6")).map(x => {
+//      val arrArray = x.split("mk6").map(x => if (x == "null" || x == null) "" else x)
+//      arrArray.mkString("mk6")
+//    }) //存入mysql
+//    delete(hdfs_url, "/oozie/mysqlData/ods_policy_preserve_detail", tep_end) //删除后，输出到文件中
 
   }
 }

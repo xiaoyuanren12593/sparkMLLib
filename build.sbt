@@ -13,6 +13,7 @@ resolvers ++= Seq(
   "central" at "https://maven.aliyun.com/repository/central"
 )
 
+
 //
 ////libraryDependencies ++= Seq(
 ////
@@ -28,6 +29,78 @@ val commonSettings = Seq(
   scalaVersion := "2.10.4",
   //挡在java项目中写中文时，编译会报错，加上该行就行了
   javacOptions ++= Seq("-encoding", "UTF-8")
+//挡在java项目中写中文时，编译会报错，加上该行就行了
+javacOptions ++= Seq("-encoding", "UTF-8")
+
+libraryDependencies ++= Seq(
+  //  通过驱动器来实现neo4j(写sql)
+  //  "org.neo4j.driver" % "neo4j-java-driver" % "1.0.4",
+  "org.neo4j.driver" % "neo4j-java-driver" % "1.0.4" % "provided",
+
+  //  Alibaba-json
+  "com.alibaba" % "fastjson" % "1.2.24",
+
+  /**
+    * saprk对中文进行分词
+    * https://mvnrepository.com/artifact/org.ansj/ansj_seg
+    * https://mvnrepository.com/artifact/org.nlpcn/nlp-lang
+    **/
+  "org.ansj" % "ansj_seg" % "5.1.1",
+  "org.nlpcn" % "nlp-lang" % "1.7.2",
+  //  "org.ansj" % "ansj_seg" % "5.1.1" % "provided",
+  //  "org.nlpcn" % "nlp-lang" % "1.7.2" % "provided",
+
+  //  mysql connect
+  "mysql" % "mysql-connector-java" % "5.1.36",
+  //  "mysql" % "mysql-connector-java" % "5.1.36" % "provided",
+
+  "joda-time" % "joda-time" % "2.9.9",
+
+  //  redis-client
+  "redis.clients" % "jedis" % "2.9.0",
+  //  "redis.clients" % "jedis" % "2.9.0" % "provided",
+
+  // ===================================================================
+//        spark-neo4j
+//      "neo4j-contrib" % "neo4j-spark-connector" % "2.1.0-M4",
+//  // spark-csv
+//  "com.databricks" %% "spark-csv" % "1.4.0",
+//  //  hive
+//  "org.apache.spark" %% "spark-hive" % "1.6.1",
+//  // spark-mllib
+//  "org.apache.spark" % "spark-mllib_2.10" % "1.6.1",
+//  // sparkStreaming
+//  "org.apache.spark" %% "spark-streaming" % "1.6.1",
+//  "org.apache.spark" %% "spark-streaming-kafka" % "1.6.1",
+//  //  hbase
+//  "org.apache.hbase" % "hbase-client" % "1.2.0",
+//  "org.apache.hbase" % "hbase-common" % "1.2.0",
+//  "org.apache.hbase" % "hbase-server" % "1.2.0",
+//  "org.apache.hbase" % "hbase-hadoop-compat" % "1.2.0"
+  // =========================================================================================
+
+//    hive
+  "org.apache.spark" %% "spark-hive" % "1.6.1" % "provided",
+  //  spark-neo4j
+  "neo4j-contrib" % "neo4j-spark-connector" % "2.1.0-M4" % "provided",
+  //  spark-csv
+  "com.databricks" %% "spark-csv" % "1.4.0" % "provided",
+  // sparkStreaming
+  "org.apache.spark" %% "spark-streaming" % "1.6.1" % "provided",
+  "org.apache.spark" %% "spark-streaming-kafka" % "1.6.1" % "provided",
+  // spark-mllib
+  "org.apache.spark" % "spark-mllib_2.10" % "1.6.1" % "provided",
+  //  hbase
+  "org.apache.hbase" % "hbase-client" % "1.2.0" % "provided",
+  "org.apache.hbase" % "hbase-common" % "1.2.0" % "provided",
+  "org.apache.hbase" % "hbase-server" % "1.2.0" % "provided",
+  "org.apache.hbase" % "hbase-hadoop-compat" % "1.2.0" % "provided"
+
+).map(
+  _.excludeAll(ExclusionRule(organization = "org.mortbay.jetty"))
+).map(
+  _.excludeAll(ExclusionRule(organization = "javax.servlet"))
+>>>>>>> master
 )
 
 // 公共的 打包 配置

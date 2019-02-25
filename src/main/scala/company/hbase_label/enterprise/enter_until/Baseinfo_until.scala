@@ -73,7 +73,7 @@ trait Baseinfo_until extends until {
   = {
     //企业产品ID :insure_code(产品代码)
     val qy_Producer = ods_policy_detail.where("policy_status in ('0','1','7','9','10')")
-      .filter("length(insure_code) > 0").select("ent_id", "insure_code", "policy_status")
+      .filter("length(insure_code) > 0").filter("ent_id is not null").select("ent_id", "insure_code", "policy_status")
 
     val end: RDD[(String, String, String)] = qy_Producer.map(x => {
       (x.getString(0), (x.getString(1), x.getString(2)))
@@ -81,6 +81,7 @@ trait Baseinfo_until extends until {
       val result = x._2.map(x => x._1).toSet
       (x._1, result.mkString("|"), "ent_insure_code")
     })
+
     end
   }
 
@@ -108,6 +109,7 @@ trait Baseinfo_until extends until {
     val numberFormat = NumberFormat.getInstance
     val ods_policy_insured_detail_table = ods_policy_insured_detail.filter("LENGTH(insured_cert_no)=18").select("policy_id", "insured_name", "insured_cert_no")
     val join_qy_mx = ods_policy_detail_table_T.join(ods_policy_insured_detail_table, "policy_id")
+      .filter("ent_id is not null")
     //      |           policy_id|              ent_id|insured_name|   insured_cert_no|
     //      +--------------------+--------------------+------------+------------------+
     //      |6d04d7669ad34e488...|43294d3451c5411ab...|          文斌|110101198001138997|
@@ -152,6 +154,7 @@ trait Baseinfo_until extends until {
   = {
     //企业人员规模：end_id(企业id) ,ent_scale(人数)
     val end = ent_sum_level.where("length(ent_id)>0").select("ent_id", "ent_scale")
+      .filter("ent_id is not null")
       .map(x => {
         (x.getString(0), x.getString(1), "ent_scale")
       })
@@ -164,6 +167,7 @@ trait Baseinfo_until extends until {
   = {
     //企业品牌影响力 ：end_id(企业id) ,ent_influence_level(企业的等级)
     val end = ent_sum_level.where("length(ent_id)>0").select("ent_id", "ent_influence_level")
+      .filter("ent_id is not null")
       .map(x => {
         (x.getString(0), x.getString(1), "ent_influence_level")
       })
@@ -189,6 +193,7 @@ trait Baseinfo_until extends until {
 
     //计算我该企业中有多少人投保了：返回的是企业ID，投保人数
     val j_after = before.join(after, "policy_id")
+      .filter("ent_id is not null")
     //    |         policy_id|              ent_id|policy_status|cur_insured_persons|insure_policy_status|
     //    |122008268007673856|10e11fd0b1a7488db...|            0| 44132219951005661X|                   1|
     //ent_id|COUNT(DISTINCT pid.insured_cert_no) as cur_insured_persons
@@ -239,6 +244,7 @@ trait Baseinfo_until extends until {
     val tepTwo = d_id_certificate.select("id_nub", "certificate").where("length(certificate)>0")
     val tepThree = tepOne.join(tepTwo, tepOne("triangle_status") === tepTwo("id_nub"))
     val end = ods_policy_detail_table.select("ent_id", "policy_status").join(tepThree, "ent_id").filter("policy_status in ('0','1','7','9','10')")
+      .filter("ent_id is not null")
     val et: RDD[(String, String, String)] = end.map(x => {
       (x.getString(2), x.getString(5), "ent_type")
     })

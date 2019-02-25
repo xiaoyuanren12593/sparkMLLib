@@ -133,7 +133,7 @@ object Cbaseinfo extends until {
       res
     })
     val end = j_after.map(x => {
-      val bz = if (x._2.length > 0) x._2 else "null"
+      val bz = if (x._2 != null ) x._2 else "null"
       (x._1, bz, " official_website_coverage")
     })
     end
