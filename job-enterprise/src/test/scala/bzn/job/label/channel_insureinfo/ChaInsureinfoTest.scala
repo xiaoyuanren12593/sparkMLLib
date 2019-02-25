@@ -1,8 +1,9 @@
-package channel_insureinfo
+package bzn.job.label.channel_insureinfo
 
 import java.util.Properties
 
 import bzn.job.common.Until
+import bzn.job.label.channel_insureinfo.ChaInsureinfoUntil
 import com.alibaba.fastjson.JSONObject
 import org.apache.hadoop.hbase.util.Bytes
 import org.apache.spark.rdd.RDD

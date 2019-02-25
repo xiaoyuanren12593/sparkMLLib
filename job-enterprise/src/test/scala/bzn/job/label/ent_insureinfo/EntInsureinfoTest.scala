@@ -1,10 +1,11 @@
-package ent_insureinfo
+package bzn.job.label.ent_insureinfo
 
 import java.text.{NumberFormat, SimpleDateFormat}
 import java.util.Properties
 import java.util.regex.Pattern
 
 import bzn.job.label.ent_claiminfo.ClaiminfoUntil
+import bzn.job.label.ent_insureinfo.InsureinfoUntil
 import org.apache.spark.broadcast.Broadcast
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.DataFrame
