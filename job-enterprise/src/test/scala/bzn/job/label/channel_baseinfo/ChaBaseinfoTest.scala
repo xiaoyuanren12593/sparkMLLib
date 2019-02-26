@@ -114,7 +114,7 @@ object ChaBaseinfoTest extends ChaBaseinfoUntilTest {
       .filter(_._1.length > 5)
     println(1)
     et.foreach(println)
-//    toHbase(et, columnFamily, "ent_type", conf_fs, tableName, conf)
+//    saveToHbase(et, columnFamily, "ent_type", conf_fs, tableName, conf)
 
     //渠道的注册时间
     val rt = channel_before
@@ -127,7 +127,7 @@ object ChaBaseinfoTest extends ChaBaseinfoUntilTest {
       .filter(_._1.length > 5)
     println(2)
     rt.foreach(println)
-//    toHbase(rt, columnFamily, "register_time", conf_fs, tableName, conf)
+//    saveToHbase(rt, columnFamily, "register_time", conf_fs, tableName, conf)
 
     //渠道名称
     val en = channel_before
@@ -140,7 +140,7 @@ object ChaBaseinfoTest extends ChaBaseinfoUntilTest {
       .filter(_._1.length > 5)
     println(3)
     en.foreach(println)
-//    toHbase(en, columnFamily, "ent_name", conf_fs, tableName, conf)
+//    saveToHbase(en, columnFamily, "ent_name", conf_fs, tableName, conf)
 
 
     //渠道所在省份
@@ -153,7 +153,7 @@ object ChaBaseinfoTest extends ChaBaseinfoUntilTest {
       .filter(_._1.length > 5)
     println(4)
     ep.foreach(println)
-//    toHbase(ep, columnFamily, "ent_province", conf_fs, tableName, conf)
+//    saveToHbase(ep, columnFamily, "ent_province", conf_fs, tableName, conf)
 
     //渠道所在城市
     val ec = channel_before.map(x => (x._1, x._2.split(";").filter(_.contains("ent_city")).take(1).mkString("")))
@@ -165,7 +165,7 @@ object ChaBaseinfoTest extends ChaBaseinfoUntilTest {
       .filter(_._1.length > 5)
     println(5)
     ec.foreach(println)
-//    toHbase(ec, columnFamily, "ent_city", conf_fs, tableName, conf)
+//    saveToHbase(ec, columnFamily, "ent_city", conf_fs, tableName, conf)
 
     //渠道所在的城市类型：ent_city_type
     val ect = channel_before
@@ -178,14 +178,14 @@ object ChaBaseinfoTest extends ChaBaseinfoUntilTest {
       .filter(_._1.length > 5)
     println(6)
     ect.foreach(println)
-//    toHbase(ect, columnFamily, "ent_city_type", conf_fs, tableName, conf)
+//    saveToHbase(ect, columnFamily, "ent_city_type", conf_fs, tableName, conf)
 
     //渠道产品ID
     val qCp = getqCp(en_before, before, users_RDD, channel_ent_name, ods_ent_guzhu_salesman_channel_RDD, sql_context)
       .filter(_._1.length > 5)
     println(7)
     qCp.foreach(println)
-//    toHbase(qCp, columnFamily, "ent_insure_code", conf_fs, tableName, conf)
+//    saveToHbase(qCp, columnFamily, "ent_insure_code", conf_fs, tableName, conf)
 
     //渠道的男女比例
     val qy_sex_r = qy_sex(ods_policy_insured_detail, ods_policy_detail_table, get_hbase_key_name, sql_context,
@@ -193,7 +193,7 @@ object ChaBaseinfoTest extends ChaBaseinfoUntilTest {
       .filter(_._1.length > 5)
     println(8)
     qy_sex_r.foreach(println)
-//    toHbase(qy_sex_r, columnFamily, "ent_man_woman_proportion", conf_fs, tableName, conf)
+//    saveToHbase(qy_sex_r, columnFamily, "ent_man_woman_proportion", conf_fs, tableName, conf)
 
     //渠道平均投保年龄
     val qy_avg_r = qy_avg(ods_policy_insured_detail, ods_policy_detail_table, get_hbase_key_name, sql_context,
@@ -201,21 +201,21 @@ object ChaBaseinfoTest extends ChaBaseinfoUntilTest {
       .filter(_._1.length > 5)
     println(9)
     qy_avg_r.foreach(println)
-//    toHbase(qy_avg_r, columnFamily, "ent_employee_age", conf_fs, tableName, conf)
+//    saveToHbase(qy_avg_r, columnFamily, "ent_employee_age", conf_fs, tableName, conf)
 
     //渠道的人员规模
     val qy_gm_r = qy_gm(en_before, before, users_RDD, channel_ent_name, ods_ent_guzhu_salesman_channel_RDD, sql_context)
       .filter(_._1.length > 5)
     println(10)
     qy_gm_r.foreach(println)
-//    toHbase(qy_gm_r, columnFamily, "ent_scale", conf_fs, tableName, conf)
+//    saveToHbase(qy_gm_r, columnFamily, "ent_scale", conf_fs, tableName, conf)
 
     //渠道潜在人员规模
     val qy_qz_r = qy_qz(en_before, before, users_RDD, channel_ent_name, ods_ent_guzhu_salesman_channel_RDD, sql_context)
       .filter(_._1.length > 5)
     println(11)
     qy_qz_r.foreach(println)
-//    toHbase(qy_qz_r, columnFamily, "ent_potential_scale", conf_fs, tableName, conf)
+//    saveToHbase(qy_qz_r, columnFamily, "ent_potential_scale", conf_fs, tableName, conf)
   }
 
   def main(args: Array[String]): Unit = {

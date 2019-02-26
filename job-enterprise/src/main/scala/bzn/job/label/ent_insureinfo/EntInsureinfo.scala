@@ -14,7 +14,7 @@ import org.joda.time.format.DateTimeFormat
 
 import scala.io.Source
 
-object EntInsureinfo extends InsureinfoUntil with EnterpriseUntil  {
+object EntInsureinfo extends InsureinfoUntil {
   //21
   //首次投保至今月数
   def ent_fist_plc_month(ods_policy_detail: DataFrame): RDD[(String, String, String)] = {
@@ -140,7 +140,7 @@ object EntInsureinfo extends InsureinfoUntil with EnterpriseUntil  {
 
     //当前在保人数 (对身份证去重，条件是该人人在企业中：insure_policy_status='1')
     //    val cur_insured_persons_r = cur_insured_persons(ods_policy_detail, ods_policy_insured_detail).distinct()
-    //    toHbase(cur_insured_persons_r, columnFamily1, "cur_insured_persons", conf_fs, tableName, conf)
+    //    saveToHbase(cur_insured_persons_r, columnFamily1, "cur_insured_persons", conf_fs, tableName, conf)
 
     //新的当前在保人数
     val cur_insured_persons_r = read_people_product(sqlContext: HiveContext, location_mysql_url: String, prop: Properties, location_mysql_url_dwdb: String).map(x => (x._1, x._2._2 + "", "cur_insured_persons"))

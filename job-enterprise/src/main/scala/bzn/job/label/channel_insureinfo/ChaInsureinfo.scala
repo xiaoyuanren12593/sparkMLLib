@@ -18,7 +18,7 @@ import scala.io.Source
 /**
   * Created by MK on 2018/11/5.
   */
-object ChaInsureinfo extends ChaInsureinfoUntil with EnterpriseUntil{
+object ChaInsureinfo extends ChaInsureinfoUntil {
 
   def Insure(usersRDD: RDD[String], channel_ent_name: Array[String], ods_ent_guzhu_salesman_channel: RDD[(String, String)],
              sql_context: HiveContext, get_hbase_key_name: collection.Map[String, String],

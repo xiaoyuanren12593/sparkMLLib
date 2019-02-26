@@ -49,42 +49,42 @@ object PolicyInfoTest extends PolicyUntilTest {
     //订单企业ID
     val policy_ent_id_r = policy_ent_id(ods_policy_detail, ent_enterprise_info).distinct()
     policy_ent_id_r.take(10).foreach(println)
-//    toHbase(policy_ent_id_r, columnFamily1, "policy_ent_id", conf_fs, tableName, conf)
+//    saveToHbase(policy_ent_id_r, columnFamily1, "policy_ent_id", conf_fs, tableName, conf)
 
     //产品编号
     val policy_insure_code_r = policy_insure_code(ods_policy_detail).distinct()
     policy_insure_code_r.take(10).foreach(println)
-//    toHbase(policy_insure_code_r, columnFamily1, "policy_insure_code", conf_fs, tableName, conf)
+//    saveToHbase(policy_insure_code_r, columnFamily1, "policy_insure_code", conf_fs, tableName, conf)
 
     //保单生效时间
     val policy_start_date_r = policy_start_date(ods_policy_detail).distinct()
     policy_start_date_r.take(10).foreach(println)
-//    toHbase(policy_start_date_r, columnFamily1, "policy_start_date", conf_fs, tableName, conf)
+//    saveToHbase(policy_start_date_r, columnFamily1, "policy_start_date", conf_fs, tableName, conf)
 
     //保单截至时间
     val policy_end_date_r = policy_end_date(ods_policy_detail).distinct()
     policy_end_date_r.take(10).foreach(println)
-//    toHbase(policy_end_date_r, columnFamily1, "policy_end_date", conf_fs, tableName, conf)
+//    saveToHbase(policy_end_date_r, columnFamily1, "policy_end_date", conf_fs, tableName, conf)
 
     //保费
     val policy_premium_r = policy_premium(ods_policy_detail).distinct()
     policy_premium_r.take(10).foreach(println)
-//    toHbase(policy_premium_r, columnFamily1, "policy_premium", conf_fs, tableName, conf)
+//    saveToHbase(policy_premium_r, columnFamily1, "policy_premium", conf_fs, tableName, conf)
 
     //保单状态
     val policy_status_r = policy_status(ods_policy_detail).distinct()
     policy_status_r.take(10).foreach(println)
-//    toHbase(policy_status_r, columnFamily1, "policy_status", conf_fs, tableName, conf)
+//    saveToHbase(policy_status_r, columnFamily1, "policy_status", conf_fs, tableName, conf)
 
     //更新时间
     val policy_update_time_r = policy_update_time(ods_policy_detail).distinct()
     policy_update_time_r .take(10).foreach(println)
-//    toHbase(policy_update_time_r, columnFamily1, "policy_update_time", conf_fs, tableName, conf)
+//    saveToHbase(policy_update_time_r, columnFamily1, "policy_update_time", conf_fs, tableName, conf)
 
     //保额
     val policy_term_three_r = policy_term_three(ods_policy_detail, pdt_product_sku).distinct()
     policy_term_three_r.take(10).foreach(println)
-//    toHbase(policy_term_three_r, columnFamily1, "policy_term_three", conf_fs, tableName, conf)
+//    saveToHbase(policy_term_three_r, columnFamily1, "policy_term_three", conf_fs, tableName, conf)
   }
 
   def main(args: Array[String]): Unit = {

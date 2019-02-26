@@ -4,6 +4,7 @@ import java.text.NumberFormat
 import java.util.regex.Pattern
 
 import bzn.job.common.Until
+import bzn.job.until.EnterpriseUntil
 import com.alibaba.fastjson.JSON
 import org.apache.hadoop.conf.Configuration
 import org.apache.spark.rdd.RDD
@@ -13,7 +14,7 @@ import org.apache.spark.sql.hive.HiveContext
 /**
   * Created by MK on 2018/11/1.
   */
-trait ChaClaiminfoUntil extends Until {
+trait ChaClaiminfoUntil extends Until with EnterpriseUntil {
   /**
     * 渠道风险等级
     **/
@@ -48,28 +49,28 @@ trait ChaClaiminfoUntil extends Until {
     }
 
     val zero_f = while_value("worktype_0_count").filter(_._1.length > 5)
-    toHbase(zero_f, column_family, "ent_work_risk_zero", conf_fs, tableName, conf)
+    saveToHbase(zero_f, column_family, "ent_work_risk_zero", conf_fs, tableName, conf)
 
     val one_f = while_value("worktype_1_count").filter(_._1.length > 5)
-    toHbase(one_f, column_family, "ent_work_risk_one", conf_fs, tableName, conf)
+    saveToHbase(one_f, column_family, "ent_work_risk_one", conf_fs, tableName, conf)
 
     val two_f = while_value("worktype_2_count").filter(_._1.length > 5)
-    toHbase(two_f, column_family, "ent_work_risk_two", conf_fs, tableName, conf)
+    saveToHbase(two_f, column_family, "ent_work_risk_two", conf_fs, tableName, conf)
 
     val three_f = while_value("worktype_3_count").filter(_._1.length > 5)
-    toHbase(three_f, column_family, "ent_work_risk_three", conf_fs, tableName, conf)
+    saveToHbase(three_f, column_family, "ent_work_risk_three", conf_fs, tableName, conf)
 
     val four_f = while_value("worktype_4_count").filter(_._1.length > 5)
-    toHbase(four_f, column_family, "ent_work_risk_four", conf_fs, tableName, conf)
+    saveToHbase(four_f, column_family, "ent_work_risk_four", conf_fs, tableName, conf)
 
     val five_f = while_value("worktype_5_count").filter(_._1.length > 5)
-    toHbase(five_f, column_family, "ent_work_risk_five", conf_fs, tableName, conf)
+    saveToHbase(five_f, column_family, "ent_work_risk_five", conf_fs, tableName, conf)
 
     val six_f = while_value("worktype_6_count").filter(_._1.length > 5)
-    toHbase(six_f, column_family, "ent_work_risk_six", conf_fs, tableName, conf)
+    saveToHbase(six_f, column_family, "ent_work_risk_six", conf_fs, tableName, conf)
 
     val seven_f = while_value("worktype_7_count").filter(_._1.length > 5)
-    toHbase(seven_f, column_family, "ent_work_risk_seven", conf_fs, tableName, conf)
+    saveToHbase(seven_f, column_family, "ent_work_risk_seven", conf_fs, tableName, conf)
   }
 
   /**
@@ -468,12 +469,12 @@ trait ChaClaiminfoUntil extends Until {
   /**
     * 渠道重大案件率
     *
-    * @param ods_policy_detail ods_policy_detail
-    * @param employer_liability_claims employer_liability_claims
-    * @param get_hbase_key_name get_hbase_key_name
-    * @param sql_context sqlContext
+    * @param ods_policy_detail              ods_policy_detail
+    * @param employer_liability_claims      employer_liability_claims
+    * @param get_hbase_key_name             get_hbase_key_name
+    * @param sql_context                    sqlContext
     * @param ods_ent_guzhu_salesman_channel ods_ent_guzhu_salesman_channel
-    * @param en_before en_before
+    * @param en_before                      en_before
     * @return
     */
   def largecase_rate(ods_policy_detail: DataFrame, employer_liability_claims: DataFrame,

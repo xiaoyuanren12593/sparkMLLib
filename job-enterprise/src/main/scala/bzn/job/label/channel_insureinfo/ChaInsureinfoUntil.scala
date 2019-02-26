@@ -2,6 +2,7 @@ package bzn.job.label.channel_insureinfo
 
 
 import bzn.job.common.Until
+import bzn.job.until.EnterpriseUntil
 import com.alibaba.fastjson.JSON
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.DataFrame
@@ -10,7 +11,7 @@ import org.apache.spark.sql.hive.HiveContext
 /**
   * Created by MK on 2018/11/5.
   */
-trait ChaInsureinfoUntil extends Until {
+trait ChaInsureinfoUntil extends Until with EnterpriseUntil {
 
   //渠道首次投保至今月数
   def ent_fist_plc_month(before: RDD[(String, String)], ods_ent_guzhu_salesman_channel: RDD[(String, String)],

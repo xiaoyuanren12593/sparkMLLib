@@ -16,7 +16,7 @@ import scala.io.Source
 /**
   * Created by MK on 2018/10/31.
   */
-object ChaBaseinfo extends ChaBaseinfoUntil with EnterpriseUntil {
+object ChaBaseinfo extends ChaBaseinfoUntil {
 
   /**
     * 渠道的投保年龄

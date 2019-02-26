@@ -76,105 +76,105 @@ object EntInsureinfoTest extends InsureinfoUntilTest {
     //累计增减员次数
     val ent_add_regulation_times_data = ent_add_regulation_times(ods_policy_detail, ods_policy_preserve_detail).distinct
     ent_add_regulation_times_data.take(10).foreach(println)
-//    toHbase(ent_add_regulation_times_data, columnFamily1, "ent_add_regulation_times", conf_fs, tableName, conf)
+//    saveToHbase(ent_add_regulation_times_data, columnFamily1, "ent_add_regulation_times", conf_fs, tableName, conf)
 
     //月均增减员次数
     val ent_month_regulation_times_r = ent_month_regulation_times(ent_add_regulation_times_data, ent_summary_month_1).distinct
     ent_month_regulation_times_r.take(10).foreach(println)
-    //    toHbase(ent_month_regulation_times_r, columnFamily1, "ent_month_regulation_times", conf_fs, tableName, conf)
+    //    saveToHbase(ent_month_regulation_times_r, columnFamily1, "ent_month_regulation_times", conf_fs, tableName, conf)
 
     //累计增员人数
     val ent_add_sum_persons_r = ent_add_sum_persons(ent_summary_month).distinct
     ent_add_sum_persons_r.take(10).foreach(println)
-    //    toHbase(ent_add_sum_persons_r, columnFamily1, "ent_add_sum_persons", conf_fs, tableName, conf)
+    //    saveToHbase(ent_add_sum_persons_r, columnFamily1, "ent_add_sum_persons", conf_fs, tableName, conf)
 
     //累计减员人数
     val ent_del_sum_persons_r = ent_del_sum_persons(ent_summary_month).distinct()
     ent_del_sum_persons_r.take(10).foreach(println)
-//    toHbase(ent_del_sum_persons_r, columnFamily1, "ent_del_sum_persons", conf_fs, tableName, conf)
+//    saveToHbase(ent_del_sum_persons_r, columnFamily1, "ent_del_sum_persons", conf_fs, tableName, conf)
 
     //月均在保人数
     val ent_month_plc_persons_r = ent_month_plc_persons(ent_summary_month_1).distinct
     ent_month_plc_persons_r.take(10).foreach(println)
-//    toHbase(ent_month_plc_persons_r, columnFamily1, "ent_month_plc_persons", conf_fs, tableName, conf)
+//    saveToHbase(ent_month_plc_persons_r, columnFamily1, "ent_month_plc_persons", conf_fs, tableName, conf)
 
     //续投人数
     val ent_continuous_plc_persons_r = ent_continuous_plc_persons(ent_summary_month).distinct
     ent_continuous_plc_persons_r.take(10).foreach(println)
-//    toHbase(ent_continuous_plc_persons_r, columnFamily1, "ent_continuous_plc_persons", conf_fs, tableName, conf)
+//    saveToHbase(ent_continuous_plc_persons_r, columnFamily1, "ent_continuous_plc_persons", conf_fs, tableName, conf)
 
     //投保工种数
     val ent_insure_craft_r = ent_insure_craft(ods_policy_detail, ods_policy_insured_detail).distinct
     ent_insure_craft_r.take(10).foreach(println)
-//    toHbase(ent_insure_craft_r, columnFamily1, "ent_insure_craft", conf_fs, tableName, conf)
+//    saveToHbase(ent_insure_craft_r, columnFamily1, "ent_insure_craft", conf_fs, tableName, conf)
 
     //求出该企业中第一工种出现的类型哪个最多
     val ent_first_craft_r = ent_first_craft(ods_policy_insured_detail, ods_policy_detail, d_work_level).distinct()
     ent_first_craft_r.take(10).foreach(println)
-//    toHbase(ent_first_craft_r, columnFamily1, "ent_first_craft", conf_fs, tableName, conf)
+//    saveToHbase(ent_first_craft_r, columnFamily1, "ent_first_craft", conf_fs, tableName, conf)
 
     //求出该企业中第二工种出现的类型哪个最多
     val ent_second_craft_r = ent_second_craft(ods_policy_insured_detail, ods_policy_detail, d_work_level).distinct()
     ent_second_craft_r.take(10).foreach(println)
-//    toHbase(ent_second_craft_r, columnFamily1, "ent_second_craft", conf_fs, tableName, conf)
+//    saveToHbase(ent_second_craft_r, columnFamily1, "ent_second_craft", conf_fs, tableName, conf)
 
     //求出该企业中第三工种出现的类型哪个最多
     val ent_third_craft_r = ent_third_craft(ods_policy_insured_detail, ods_policy_detail, d_work_level).distinct()
     ent_third_craft_r.take(10).foreach(println)
-//    toHbase(ent_third_craft_r, columnFamily1, "ent_third_craft", conf_fs, tableName, conf)
+//    saveToHbase(ent_third_craft_r, columnFamily1, "ent_third_craft", conf_fs, tableName, conf)
 
     //该企业中哪个工种类型的赔额额度最高
     val ent_most_money_craft_r = ent_most_money_craft(ods_policy_insured_detail, ods_policy_detail, d_work_level, employer_liability_claims).distinct()
     ent_most_money_craft_r.take(10).foreach(println)
-//    toHbase(ent_most_money_craft_r, columnFamily1, "ent_most_money_craft", conf_fs, tableName, conf)
+//    saveToHbase(ent_most_money_craft_r, columnFamily1, "ent_most_money_craft", conf_fs, tableName, conf)
 
     //该企业中哪个工种类型出险最多
     val ent_most_count_craft_r = ent_most_count_craft(ods_policy_insured_detail: DataFrame, ods_policy_detail: DataFrame, employer_liability_claims: DataFrame).distinct()
     ent_most_count_craft_r.take(10).foreach(println)
-//    toHbase(ent_most_count_craft_r, columnFamily1, "ent_most_count_craft", conf_fs, tableName, conf)
+//    saveToHbase(ent_most_count_craft_r, columnFamily1, "ent_most_count_craft", conf_fs, tableName, conf)
 
     //投保人员占总人数比
     val insured_rate_r = insured_rate(ods_policy_detail: DataFrame, ods_policy_insured_detail: DataFrame, ent_sum_level: DataFrame).distinct()
     insured_rate_r.take(10).foreach(println)
-//    toHbase(insured_rate_r, columnFamily1, "insured_rate", conf_fs, tableName, conf)
+//    saveToHbase(insured_rate_r, columnFamily1, "insured_rate", conf_fs, tableName, conf)
 
     //有效保单数
     val effective_policy_r = effective_policy(ods_policy_detail).distinct()
     effective_policy_r.take(10).foreach(println)
-//    toHbase(effective_policy_r, columnFamily1, "effective_policy", conf_fs, tableName, conf)
+//    saveToHbase(effective_policy_r, columnFamily1, "effective_policy", conf_fs, tableName, conf)
 
     //累计投保人次(不对身份证去重)
     val total_insured_count_r = total_insured_count(ods_policy_detail, ods_policy_insured_detail).distinct()
     total_insured_count_r.take(10).foreach(println)
-//    toHbase(total_insured_count_r, columnFamily1, "total_insured_count", conf_fs, tableName, conf)
+//    saveToHbase(total_insured_count_r, columnFamily1, "total_insured_count", conf_fs, tableName, conf)
 
     //累计投保人数 totalInsuredPersons（去重）对身份证号去重
     val total_insured_persons_r = total_insured_persons(ods_policy_detail, ods_policy_insured_detail).distinct()
 
-//    toHbase(total_insured_persons_r, columnFamily1, "total_insured_persons", conf_fs, tableName, conf)
+//    saveToHbase(total_insured_persons_r, columnFamily1, "total_insured_persons", conf_fs, tableName, conf)
     total_insured_persons_r.take(10).foreach(println)
     //当前在保人数 (对身份证去重，条件是该人人在企业中：insure_policy_status='1')
     //    val cur_insured_persons_r = cur_insured_persons(ods_policy_detail, ods_policy_insured_detail).distinct()
-    //    toHbase(cur_insured_persons_r, columnFamily1, "cur_insured_persons", conf_fs, tableName, conf)
+    //    saveToHbase(cur_insured_persons_r, columnFamily1, "cur_insured_persons", conf_fs, tableName, conf)
 
     //新的当前在保人数
     val cur_insured_persons_r = read_people_product(sqlContext: HiveContext, location_mysql_url: String, prop: Properties, location_mysql_url_dwdb: String).map(x => (x._1, x._2._2 + "", "cur_insured_persons"))
     cur_insured_persons_r.take(10).foreach(println)
-//    toHbase(cur_insured_persons_r, columnFamily1, "cur_insured_persons", conf_fs, tableName, conf)
+//    saveToHbase(cur_insured_persons_r, columnFamily1, "cur_insured_persons", conf_fs, tableName, conf)
 
     //累计保费
     val total_premium_data = total_premium(ods_policy_detail).distinct()
-//    toHbase(total_premium_data, columnFamily1, "total_premium", conf_fs, tableName, conf)
+//    saveToHbase(total_premium_data, columnFamily1, "total_premium", conf_fs, tableName, conf)
     total_premium_data.take(10).foreach(println)
     //月均保费
     val avg_month_premium_r = avg_month_premium(total_premium_data, ent_summary_month_1).distinct()
     avg_month_premium_r.take(10).foreach(println)
-//    toHbase(avg_month_premium_r, columnFamily1, "avg_month_premium", conf_fs, tableName, conf)
+//    saveToHbase(avg_month_premium_r, columnFamily1, "avg_month_premium", conf_fs, tableName, conf)
 
     //连续在保月份，都有哪个月
     val month_number = ent_continuous_plc_month_number(ent_summary_month_1).distinct()
     month_number.take(10).foreach(println)
-//    toHbase(month_number, columnFamily1, "month_number", conf_fs, tableName, conf)
+//    saveToHbase(month_number, columnFamily1, "month_number", conf_fs, tableName, conf)
 
     //连续在保月数
     //月份的增加和减少
@@ -212,13 +212,13 @@ object EntInsureinfoTest extends InsureinfoUntilTest {
       (x._1, tep_three.toString, x._3)
     }).distinct()
     ent_continuous_plc_month_r.take(10).foreach(println)
-//    toHbase(ent_continuous_plc_month_r, columnFamily1, "ent_continuous_plc_month", conf_fs, tableName, conf)
+//    saveToHbase(ent_continuous_plc_month_r, columnFamily1, "ent_continuous_plc_month", conf_fs, tableName, conf)
 
 
     //首次投保至今月数
     val ent_fist_plc_month_r = ent_fist_plc_month(ods_policy_detail).distinct()
     ent_fist_plc_month_r.take(10).foreach(println)
-//    toHbase(ent_fist_plc_month_r, columnFamily1, "ent_fist_plc_month", conf_fs, tableName, conf)
+//    saveToHbase(ent_fist_plc_month_r, columnFamily1, "ent_fist_plc_month", conf_fs, tableName, conf)
 
 
     //人均保费:累计保费/累计投保人数
@@ -229,7 +229,7 @@ object EntInsureinfoTest extends InsureinfoUntilTest {
       (x._1, avg_premium.toString, "avg_person_premium")
     })
     avg_person_premium.take(10).foreach(println)
-//    toHbase(avg_person_premium, columnFamily1, "avg_person_premium", conf_fs, tableName, conf)
+//    saveToHbase(avg_person_premium, columnFamily1, "avg_person_premium", conf_fs, tableName, conf)
 
 
     //年均保费(月均保费*12)
@@ -238,12 +238,12 @@ object EntInsureinfoTest extends InsureinfoUntilTest {
       (x._1, year_premium.toString, "avg_year_premium")
     })
     avg_year_premium.take(10).foreach(println)
-//    toHbase(avg_year_premium, columnFamily1, "avg_year_premium", conf_fs, tableName, conf)
+//    saveToHbase(avg_year_premium, columnFamily1, "avg_year_premium", conf_fs, tableName, conf)
 
     //当前生效保单数
     val cureffected_policy = ods_policy_detail.where("policy_status in('0','1','7','9','10') and ent_id!='' ").selectExpr("ent_id").map(x => (x.getAs[String]("ent_id"), 1)).reduceByKey(_ + _).map(x => (x._1, x._2.toString, "cureffected_policy"))
     cureffected_policy.take(10).foreach(println)
-//    toHbase(cureffected_policy, columnFamily1, "cureffected_policy", conf_fs, tableName, conf)
+//    saveToHbase(cureffected_policy, columnFamily1, "cureffected_policy", conf_fs, tableName, conf)
   }
 
   def main(args: Array[String]): Unit = {

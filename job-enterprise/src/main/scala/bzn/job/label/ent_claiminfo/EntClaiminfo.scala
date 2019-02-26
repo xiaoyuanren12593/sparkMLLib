@@ -15,7 +15,7 @@ import org.apache.spark.{SparkConf, SparkContext}
 import scala.io.Source
 
 
-object EntClaiminfo extends ClaiminfoUntil with EnterpriseUntil {
+object EntClaiminfo extends ClaiminfoUntil{
 
   def is_not_chinese(str: String): Boolean  = {
     val p = Pattern.compile("[\u4e00-\u9fa5]")

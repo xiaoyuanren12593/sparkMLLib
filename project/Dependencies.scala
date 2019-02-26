@@ -62,13 +62,30 @@ object Dependencies {
     sparkStreamingKafkaProvided, sparkMllibProvided, hbaseClientProvided, hbaseCommonProvided, hbaseServerProvided,
     hbaseHadoopCompatProvided)
 
-  //--------------------------------------------工具模块------------------------------------------------------------
-  // 企业标签打包时需要的引用
-  val utilProvidedDeps = Seq(jodaTime)
+  //--------------------------------------------全依赖-----------------------------------------------------------------
+  val allDeps = Seq(neo4jJavaDriver, mysqlConnectorJava, jedis, fastjson, ansjSeg, nlpLang,
+    sparkHive, sparkNeo4j, sparkCsv, sparkStreaming, sparkStreamingKafka, sparkMllib, hbaseClient,
+    hbaseCommon, hbaseServer, hbaseHadoopCompat).map(
+    _.excludeAll(ExclusionRule(organization = "org.mortbay.jetty"))
+  ).map(
+    _.excludeAll(ExclusionRule(organization = "javax.servlet"))
+  )
 
+  val allDepsProvided = Seq(neo4jJavaDriver, mysqlConnectorJava, jedis, fastjson, ansjSeg, nlpLang,
+    sparkHiveProvided, sparkNeo4jProvided, sparkCsvProvided, sparkStreamingProvided,
+    sparkStreamingKafkaProvided, sparkMllibProvided, hbaseClientProvided, hbaseCommonProvided, hbaseServerProvided,
+    hbaseHadoopCompatProvided).map(
+    _.excludeAll(ExclusionRule(organization = "org.mortbay.jetty"))
+  ).map(
+    _.excludeAll(ExclusionRule(organization = "javax.servlet"))
+  )
+
+  //--------------------------------------------工具模块----------------------------------------------------------------
+  val utilDeps = Seq(jodaTime)
+  
   //---------------------------------------------企业模块标签------------------------------------------------------------
   // 企业标签打包时需要的引用
-    val enterpriseProvidedDeps = (commonDeps ++ sparkProvidedDeps)
+  val enterpriseProvidedDeps = (commonDeps ++ sparkProvidedDeps)
   // 企业标签本地引用
   val enterpriseDeps = (commonDeps ++ sparkDeps).map(
     _.excludeAll(ExclusionRule(organization = "org.mortbay.jetty"))

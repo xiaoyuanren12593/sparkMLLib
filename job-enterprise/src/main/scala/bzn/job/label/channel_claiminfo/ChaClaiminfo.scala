@@ -19,7 +19,7 @@ import scala.io.Source
 /**
   * Created by MK on 2018/11/1.
   */
-object ChaClaiminfo extends ChaClaiminfoUntil with EnterpriseUntil {
+object ChaClaiminfo extends ChaClaiminfoUntil {
 
   def is_not_chinese(str: String): Boolean = {
     val p = Pattern.compile("[\u4e00-\u9fa5]")
