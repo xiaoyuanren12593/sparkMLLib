@@ -43,6 +43,8 @@ val commonAssemblySettings = Seq(
 lazy val bznSparkNeed = (project in file("."))
   .settings(
     libraryDependencies ++= enterpriseDeps)
+    .settings(commonSettings)
+    .settings(commonAssemblySettings)
   .settings(
     name := "bznSparkNeed"
   )
@@ -50,7 +52,7 @@ lazy val bznSparkNeed = (project in file("."))
 // 事例项目
 lazy val jobUtil = (project in file("job-util"))
   .settings(
-    libraryDependencies ++= enterpriseProvidedDeps)
+    libraryDependencies ++= enterpriseDeps)
   .settings(commonSettings)
   .settings(commonAssemblySettings)
   .settings(
@@ -64,7 +66,7 @@ lazy val jobUtil = (project in file("job-util"))
 lazy val jobEnterprise = (project in file("job-enterprise"))
   .dependsOn(jobUtil)
   .settings(
-    libraryDependencies ++= enterpriseProvidedDeps)
+    libraryDependencies ++= enterpriseDeps)
   .settings(commonSettings)
   .settings(commonAssemblySettings)
   .settings(
