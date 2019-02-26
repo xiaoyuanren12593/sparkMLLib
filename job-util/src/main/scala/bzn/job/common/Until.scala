@@ -14,6 +14,36 @@ import scala.collection.mutable.ArrayBuffer
   */
 trait Until {
 
+  //将日期+8小时(24小时制)
+  def eight_date(date_time: String): String = {
+    //    val date_time = "2017-06-06 03:39:09.0"
+    val sim = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+    val date = sim.parse(date_time)
+    val c = Calendar.getInstance
+    c.setTime(date)
+    c.add(Calendar.HOUR_OF_DAY, +8)
+    val newDate = c.getTime
+    sim.format(newDate)
+  }
+
+  //将日期+8小时(24小时制)只有时间
+  def eight_date_only_hour(date_time: String): String = {
+    val sim = new SimpleDateFormat("HH:mm:ss")
+    val date = sim.parse(date_time)
+    val c = Calendar.getInstance
+    c.setTime(date)
+    c.add(Calendar.HOUR_OF_DAY, +8)
+    val newDate = c.getTime
+    sim.format(newDate)
+  }
+
+  //是否是数字
+  def number_if_not(str: String): Boolean = {
+    val pattern = Pattern.compile("^[-\\+]?[\\d]*$")
+    pattern.matcher(str).matches
+
+  }
+
   //得到当前的时间
   def getNowTime(): String = {
     //得到当前的日期
