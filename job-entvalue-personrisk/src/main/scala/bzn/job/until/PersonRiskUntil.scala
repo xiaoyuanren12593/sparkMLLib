@@ -2,40 +2,18 @@ package bzn.job.until
 
 import java.util.Date
 
-import com.alibaba.fastjson.JSONObject
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileSystem, FsShell, Path}
-import org.apache.hadoop.hbase.client.{HTable, Result}
+import org.apache.hadoop.hbase.client.HTable
 import org.apache.hadoop.hbase.io.ImmutableBytesWritable
 import org.apache.hadoop.hbase.mapred.TableOutputFormat
-import org.apache.hadoop.hbase.mapreduce.{HFileOutputFormat, LoadIncrementalHFiles, TableInputFormat}
+import org.apache.hadoop.hbase.mapreduce.{HFileOutputFormat, LoadIncrementalHFiles}
 import org.apache.hadoop.hbase.util.Bytes
 import org.apache.hadoop.hbase.{HBaseConfiguration, KeyValue}
 import org.apache.hadoop.mapreduce.Job
-import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 
-trait EnterpriseUntil {
-
-  //得到企业标签数据
-  def getHbaseValue(sc: SparkContext): RDD[(ImmutableBytesWritable, Result)] = {
-    //定义HBase的配置
-    val conf: Configuration = HBaseConfiguration.create()
-    conf.set("hbase.zookeeper.property.clientPort", "2181")
-    conf.set("hbase.zookeeper.quorum", "172.16.11.106")
-
-    //设置查询的表名
-    conf.set(TableInputFormat.INPUT_TABLE, "labels:label_user_enterprise_vT")
-
-    val usersRDD: RDD[(ImmutableBytesWritable, Result)] = sc.newAPIHadoopRDD(
-      conf,
-      classOf[TableInputFormat],
-      classOf[org.apache.hadoop.hbase.io.ImmutableBytesWritable],
-      classOf[org.apache.hadoop.hbase.client.Result]
-    )
-    usersRDD
-  }
-
+trait PersonRiskUntil {
   //HBaseConf 配置
   def HbaseConf(tableName: String): (Configuration, Configuration) = {
     //定义HBase的配置
@@ -57,7 +35,6 @@ trait EnterpriseUntil {
   def proessFile(conf_fs: Configuration, stagingFolder: String): Unit = {
     val shell = new FsShell(conf_fs)
     shell.run(Array[String]("-chmod", "-R", "777", stagingFolder))
-
   }
 
   //删除HFile文件
@@ -118,28 +95,5 @@ trait EnterpriseUntil {
       val bulkLoader = new LoadIncrementalHFiles(conf)
       bulkLoader.doBulkLoad(new Path(stagingFolder), table)
     }
-  }
-
-  def KeyValueToString(keyValues: Array[KeyValue], json: JSONObject, ent_name: String): String = {
-
-    val it = keyValues.iterator
-    val res = new StringBuilder
-    while (it.hasNext) {
-      val end = it.next()
-      val row = Bytes.toString(end.getRow)
-      //列族
-      val family = Bytes.toString(end.getFamily)
-      //字段
-      val qual = Bytes.toString(end.getQualifier)
-      //字段值
-      val value = Bytes.toString(end.getValue)
-
-      json.put("row", row)
-      json.put("family", family)
-      json.put("qual", qual)
-      json.put("value", value)
-      res.append(json.toString + ";")
-    }
-    s"${ent_name}mk6${res.substring(0, res.length - 1)}"
   }
 }
