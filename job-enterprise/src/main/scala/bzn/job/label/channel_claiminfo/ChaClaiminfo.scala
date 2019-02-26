@@ -4,6 +4,7 @@ import java.text.NumberFormat
 import java.util.Properties
 import java.util.regex.Pattern
 
+import bzn.job.until.EnterpriseUntil
 import com.alibaba.fastjson.JSONObject
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.hbase.util.Bytes
@@ -18,11 +19,9 @@ import scala.io.Source
 /**
   * Created by MK on 2018/11/1.
   */
-object ChaClaiminfo extends ChaClaiminfoUntil {
+object ChaClaiminfo extends ChaClaiminfoUntil with EnterpriseUntil {
 
-  def is_not_chinese(str: String)
-  : Boolean
-  = {
+  def is_not_chinese(str: String): Boolean = {
     val p = Pattern.compile("[\u4e00-\u9fa5]")
     val m = p.matcher(str)
     m.find()
@@ -203,131 +202,131 @@ object ChaClaiminfo extends ChaClaiminfoUntil {
     //渠道增减行为(人数):在同一个年单中超过2次减员的人的个数
     val ent_employee_increase_r = channel_add(before, ods_ent_guzhu_salesman_channel_rdd, sql_context,
       en_before, "ent_employee_increase").filter(_._1.length > 5)
-    toHbase(ent_employee_increase_r, columnFamily, "ent_employee_increase", conf_fs, tableName, conf)
+    saveToHbase(ent_employee_increase_r, columnFamily, "ent_employee_increase", conf_fs, tableName, conf)
 
     //渠道出险概率,每百人月均出险概率
     val ent_monthly_risk_r = ent_monthly_risk(employer_liability_claims, ods_policy_detail, ods_policy_insured_detail,
       get_hbase_key_name, sql_context, ods_ent_guzhu_salesman_channel_rdd, en_before).filter(_._1.length > 5)
-    toHbase(ent_monthly_risk_r, columnFamily, "ent_monthly_risk", conf_fs, tableName, conf)
+    saveToHbase(ent_monthly_risk_r, columnFamily, "ent_monthly_risk", conf_fs, tableName, conf)
 
     //渠道材料完整度
     val ent_material_integrity_r = ent_material_integrity(employer_liability_claims, ods_policy_detail, get_hbase_key_name,
       sql_context, ods_ent_guzhu_salesman_channel_rdd, en_before).filter(_._1.length > 5)
-    toHbase(ent_material_integrity_r, columnFamily, "ent_material_integrity", conf_fs, tableName, conf)
+    saveToHbase(ent_material_integrity_r, columnFamily, "ent_material_integrity", conf_fs, tableName, conf)
 
     //渠道报案时效（小时）
     val ent_report_time_r = ent_report_time(employer_liability_claims, ods_policy_detail, get_hbase_key_name,
       sql_context, ods_ent_guzhu_salesman_channel_rdd, en_before).filter(_._1.length > 5)
-    toHbase(ent_report_time_r, columnFamily, "ent_report_time", conf_fs, tableName, conf)
+    saveToHbase(ent_report_time_r, columnFamily, "ent_report_time", conf_fs, tableName, conf)
 
     //渠道平均申请理赔周期(天)
     val avg_aging_claim_r = avg_aging_claim(employer_liability_claims, ods_policy_detail, get_hbase_key_name,
       sql_context, ods_ent_guzhu_salesman_channel_rdd, en_before).filter(_._1.length > 5)
-    toHbase(avg_aging_claim_r, columnFamily, "avg_aging_claim", conf_fs, tableName, conf)
+    saveToHbase(avg_aging_claim_r, columnFamily, "avg_aging_claim", conf_fs, tableName, conf)
 
     //渠道平均赔付时效
     val avg_aging_cps_r = avg_aging_cps(employer_liability_claims, ods_policy_detail, get_hbase_key_name,
       sql_context, ods_ent_guzhu_salesman_channel_rdd, en_before).filter(_._1.length > 5)
-    toHbase(avg_aging_cps_r, columnFamily, "avg_aging_cps", conf_fs, tableName, conf)
+    saveToHbase(avg_aging_cps_r, columnFamily, "avg_aging_cps", conf_fs, tableName, conf)
 
     //渠道报案件数
     val report_num_r = channel_add(before, ods_ent_guzhu_salesman_channel_rdd, sql_context,
       en_before, "report_num").filter(_._1.length > 5)
-    toHbase(report_num_r, columnFamily, "report_num", conf_fs, tableName, conf)
+    saveToHbase(report_num_r, columnFamily, "report_num", conf_fs, tableName, conf)
 
     //渠道理赔件数
     val claim_num_r = channel_add(before, ods_ent_guzhu_salesman_channel_rdd, sql_context,
       en_before, "claim_num").filter(_._1.length > 5)
-    toHbase(claim_num_r, columnFamily, "claim_num", conf_fs, tableName, conf)
+    saveToHbase(claim_num_r, columnFamily, "claim_num", conf_fs, tableName, conf)
 
     //渠道死亡案件统计
     val death_num_r = channel_add(before, ods_ent_guzhu_salesman_channel_rdd, sql_context,
       en_before, "death_num").filter(_._1.length > 5)
-    toHbase(death_num_r, columnFamily, "death_num", conf_fs, tableName, conf)
+    saveToHbase(death_num_r, columnFamily, "death_num", conf_fs, tableName, conf)
 
     //渠道伤残案件数
     val disability_num_r = channel_add(before, ods_ent_guzhu_salesman_channel_rdd, sql_context,
       en_before, "disability_num").filter(_._1.length > 5)
-    toHbase(disability_num_r, columnFamily, "disability_num", conf_fs, tableName, conf)
+    saveToHbase(disability_num_r, columnFamily, "disability_num", conf_fs, tableName, conf)
 
     //渠道工作期间案件数
     val worktime_num_r = channel_add(before, ods_ent_guzhu_salesman_channel_rdd, sql_context,
       en_before, "worktime_num").filter(_._1.length > 5)
-    toHbase(worktime_num_r, columnFamily, "worktime_num", conf_fs, tableName, conf)
+    saveToHbase(worktime_num_r, columnFamily, "worktime_num", conf_fs, tableName, conf)
 
     //渠道非工作期间案件数
     val nonworktime_num_r = channel_add(before, ods_ent_guzhu_salesman_channel_rdd, sql_context,
       en_before, "nonworktime_num").filter(_._1.length > 5)
-    toHbase(nonworktime_num_r, columnFamily, "nonworktime_num", conf_fs, tableName, conf)
+    saveToHbase(nonworktime_num_r, columnFamily, "nonworktime_num", conf_fs, tableName, conf)
 
     //渠道预估总赔付金额
     val pre_all_compensation_r = channel_add(before, ods_ent_guzhu_salesman_channel_rdd, sql_context,
       en_before, "pre_all_compensation").filter(_._1.length > 5)
-    toHbase(pre_all_compensation_r, columnFamily, "pre_all_compensation", conf_fs, tableName, conf)
+    saveToHbase(pre_all_compensation_r, columnFamily, "pre_all_compensation", conf_fs, tableName, conf)
 
     //渠道死亡预估配额
     val pre_death_compensation_r = channel_add(before, ods_ent_guzhu_salesman_channel_rdd, sql_context,
       en_before, "pre_death_compensation").filter(_._1.length > 5)
-    toHbase(pre_death_compensation_r, columnFamily, "pre_death_compensation", conf_fs, tableName, conf)
+    saveToHbase(pre_death_compensation_r, columnFamily, "pre_death_compensation", conf_fs, tableName, conf)
 
     //渠道伤残预估配额
     val pre_dis_compensation_r = channel_add(before, ods_ent_guzhu_salesman_channel_rdd, sql_context,
       en_before, "pre_dis_compensation").filter(_._1.length > 5)
-    toHbase(pre_dis_compensation_r, columnFamily, "pre_dis_compensation", conf_fs, tableName, conf)
+    saveToHbase(pre_dis_compensation_r, columnFamily, "pre_dis_compensation", conf_fs, tableName, conf)
 
     //渠道工作期间预估赔付
     val pre_wt_compensation_r = channel_add(before, ods_ent_guzhu_salesman_channel_rdd, sql_context,
       en_before, "pre_wt_compensation").filter(_._1.length > 5)
-    toHbase(pre_wt_compensation_r, columnFamily, "pre_wt_compensation", conf_fs, tableName, conf)
+    saveToHbase(pre_wt_compensation_r, columnFamily, "pre_wt_compensation", conf_fs, tableName, conf)
 
     //渠道非工作期间预估赔付
     val pre_nwt_compensation_r = channel_add(before, ods_ent_guzhu_salesman_channel_rdd, sql_context,
       en_before, "pre_nwt_compensation").filter(_._1.length > 5)
-    toHbase(pre_nwt_compensation_r, columnFamily, "pre_nwt_compensation", conf_fs, tableName, conf)
+    saveToHbase(pre_nwt_compensation_r, columnFamily, "pre_nwt_compensation", conf_fs, tableName, conf)
 
     //渠道实际已赔付金额
     val all_compensation_r = channel_add(before, ods_ent_guzhu_salesman_channel_rdd, sql_context,
       en_before, "all_compensation").filter(_._1.length > 5)
-    toHbase(all_compensation_r, columnFamily, "all_compensation", conf_fs, tableName, conf)
+    saveToHbase(all_compensation_r, columnFamily, "all_compensation", conf_fs, tableName, conf)
 
     //渠道超时赔付案件数
     val overtime_compensation_r = channel_add(before, ods_ent_guzhu_salesman_channel_rdd, sql_context,
       en_before, "overtime_compensation").filter(_._1.length > 5)
-    toHbase(overtime_compensation_r, columnFamily, "overtime_compensation", conf_fs, tableName, conf)
+    saveToHbase(overtime_compensation_r, columnFamily, "overtime_compensation", conf_fs, tableName, conf)
 
     //渠道已赚保费
     val charged_premium_r = channel_add(before, ods_ent_guzhu_salesman_channel_rdd, sql_context,
       en_before, "charged_premium").filter(_._1.length > 5)
-    toHbase(charged_premium_r, columnFamily, "charged_premium", conf_fs, tableName, conf)
+    saveToHbase(charged_premium_r, columnFamily, "charged_premium", conf_fs, tableName, conf)
 
     //渠道拒赔次数
     val ent_rejected_count_r = channel_add(before, ods_ent_guzhu_salesman_channel_rdd, sql_context,
       en_before, "ent_rejected_count").filter(_._1.length > 5)
-    toHbase(ent_rejected_count_r, columnFamily, "ent_rejected_count", conf_fs, tableName, conf)
+    saveToHbase(ent_rejected_count_r, columnFamily, "ent_rejected_count", conf_fs, tableName, conf)
 
     //渠道撤案次数
     val ent_withdrawn_count_r = channel_add(before, ods_ent_guzhu_salesman_channel_rdd, sql_context,
       en_before, "ent_withdrawn_count").filter(_._1.length > 5)
-    toHbase(ent_withdrawn_count_r, columnFamily, "ent_withdrawn_count", conf_fs, tableName, conf)
+    saveToHbase(ent_withdrawn_count_r, columnFamily, "ent_withdrawn_count", conf_fs, tableName, conf)
 
     //渠道平均出险周期
     val avg_aging_risk_r = avg_aging_risk(ods_policy_detail, ods_policy_risk_period, get_hbase_key_name,
       sql_context, ods_ent_guzhu_salesman_channel_rdd, en_before).filter(_._1.length > 5)
-    toHbase(avg_aging_risk_r, columnFamily, "avg_aging_risk", conf_fs, tableName, conf)
+    saveToHbase(avg_aging_risk_r, columnFamily, "avg_aging_risk", conf_fs, tableName, conf)
 
     //渠道极短周期个数（出险周期小于3的案件数）
     val mix_period_count_r = channel_add(before, ods_ent_guzhu_salesman_channel_rdd, sql_context,
       en_before, "mix_period_count").filter(_._1.length > 5)
-    toHbase(mix_period_count_r, columnFamily, "mix_period_count", conf_fs, tableName, conf)
+    saveToHbase(mix_period_count_r, columnFamily, "mix_period_count", conf_fs, tableName, conf)
 
     //渠道极短周期百分比
     val mix_period_rate_r = mix_period_rate(ods_policy_detail, ods_policy_risk_period, get_hbase_key_name, sql_context,
       ods_ent_guzhu_salesman_channel_rdd, en_before).filter(_._1.length > 5)
-    toHbase(mix_period_rate_r, columnFamily, "mix_period_rate", conf_fs, tableName, conf)
+    saveToHbase(mix_period_rate_r, columnFamily, "mix_period_rate", conf_fs, tableName, conf)
 
     //渠道重大案件率
     val largecase_rate_r = largecase_rate(ods_policy_detail, employer_liability_claims, get_hbase_key_name, sql_context, ods_ent_guzhu_salesman_channel_rdd, en_before).filter(_._1.length > 5)
-    toHbase(largecase_rate_r, columnFamily, "largecase_rate", conf_fs, tableName, conf)
+    saveToHbase(largecase_rate_r, columnFamily, "largecase_rate", conf_fs, tableName, conf)
   }
 
   def main(args: Array[String]): Unit = {
@@ -364,7 +363,7 @@ object ChaClaiminfo extends ChaClaiminfoUntil {
     val channel_ent_name: Array[String] = ods_ent_guzhu_salesman_channel_only_channel.map(_._1).collect
 
     //得到标签数据
-    val usersRDD: RDD[String] = getHbase_value(sc).map(tuple => tuple._2).map(result => {
+    val usersRDD: RDD[String] = getHbaseValue(sc).map(tuple => tuple._2).map(result => {
       val ent_name = Bytes.toString(result.getValue("baseinfo".getBytes, "ent_name".getBytes))
       (ent_name, result.raw)
     }).mapPartitions(rdd => {
@@ -373,7 +372,7 @@ object ChaClaiminfo extends ChaClaiminfoUntil {
     }).cache
 
     //得到标签数据企业ID，与企业名称
-    val get_hbase_key_name: collection.Map[String, String] = getHbase_value(sc).map(tuple => tuple._2).map(result => {
+    val get_hbase_key_name: collection.Map[String, String] = getHbaseValue(sc).map(tuple => tuple._2).map(result => {
       val key = Bytes.toString(result.getRow)
       val ent_name = Bytes.toString(result.getValue("baseinfo".getBytes, "ent_name".getBytes))
       (key, ent_name)

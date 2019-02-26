@@ -2,6 +2,19 @@ import sbt._
 
 object Dependencies {
 
+  // 数据库连接 Jar
+  val neo4jJavaDriver = "org.neo4j.driver" % "neo4j-java-driver" % "1.0.4"
+  val mysqlConnectorJava = "mysql" % "mysql-connector-java" % "5.1.36"
+  val jedis = "redis.clients" % "jedis" % "2.9.0"
+  //  Alibaba-json
+  val fastjson = "com.alibaba" % "fastjson" % "1.2.24"
+  // joda-time
+  val jodaTime = "joda-time" % "joda-time" % "2.3"
+
+  // spark 中文分词
+  val ansjSeg = "org.ansj" % "ansj_seg" % "5.1.1"
+  val nlpLang = "org.nlpcn" % "nlp-lang" % "1.7.2"
+
   //  hive
   val sparkHive = "org.apache.spark" %% "spark-hive" % "1.6.1"
   //  spark-neo4j
@@ -18,16 +31,6 @@ object Dependencies {
   val hbaseCommon = "org.apache.hbase" % "hbase-common" % "1.2.0"
   val hbaseServer = "org.apache.hbase" % "hbase-server" % "1.2.0"
   val hbaseHadoopCompat = "org.apache.hbase" % "hbase-hadoop-compat" % "1.2.0"
-
-  // 数据库连接 Jar
-  val neo4jJavaDriver = "org.neo4j.driver" % "neo4j-java-driver" % "1.0.4"
-  val mysqlConnectorJava = "mysql" % "mysql-connector-java" % "5.1.36"
-  val jedis = "redis.clients" % "jedis" % "2.9.0"
-  //  Alibaba-json
-  val fastjson = "com.alibaba" % "fastjson" % "1.2.24"
-  // spark 中文分词
-  val ansjSeg = "org.ansj" % "ansj_seg" % "5.1.1"
-  val nlpLang = "org.nlpcn" % "nlp-lang" % "1.7.2"
 
   //---------------------------------------------以下打包使用------------------------------------------------------------
   //  hive
@@ -59,13 +62,13 @@ object Dependencies {
     sparkStreamingKafkaProvided, sparkMllibProvided, hbaseClientProvided, hbaseCommonProvided, hbaseServerProvided,
     hbaseHadoopCompatProvided)
 
+  //--------------------------------------------工具模块------------------------------------------------------------
+  // 企业标签打包时需要的引用
+  val utilProvidedDeps = Seq(jodaTime)
+
   //---------------------------------------------企业模块标签------------------------------------------------------------
   // 企业标签打包时需要的引用
-  val enterpriseProvidedDeps = (commonDeps ++ sparkProvidedDeps).map(
-    _.excludeAll(ExclusionRule(organization = "org.mortbay.jetty"))
-  ).map(
-    _.excludeAll(ExclusionRule(organization = "javax.servlet"))
-  )
+    val enterpriseProvidedDeps = (commonDeps ++ sparkProvidedDeps)
   // 企业标签本地引用
   val enterpriseDeps = (commonDeps ++ sparkDeps).map(
     _.excludeAll(ExclusionRule(organization = "org.mortbay.jetty"))

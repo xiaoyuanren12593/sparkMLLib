@@ -2,12 +2,13 @@ package bzn.job.label.ent_baseinfo
 
 import java.text.NumberFormat
 
+import bzn.job.until.EnterpriseUntil
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.hive.HiveContext
 import org.apache.spark.{SparkConf, SparkContext}
 
-object EntBaseinfo extends BaseinfoUntil {
+object EntBaseinfo extends BaseinfoUntil with EnterpriseUntil {
   //12
   //企业的投保平均年龄(因为其有用到接口中的方法，因此无法放到接口中，只能放到该类中，防止序列化)
   def qy_avg(ods_policy_insured_detail: DataFrame,
@@ -87,14 +88,14 @@ object EntBaseinfo extends BaseinfoUntil {
 
     //企业类型:列是(ent_type) [00ca1da523344782b34b9b63ec95913b,三证合一]
     val et = ent_type(ent_enterprise_info, d_id_certificate, ods_policy_detail_table).distinct()
-    toHbase(et, columnFamily1, "ent_type", conf_fs, tableName, conf)
+    saveToHbase(et, columnFamily1, "ent_type", conf_fs, tableName, conf)
 
     //企业的注册时间:register_time [001eb1b2458940659345dd543245b86a,2017-07-13]
     val rt = ent_enterprise_info
       .select("id", "create_time")
       .map(x => (x.getString(0), x.getString(1).split(" ")(0), "register_time"))
       .distinct()
-    toHbase(rt, columnFamily1, "register_time", conf_fs, tableName, conf)
+    saveToHbase(rt, columnFamily1, "register_time", conf_fs, tableName, conf)
 
     //企业名称：ent_name [001eb1b2458940659345dd543245b86a,青岛中企联人力资源开发有限公司]
     val en = ent_enterprise_info
@@ -102,7 +103,7 @@ object EntBaseinfo extends BaseinfoUntil {
       .filter("length(ent_name)>0")
       .map(x => (x.getString(0), x.getString(1), "ent_name"))
       .distinct()
-    toHbase(en, columnFamily1, "ent_name", conf_fs, tableName, conf)
+    saveToHbase(en, columnFamily1, "ent_name", conf_fs, tableName, conf)
 
     //企业所在省份：ent_province [69d42cd85a59444895210bb781919228,湖南省]
     val ep = ent_enterprise_info
@@ -111,7 +112,7 @@ object EntBaseinfo extends BaseinfoUntil {
       .join(d_cant.select("name", "code"), ent_enterprise_info("office_province") === d_cant("code"))
       .map(x => (x.get(0) + "", x.get(2) + "", "ent_province"))
       .distinct()
-    toHbase(ep, columnFamily1, "ent_province", conf_fs, tableName, conf)
+    saveToHbase(ep, columnFamily1, "ent_province", conf_fs, tableName, conf)
 
     //企业所在城市：ent_city [309925dae0cd41f78dd25fd93a30e004,邯郸市]
     val ec = ent_enterprise_info
@@ -120,7 +121,7 @@ object EntBaseinfo extends BaseinfoUntil {
       .join(d_cant.select("short_name", "code"), ent_enterprise_info("office_city") === d_cant("code"))
       .map(x => (x.get(0) + "", x.get(2) + "", "ent_city")).
       distinct()
-    toHbase(ec, columnFamily1, "ent_city", conf_fs, tableName, conf)
+    saveToHbase(ec, columnFamily1, "ent_city", conf_fs, tableName, conf)
 
     //该企业所在的城市类型：ent_city_type
     val ect = ent_enterprise_info
@@ -130,31 +131,31 @@ object EntBaseinfo extends BaseinfoUntil {
       .filter("city_code>1")
       .map(x => (x(0) + "", x(2) + "", "ent_city_type"))
       .distinct()
-    toHbase(ect, columnFamily1, "ent_city_type", conf_fs, tableName, conf)
+    saveToHbase(ect, columnFamily1, "ent_city_type", conf_fs, tableName, conf)
 
     //企业产品ID
     val qCp = qy_cp(ods_policy_detail: DataFrame).distinct
-    toHbase(qCp, columnFamily1, "ent_insure_code", conf_fs, tableName, conf)
+    saveToHbase(qCp, columnFamily1, "ent_insure_code", conf_fs, tableName, conf)
 
     //企业的男女比例
     val qy_sex_r = qy_sex(ods_policy_insured_detail, ods_policy_detail_table_T).distinct
-    toHbase(qy_sex_r, columnFamily1, "ent_man_woman_proportion", conf_fs, tableName, conf)
+    saveToHbase(qy_sex_r, columnFamily1, "ent_man_woman_proportion", conf_fs, tableName, conf)
 
     //企业平均投保年龄
     val qy_avg_r = qy_avg(ods_policy_insured_detail, ods_policy_detail_table_T).distinct
-    toHbase(qy_avg_r, columnFamily1, "ent_employee_age", conf_fs, tableName, conf)
+    saveToHbase(qy_avg_r, columnFamily1, "ent_employee_age", conf_fs, tableName, conf)
 
     //企业的人员规模
     val qy_gm_r = qy_gm(ent_sum_level).distinct
-    toHbase(qy_gm_r, columnFamily1, "ent_scale", conf_fs, tableName, conf)
+    saveToHbase(qy_gm_r, columnFamily1, "ent_scale", conf_fs, tableName, conf)
 
     //企业品牌影响力:end_id(企业id) ,ent_influence_level(企业的等级)
     val qy_pp_r = qy_pp(ent_sum_level).distinct
-    toHbase(qy_pp_r, columnFamily1, "ent_influence_level", conf_fs, tableName, conf)
+    saveToHbase(qy_pp_r, columnFamily1, "ent_influence_level", conf_fs, tableName, conf)
 
     //企业潜在人员规模
     val qy_qz_r = qy_qz(ods_policy_detail, ods_policy_insured_detail, ent_sum_level).distinct
-    toHbase(qy_qz_r, columnFamily1, "ent_potential_scale", conf_fs, tableName, conf)
+    saveToHbase(qy_qz_r, columnFamily1, "ent_potential_scale", conf_fs, tableName, conf)
   }
 
   //列族是:baseinfo

@@ -2,6 +2,7 @@ package bzn.job.label.channel_baseinfo
 
 import java.util.Properties
 
+import bzn.job.until.EnterpriseUntil
 import com.alibaba.fastjson.{JSON, JSONObject}
 import org.apache.hadoop.hbase.util.Bytes
 import org.apache.spark.rdd.RDD
@@ -15,7 +16,7 @@ import scala.io.Source
 /**
   * Created by MK on 2018/10/31.
   */
-object ChaBaseinfo extends ChaBaseinfoUntil {
+object ChaBaseinfo extends ChaBaseinfoUntil with EnterpriseUntil {
 
   /**
     * 渠道的投保年龄
@@ -112,7 +113,7 @@ object ChaBaseinfo extends ChaBaseinfoUntil {
         (s"${en_before.getOrElse(end._1, "null")}", before.getString("value"), before.getString("qual"))
       })
       .filter(_._1.length > 5)
-    toHbase(et, columnFamily, "ent_type", conf_fs, tableName, conf)
+    saveToHbase(et, columnFamily, "ent_type", conf_fs, tableName, conf)
 
     //渠道的注册时间
     val rt = channel_before
@@ -123,7 +124,7 @@ object ChaBaseinfo extends ChaBaseinfoUntil {
         (s"${en_before.getOrElse(end._1, "null")}", before.getString("value"), before.getString("qual"))
       })
       .filter(_._1.length > 5)
-    toHbase(rt, columnFamily, "register_time", conf_fs, tableName, conf)
+    saveToHbase(rt, columnFamily, "register_time", conf_fs, tableName, conf)
 
     //渠道名称
     val en = channel_before
@@ -134,7 +135,7 @@ object ChaBaseinfo extends ChaBaseinfoUntil {
         (s"${en_before.getOrElse(end._1, "null")}", before.getString("value"), before.getString("qual"))
       })
       .filter(_._1.length > 5)
-    toHbase(en, columnFamily, "ent_name", conf_fs, tableName, conf)
+    saveToHbase(en, columnFamily, "ent_name", conf_fs, tableName, conf)
 
 
     //渠道所在省份
@@ -145,7 +146,7 @@ object ChaBaseinfo extends ChaBaseinfoUntil {
         (s"${en_before.getOrElse(end._1, "null")}", before.getString("value"), before.getString("qual"))
       })
       .filter(_._1.length > 5)
-    toHbase(ep, columnFamily, "ent_province", conf_fs, tableName, conf)
+    saveToHbase(ep, columnFamily, "ent_province", conf_fs, tableName, conf)
 
     //渠道所在城市
     val ec = channel_before.map(x => (x._1, x._2.split(";").filter(_.contains("ent_city")).take(1).mkString("")))
@@ -155,7 +156,7 @@ object ChaBaseinfo extends ChaBaseinfoUntil {
         (s"${en_before.getOrElse(end._1, "null")}", before.getString("value"), before.getString("qual"))
       })
       .filter(_._1.length > 5)
-    toHbase(ec, columnFamily, "ent_city", conf_fs, tableName, conf)
+    saveToHbase(ec, columnFamily, "ent_city", conf_fs, tableName, conf)
 
     //渠道所在的城市类型：ent_city_type
     val ect = channel_before
@@ -166,34 +167,34 @@ object ChaBaseinfo extends ChaBaseinfoUntil {
         (s"${en_before.getOrElse(end._1, "null")}", before.getString("value"), before.getString("qual"))
       })
       .filter(_._1.length > 5)
-    toHbase(ect, columnFamily, "ent_city_type", conf_fs, tableName, conf)
+    saveToHbase(ect, columnFamily, "ent_city_type", conf_fs, tableName, conf)
 
     //渠道产品ID
     val qCp = getqCp(en_before, before, users_RDD, channel_ent_name, ods_ent_guzhu_salesman_channel_RDD, sql_context)
       .filter(_._1.length > 5)
-    toHbase(qCp, columnFamily, "ent_insure_code", conf_fs, tableName, conf)
+    saveToHbase(qCp, columnFamily, "ent_insure_code", conf_fs, tableName, conf)
 
     //渠道的男女比例
     val qy_sex_r = qy_sex(ods_policy_insured_detail, ods_policy_detail_table, get_hbase_key_name, sql_context,
       ods_ent_guzhu_salesman_channel_RDD, en_before)
       .filter(_._1.length > 5)
-    toHbase(qy_sex_r, columnFamily, "ent_man_woman_proportion", conf_fs, tableName, conf)
+    saveToHbase(qy_sex_r, columnFamily, "ent_man_woman_proportion", conf_fs, tableName, conf)
 
     //渠道平均投保年龄
     val qy_avg_r = qy_avg(ods_policy_insured_detail, ods_policy_detail_table, get_hbase_key_name, sql_context,
       ods_ent_guzhu_salesman_channel_RDD, en_before)
       .filter(_._1.length > 5)
-    toHbase(qy_avg_r, columnFamily, "ent_employee_age", conf_fs, tableName, conf)
+    saveToHbase(qy_avg_r, columnFamily, "ent_employee_age", conf_fs, tableName, conf)
 
     //渠道的人员规模
     val qy_gm_r = qy_gm(en_before, before, users_RDD, channel_ent_name, ods_ent_guzhu_salesman_channel_RDD, sql_context)
       .filter(_._1.length > 5)
-    toHbase(qy_gm_r, columnFamily, "ent_scale", conf_fs, tableName, conf)
+    saveToHbase(qy_gm_r, columnFamily, "ent_scale", conf_fs, tableName, conf)
 
     //渠道潜在人员规模
     val qy_qz_r = qy_qz(en_before, before, users_RDD, channel_ent_name, ods_ent_guzhu_salesman_channel_RDD, sql_context)
       .filter(_._1.length > 5)
-    toHbase(qy_qz_r, columnFamily, "ent_potential_scale", conf_fs, tableName, conf)
+    saveToHbase(qy_qz_r, columnFamily, "ent_potential_scale", conf_fs, tableName, conf)
   }
 
   def main(args: Array[String]): Unit = {
@@ -232,7 +233,7 @@ object ChaBaseinfo extends ChaBaseinfoUntil {
     val channel_ent_name: Array[String] = ods_ent_guzhu_salesman_channel_only_channel.map(_._1).collect
 
     //得到标签数据
-    val usersRDD: RDD[String] = getHbase_value(sc).map(tuple => tuple._2)
+    val usersRDD: RDD[String] = getHbaseValue(sc).map(tuple => tuple._2)
       .map(result => {
         val ent_name = Bytes.toString(result.getValue("baseinfo".getBytes, "ent_name".getBytes))
         (ent_name, result.raw)
@@ -243,7 +244,7 @@ object ChaBaseinfo extends ChaBaseinfoUntil {
       })
       .cache
 
-    val get_hbase_key_name: collection.Map[String, String] = getHbase_value(sc).map(tuple => tuple._2)
+    val get_hbase_key_name: collection.Map[String, String] = getHbaseValue(sc).map(tuple => tuple._2)
       .map(result => {
         val key = Bytes.toString(result.getRow)
         val ent_name = Bytes.toString(result.getValue("baseinfo".getBytes, "ent_name".getBytes))
