@@ -4,7 +4,7 @@ import java.io.File
 import java.sql.DriverManager
 import java.util.Properties
 
-import bzn.job.common.YearUntil
+import bzn.job.common.Until
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.hive.HiveContext
 import org.apache.spark.sql.types.{StringType, StructField, StructType}
@@ -17,17 +17,15 @@ import scala.io.Source
 /**
   * Created by 邢万成 on 2019/01/16.
   */
-object BaseinfoMergeSpark extends YearUntil {
+object BaseinfoMergeSpark extends Until {
   //遍历某目录下所有的文件和子文件
-  def subDir(dir: File): Iterator[File]
-  = {
+  def subDir(dir: File): Iterator[File] = {
     val dirs = dir.listFiles().filter(_.isDirectory())
     val files = dir.listFiles().filter(_.isFile())
     files.toIterator ++ dirs.toIterator.flatMap(subDir)
   }
 
-  def getC3p0DateSource(path: String, table_name: String, url: String): Boolean
-  = {
+  def getC3p0DateSource(path: String, table_name: String, url: String): Boolean = {
     Class.forName("com.mysql.jdbc.Driver")
     //获取连接//http://baidu.com
     val connection = DriverManager.getConnection(url)
@@ -43,8 +41,7 @@ object BaseinfoMergeSpark extends YearUntil {
   }
 
   //toMysql
-  def toMsql(bzn_year: RDD[String], path_hdfs: String, path: String, table_name: String, url: String): Unit
-  = {
+  def toMsql(bzn_year: RDD[String], path_hdfs: String, path: String, table_name: String, url: String): Unit = {
     bzn_year.repartition(1).saveAsTextFile(path_hdfs)
 
     //得到我目录中的该文件
@@ -59,15 +56,14 @@ object BaseinfoMergeSpark extends YearUntil {
   }
 
   //表1.0数据
-  def get_one(sqlContext: HiveContext, prop: Properties, url: String): DataFrame
-  = {
+  def get_one(sqlContext: HiveContext, prop: Properties, url: String): DataFrame = {
     //读取odr_policy_insured数据
     sqlContext.read.jdbc(url, "odr_policy_insured", prop)
       .withColumnRenamed("id", "a_id")
       .withColumnRenamed("policy_id", "a_policy_id")
       .withColumnRenamed("insured_type", "a_insured_type")
       .withColumnRenamed("is_legal", "a_is_legal")
-      .withColumnRenamed("name","a_name")
+      .withColumnRenamed("name", "a_name")
       .withColumnRenamed("gender", "insured_gender")
       .withColumnRenamed("cert_type", "insured_cert_type")
       .withColumnRenamed("birthday", "insured_birthday")
@@ -84,7 +80,7 @@ object BaseinfoMergeSpark extends YearUntil {
       .withColumnRenamed("update_time", "insured_update_time")
       .withColumnRenamed("start_date", "insured_start_date")
       .withColumnRenamed("end_date", "insured_end_date")
-      .withColumnRenamed("remark","a_remark")
+      .withColumnRenamed("remark", "a_remark")
       .registerTempTable("a")
 
     //读取odr_policy_insured_child数据
@@ -103,11 +99,11 @@ object BaseinfoMergeSpark extends YearUntil {
       .persist(StorageLevel.MEMORY_AND_DISK_SER)
 
     //读取odr_policy数据
-    var c = sqlContext.read.jdbc(url,"odr_policy",prop)
-      .withColumnRenamed("id","c_id")
-      .withColumnRenamed("user_id","c_user_id")
-      .withColumnRenamed("insure_code","c_insure_code")
-      .withColumnRenamed("policy_code","c_policy_code")
+    var c = sqlContext.read.jdbc(url, "odr_policy", prop)
+      .withColumnRenamed("id", "c_id")
+      .withColumnRenamed("user_id", "c_user_id")
+      .withColumnRenamed("insure_code", "c_insure_code")
+      .withColumnRenamed("policy_code", "c_policy_code")
       .persist(StorageLevel.MEMORY_AND_DISK_SER)
 
     //将sql中的回车替换掉
@@ -133,12 +129,12 @@ object BaseinfoMergeSpark extends YearUntil {
         .withColumn("insured_name", plc_policy_preserve_insured_version_three("name_mk"))
         .drop("work_type_mk").drop("name_mk")
 
-    val tep_one = plc_policy_preserve_insured.join(b,b("insured_id") === plc_policy_preserve_insured("a_id"),"left")
+    val tep_one = plc_policy_preserve_insured.join(b, b("insured_id") === plc_policy_preserve_insured("a_id"), "left")
 
-    val tep_two = tep_one.join(c,tep_one("a_policy_id") === c("c_id"),"left")
+    val tep_two = tep_one.join(c, tep_one("a_policy_id") === c("c_id"), "left")
 
     tep_two.persist(StorageLevel.MEMORY_AND_DISK_SER)
-    var res1 = tep_two.where ("c_user_id not in ('10100080492') or c_user_id is null")
+    var res1 = tep_two.where("c_user_id not in ('10100080492') or c_user_id is null")
       .where("a_remark not in ('obsolete') or a_remark is null")
 
     var res2 = tep_two.where("c_insure_code in ('15000001') and c_policy_code like 'BZN%'")
@@ -187,8 +183,7 @@ object BaseinfoMergeSpark extends YearUntil {
   }
 
   //表2.0数据
-  def get_two(sqlContext: HiveContext, prop: Properties, url: String): DataFrame
-  = {
+  def get_two(sqlContext: HiveContext, prop: Properties, url: String): DataFrame = {
 
     //读取b_policy_subject_person_master数据
     var b_policy_subject_person_master = sqlContext.read.jdbc(url, "b_policy_subject_person_master", prop)
@@ -228,9 +223,9 @@ object BaseinfoMergeSpark extends YearUntil {
       .persist(StorageLevel.MEMORY_AND_DISK_SER)
 
     //读取b_policy数据
-    var c = sqlContext.read.jdbc(url,"b_policy",prop)
-      .withColumnRenamed("id","c_id")
-      .withColumnRenamed("policy_no","c_policy_no")
+    var c = sqlContext.read.jdbc(url, "b_policy", prop)
+      .withColumnRenamed("id", "c_id")
+      .withColumnRenamed("policy_no", "c_policy_no")
       .persist(StorageLevel.MEMORY_AND_DISK_SER)
 
     val b_policy_preservation_subject_person_master_after = b_policy_subject_person_master
@@ -268,7 +263,7 @@ object BaseinfoMergeSpark extends YearUntil {
     val b_2: DataFrame = sqlContext.sql("select *, case when b_new.`status`='1' then '0' else '1' end as child_policy_status from b_new")
     val tep_one: DataFrame = b_policy_preservation_subject_person_master.join(b_2, b_policy_preservation_subject_person_master("aa_policy_no") === b_2("b_policy_no"), "left")
 
-    val end_final = tep_one.join(c,tep_one("aa_policy_no") === c("c_policy_no"),"left")
+    val end_final = tep_one.join(c, tep_one("aa_policy_no") === c("c_policy_no"), "left")
 
     var result = end_final.selectExpr("" +
       "getUUID() as id",
@@ -338,10 +333,10 @@ object BaseinfoMergeSpark extends YearUntil {
     System.setProperty("HADOOP_USER_NAME", "hdfs")
     val conf_s = new SparkConf()
       .setAppName("baseinfo_merge")
-//      .setMaster("local[4]")
+      //      .setMaster("local[4]")
       .set("spark.sql.broadcastTimeout", "36000")
       .set("spark.network.timeout", "36000")
-      .set("spark.executor.heartbeatInterval","20000")
+      .set("spark.executor.heartbeatInterval", "20000")
     val sc = new SparkContext(conf_s)
 
     val sqlContext: HiveContext = new HiveContext(sc)
@@ -349,27 +344,27 @@ object BaseinfoMergeSpark extends YearUntil {
     //创建uuid函数
     sqlContext.udf.register("getUUID", () => (java.util.UUID.randomUUID() + ""))
 
-    sqlContext.udf.register("getAgeFromBirthTime", (cert_no:String,end :String) => getAgeFromBirthTime(cert_no,end))
+    sqlContext.udf.register("getAgeFromBirthTime", (cert_no: String, end: String) => getAgeFromBirthTime(cert_no, end))
 
     val prop: Properties = new Properties
 
     //得到1.0表的数据 x
     val end_one = get_one(sqlContext: HiveContext, prop: Properties, url: String)
-//    end_one.selectExpr("insured_name like '%50周岁%'").show(10)
+    //    end_one.selectExpr("insured_name like '%50周岁%'").show(10)
 
     //得到2.0表的数据
     val end_two = get_two(sqlContext: HiveContext, prop: Properties, url: String)
-//    end_one.selectExpr("insured_name like '%50周岁%'").show(10)
-//    end_one.show(10)
+    //    end_one.selectExpr("insured_name like '%50周岁%'").show(10)
+    //    end_one.show(10)
     //得到字段名字
     val fields_name = end_one.schema.map(x => x.name)
     val end_dataFrame = end_one.map(x => x).union(end_two.map(x => x))
-//
-//    得到字段对应的值
+    //
+    //    得到字段对应的值
     val field_value = end_dataFrame.map(x => {
       x.toSeq.map(x => if (x == null) "null" else x.toString).toArray
     })
-//
+    //
     val schema_tepOne = StructType(fields_name.map(fieldName => StructField(fieldName, StringType, nullable = true)))
     //字段对应的值
     val value_tepTwo = field_value.map(r => Row(r: _*))

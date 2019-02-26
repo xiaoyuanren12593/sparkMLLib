@@ -3,8 +3,6 @@ package bzn.job.etl
 import java.io.File
 import java.sql.DriverManager
 import java.text.NumberFormat
-
-import bzn.job.common.YearUntil
 import org.apache.spark.broadcast.Broadcast
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.DataFrame

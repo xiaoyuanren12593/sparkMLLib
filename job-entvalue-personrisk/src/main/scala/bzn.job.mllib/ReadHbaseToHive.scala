@@ -1,6 +1,7 @@
 package bzn.job.mllib
 
 import bzn.job.common.Until
+import bzn.job.until.PersonRiskUntil
 import com.alibaba.fastjson.JSON
 import org.apache.hadoop.hbase.HBaseConfiguration
 import org.apache.hadoop.hbase.client.Result
@@ -19,7 +20,7 @@ import org.apache.spark.{SparkConf, SparkContext}
   * Created by MK on 2018/4/18.
   * 已在oozie中每天更新表
   */
-object ReadHbaseToHive extends Until {
+object ReadHbaseToHive extends Until with PersonRiskUntil {
   def bolZero(str: String): String = if (str == null) "0" else str
 
   //读取个人标签的数据
@@ -156,13 +157,9 @@ object ReadHbaseToHive extends Until {
       val person_risk = person_model.predict(scaledFeatures)
       (cert_no, person_risk + "", "person_value_model")
     })
-
-    person_value_model.take(10).foreach(println)
-//    toHbase(person_value_model, columnFamily1_person, "person_value_model", conf_fs_person, tableName_person, conf_person)
-
+    saveToHbase(person_value_model, columnFamily1_person, "person_value_model", conf_fs_person, tableName_person, conf_person)
 
     //将其存入到hive中
-//    res_k_means.insertInto("personal_model_data", overwrite = true)
-
+    res_k_means.insertInto("personal_model_data", overwrite = true)
   }
 }

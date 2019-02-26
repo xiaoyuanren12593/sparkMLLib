@@ -1,11 +1,12 @@
 package bzn.job.label.policy_baseinfo
 
+import bzn.job.until.EnterpriseUntil
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.hive.HiveContext
 import org.apache.spark.{SparkConf, SparkContext}
 
-object PolicyInfo extends PolicyUntil {
+object PolicyInfo extends PolicyUntil with EnterpriseUntil {
 
   //订单企业ID
   def policy_ent_id(ods_policy_detail: DataFrame, ent_enterprise_info: DataFrame): RDD[(String, String, String)] = {
@@ -48,35 +49,35 @@ object PolicyInfo extends PolicyUntil {
 
     //订单企业ID
     val policy_ent_id_r = policy_ent_id(ods_policy_detail, ent_enterprise_info).distinct()
-    toHbase(policy_ent_id_r, columnFamily1, "policy_ent_id", conf_fs, tableName, conf)
+    saveToHbase(policy_ent_id_r, columnFamily1, "policy_ent_id", conf_fs, tableName, conf)
 
     //产品编号
     val policy_insure_code_r = policy_insure_code(ods_policy_detail).distinct()
-    toHbase(policy_insure_code_r, columnFamily1, "policy_insure_code", conf_fs, tableName, conf)
+    saveToHbase(policy_insure_code_r, columnFamily1, "policy_insure_code", conf_fs, tableName, conf)
 
     //保单生效时间
     val policy_start_date_r = policy_start_date(ods_policy_detail).distinct()
-    toHbase(policy_start_date_r, columnFamily1, "policy_start_date", conf_fs, tableName, conf)
+    saveToHbase(policy_start_date_r, columnFamily1, "policy_start_date", conf_fs, tableName, conf)
 
     //保单截至时间
     val policy_end_date_r = policy_end_date(ods_policy_detail).distinct()
-    toHbase(policy_end_date_r, columnFamily1, "policy_end_date", conf_fs, tableName, conf)
+    saveToHbase(policy_end_date_r, columnFamily1, "policy_end_date", conf_fs, tableName, conf)
 
     //保费
     val policy_premium_r = policy_premium(ods_policy_detail).distinct()
-    toHbase(policy_premium_r, columnFamily1, "policy_premium", conf_fs, tableName, conf)
+    saveToHbase(policy_premium_r, columnFamily1, "policy_premium", conf_fs, tableName, conf)
 
     //保单状态
     val policy_status_r = policy_status(ods_policy_detail).distinct()
-    toHbase(policy_status_r, columnFamily1, "policy_status", conf_fs, tableName, conf)
+    saveToHbase(policy_status_r, columnFamily1, "policy_status", conf_fs, tableName, conf)
 
     //更新时间
     val policy_update_time_r = policy_update_time(ods_policy_detail).distinct()
-    toHbase(policy_update_time_r, columnFamily1, "policy_update_time", conf_fs, tableName, conf)
+    saveToHbase(policy_update_time_r, columnFamily1, "policy_update_time", conf_fs, tableName, conf)
 
     //保额
     val policy_term_three_r = policy_term_three(ods_policy_detail, pdt_product_sku).distinct()
-    toHbase(policy_term_three_r, columnFamily1, "policy_term_three", conf_fs, tableName, conf)
+    saveToHbase(policy_term_three_r, columnFamily1, "policy_term_three", conf_fs, tableName, conf)
   }
 
   def main(args: Array[String]): Unit = {

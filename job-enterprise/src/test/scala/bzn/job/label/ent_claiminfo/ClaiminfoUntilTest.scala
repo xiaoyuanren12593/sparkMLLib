@@ -937,28 +937,28 @@ trait ClaiminfoUntilTest extends Until {
                                conf_fs: Configuration, tableName: String, conf: Configuration): Unit = {
 
     val zero_f = ent_work_risk_r.filter(_._3 == "0").map(x => (x._1, x._2, s"worktype_${x._3}_count")).distinct
-    toHbase(zero_f, columnFamily, "ent_work_risk_zero", conf_fs, tableName, conf)
+    saveToHbase(zero_f, columnFamily, "ent_work_risk_zero", conf_fs, tableName, conf)
 
     val one_f = ent_work_risk_r.filter(_._3 == "1").map(x => (x._1, x._2, s"worktype_${x._3}_count")).distinct
-    toHbase(one_f, columnFamily, "ent_work_risk_one", conf_fs, tableName, conf)
+    saveToHbase(one_f, columnFamily, "ent_work_risk_one", conf_fs, tableName, conf)
 
     val two_f = ent_work_risk_r.filter(_._3 == "2").map(x => (x._1, x._2, s"worktype_${x._3}_count")).distinct
-    toHbase(two_f, columnFamily, "ent_work_risk_two", conf_fs, tableName, conf)
+    saveToHbase(two_f, columnFamily, "ent_work_risk_two", conf_fs, tableName, conf)
 
     val three_f = ent_work_risk_r.filter(_._3 == "3").map(x => (x._1, x._2, s"worktype_${x._3}_count")).distinct
-    toHbase(three_f, columnFamily, "ent_work_risk_three", conf_fs, tableName, conf)
+    saveToHbase(three_f, columnFamily, "ent_work_risk_three", conf_fs, tableName, conf)
 
     val four_f = ent_work_risk_r.filter(_._3 == "4").map(x => (x._1, x._2, s"worktype_${x._3}_count")).distinct
-    toHbase(four_f, columnFamily, "ent_work_risk_four", conf_fs, tableName, conf)
+    saveToHbase(four_f, columnFamily, "ent_work_risk_four", conf_fs, tableName, conf)
 
     val five_f = ent_work_risk_r.filter(_._3 == "5").map(x => (x._1, x._2, s"worktype_${x._3}_count")).distinct
-    toHbase(five_f, columnFamily, "ent_work_risk_five", conf_fs, tableName, conf)
+    saveToHbase(five_f, columnFamily, "ent_work_risk_five", conf_fs, tableName, conf)
 
     val six_f = ent_work_risk_r.filter(_._3 == "6").map(x => (x._1, x._2, s"worktype_${x._3}_count")).distinct
-    toHbase(six_f, columnFamily, "ent_work_risk_six", conf_fs, tableName, conf)
+    saveToHbase(six_f, columnFamily, "ent_work_risk_six", conf_fs, tableName, conf)
 
     val seven_f = ent_work_risk_r.filter(_._3 == "7").map(x => (x._1, x._2, s"worktype_${x._3}_count")).distinct
-    toHbase(seven_f, columnFamily, "ent_work_risk_seven", conf_fs, tableName, conf)
+    saveToHbase(seven_f, columnFamily, "ent_work_risk_seven", conf_fs, tableName, conf)
   }
 
 }

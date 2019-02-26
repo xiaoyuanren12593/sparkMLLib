@@ -2,6 +2,7 @@ package bzn.job.etl
 
 import java.util.Properties
 
+import bzn.job.common.Until
 import bzn.job.until.PiwikUntil
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.hive.HiveContext
@@ -20,7 +21,7 @@ import scala.io.Source
   * getResource("/data/test.data"))
   */
 
-object TepOne extends PiwikUntil {
+object TepOne extends Until {
 
   System.setProperty("HADOOP_USER_NAME", "hdfs")
 

@@ -3,6 +3,7 @@ package bzn.job.etl
 import java.io.File
 import java.sql.DriverManager
 
+import bzn.job.common.Until
 import bzn.job.until.PiwikUntil
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.hive.HiveContext
@@ -16,7 +17,7 @@ import scala.io.Source
 /**
   * Created by MK on 2018/7/12.
   */
-object TepTwo extends PiwikUntil {
+object TepTwo extends Until {
   System.setProperty("HADOOP_USER_NAME", "hdfs")
 
   def loadToHive(sqlContext: HiveContext): DataFrame = {

@@ -4,7 +4,7 @@ import java.io.File
 import java.sql.DriverManager
 import java.text.NumberFormat
 
-import bzn.job.common.YearUntil
+import bzn.job.common.Until
 import org.apache.spark.broadcast.Broadcast
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.DataFrame
@@ -15,7 +15,7 @@ import org.apache.spark.{SparkConf, SparkContext}
   * Created by MK on 2018/4/26.
   * 保费，精确到天，有年单的也有月单的
   */
-object YearMonthPremium extends YearUntil {
+object YearMonthPremium extends Until {
 
   //遍历某目录下所有的文件和子文件
   def subDir(dir: File): Iterator[File] = {
@@ -76,10 +76,10 @@ object YearMonthPremium extends YearUntil {
       rdd.flatMap(x => {
         var insure_code = ""
         var ent_id = ""
-        if(x.getAs("insure_code") != null   ){
+        if (x.getAs("insure_code") != null) {
           insure_code = x.getAs("insure_code").toString
         }
-        if(x.getAs("ent_id") != null){
+        if (x.getAs("ent_id") != null) {
           ent_id = x.getAs("ent_id").toString
         }
 
@@ -132,10 +132,10 @@ object YearMonthPremium extends YearUntil {
       rdd.flatMap(x => {
         var insure_code = ""
         var ent_id = ""
-        if(x.getAs("insure_code") != null   ){
+        if (x.getAs("insure_code") != null) {
           insure_code = x.getAs("insure_code").toString
         }
-        if(x.getAs("ent_id") != null){
+        if (x.getAs("ent_id") != null) {
           ent_id = x.getAs("ent_id").toString
         }
 
@@ -184,7 +184,7 @@ object YearMonthPremium extends YearUntil {
     val conf_s = new SparkConf().setAppName("wuYu")
       .set("spark.sql.broadcastTimeout", "36000")
       .set("spark.network.timeout", "36000")
-      .set("spark.executor.heartbeatInterval","20000")
+      .set("spark.executor.heartbeatInterval", "20000")
     //          .setMaster("local[2]")
     val sc = new SparkContext(conf_s)
     val sqlContext: HiveContext = new HiveContext(sc)

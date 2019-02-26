@@ -4,12 +4,13 @@ import java.text.NumberFormat
 import java.util.regex.Pattern
 
 import bzn.job.common.Until
+import bzn.job.until.PersonalUntil
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.hive.HiveContext
 import org.apache.spark.{SparkConf, SparkContext}
 
-object PersonalClaimService extends Until {
+object PersonalClaimService extends Until with PersonalUntil {
   //个人报案件数
   def report_count(employer_liability_claims: DataFrame): RDD[(String, String, String)] = {
     val end: RDD[(String, String, String)] = employer_liability_claims
@@ -350,69 +351,69 @@ object PersonalClaimService extends Until {
 
     //个人报案件数
     val report_count_s = report_count(employer_liability_claims)
-    toHbase(report_count_s, columnFamily1, "report_count", conf_fs, tableName, conf)
+    saveToHbase(report_count_s, columnFamily1, "report_count", conf_fs, tableName, conf)
 
     //理赔件数
     val claim_count_rs = claim_count(employer_liability_claims)
-    toHbase(claim_count_rs, columnFamily1, "claim_count", conf_fs, tableName, conf)
+    saveToHbase(claim_count_rs, columnFamily1, "claim_count", conf_fs, tableName, conf)
 
     //死亡案件
     val death_count_s = death_count(employer_liability_claims)
-    toHbase(death_count_s, columnFamily1, "death_count", conf_fs, tableName, conf)
+    saveToHbase(death_count_s, columnFamily1, "death_count", conf_fs, tableName, conf)
 
     //伤残案件
     val disability_count_s = disability_count(employer_liability_claims)
-    toHbase(disability_count_s, columnFamily1, "disability_count", conf_fs, tableName, conf)
+    saveToHbase(disability_count_s, columnFamily1, "disability_count", conf_fs, tableName, conf)
 
     //工作期间案件数
     val case_work_count_s = case_work_count(employer_liability_claims)
-    toHbase(case_work_count_s, columnFamily1, "case_work_count", conf_fs, tableName, conf)
+    saveToHbase(case_work_count_s, columnFamily1, "case_work_count", conf_fs, tableName, conf)
 
     //非工作期间案件数
     val case_notwork_count_s = case_notwork_count(employer_liability_claims)
-    toHbase(case_notwork_count_s, columnFamily1, "case_notwork_count", conf_fs, tableName, conf)
+    saveToHbase(case_notwork_count_s, columnFamily1, "case_notwork_count", conf_fs, tableName, conf)
 
     //预估总赔付金额
     //pre_com:预估赔付金额
     val prepay_total_s = prepay_total(employer_liability_claims)
-    toHbase(prepay_total_s, columnFamily1, "prepay_total", conf_fs, tableName, conf)
+    saveToHbase(prepay_total_s, columnFamily1, "prepay_total", conf_fs, tableName, conf)
 
     //死亡预估赔额
     val prepay_death_s = prepay_death(employer_liability_claims)
-    toHbase(prepay_death_s, columnFamily1, "prepay_death", conf_fs, tableName, conf)
+    saveToHbase(prepay_death_s, columnFamily1, "prepay_death", conf_fs, tableName, conf)
 
     //伤残预估赔额
     val prepay_disability_s = prepay_disability(employer_liability_claims)
-    toHbase(prepay_disability_s, columnFamily1, "prepay_disability", conf_fs, tableName, conf)
+    saveToHbase(prepay_disability_s, columnFamily1, "prepay_disability", conf_fs, tableName, conf)
 
     //工作期间预估赔额
     val prepay_work_s = prepay_work(employer_liability_claims)
-    toHbase(prepay_work_s, columnFamily1, "prepay_work", conf_fs, tableName, conf)
+    saveToHbase(prepay_work_s, columnFamily1, "prepay_work", conf_fs, tableName, conf)
 
     //非工作期间预估赔额
     val prepay_notwork_s = prepay_notwork(employer_liability_claims)
-    toHbase(prepay_notwork_s, columnFamily1, "prepay_notwork", conf_fs, tableName, conf)
+    saveToHbase(prepay_notwork_s, columnFamily1, "prepay_notwork", conf_fs, tableName, conf)
 
     //实际已赔付金额
     val finalpay_total_s = finalpay_total(employer_liability_claims)
-    toHbase(finalpay_total_s, columnFamily1, "finalpay_total", conf_fs, tableName, conf)
+    saveToHbase(finalpay_total_s, columnFamily1, "finalpay_total", conf_fs, tableName, conf)
 
     //预估平均案件金额
     val avg_prepay_s = avg_prepay(employer_liability_claims)
-    toHbase(avg_prepay_s, columnFamily1, "avg_prepay", conf_fs, tableName, conf)
+    saveToHbase(avg_prepay_s, columnFamily1, "avg_prepay", conf_fs, tableName, conf)
 
     //实际平均案件金额
     val avg_finalpay_s = avg_finalpay(employer_liability_claims)
-    toHbase(avg_finalpay_s, columnFamily1, "avg_finalpay", conf_fs, tableName, conf)
+    saveToHbase(avg_finalpay_s, columnFamily1, "avg_finalpay", conf_fs, tableName, conf)
 
     //超时赔付案件数
     val case_overtime_count_s = case_overtime_count(employer_liability_claims)
-    toHbase(case_overtime_count_s, columnFamily1, "case_overtime_count", conf_fs, tableName, conf)
+    saveToHbase(case_overtime_count_s, columnFamily1, "case_overtime_count", conf_fs, tableName, conf)
 
     //平均赔付时效
     //time_effect:赔付时效
     val avg_effecttime_s = avg_effecttime(employer_liability_claims)
-    toHbase(avg_effecttime_s, columnFamily1, "avg_effecttime", conf_fs, tableName, conf)
+    saveToHbase(avg_effecttime_s, columnFamily1, "avg_effecttime", conf_fs, tableName, conf)
   }
 
 }

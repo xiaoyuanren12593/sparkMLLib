@@ -3,8 +3,6 @@ package bzn.job.etl
 import java.io.File
 import java.sql.DriverManager
 import java.util.Properties
-
-import bzn.job.common.YearUntil
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.hive.HiveContext
 import org.apache.spark.sql.types.{StringType, StructField, StructType}
