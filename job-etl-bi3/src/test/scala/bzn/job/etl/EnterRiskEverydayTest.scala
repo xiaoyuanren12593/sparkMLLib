@@ -1,4 +1,4 @@
-package bzn.job.etl
+package company.canal_streaming
 
 import bzn.job.common.Until
 import org.apache.hadoop.hbase.HBaseConfiguration
@@ -18,10 +18,11 @@ import org.apache.spark.{SparkConf, SparkContext}
   * Created by MK on 2018/5/22.
   * 企业风险实时，每天运行，调用模型进行计算
   */
-object EnterRiskEveryday extends Until {
+object EnterRiskEverydayTest extends Until {
 
   //企业风险::创建hbase配置文件
-  def getHbase_conf(sc: SparkContext): RDD[(ImmutableBytesWritable, Result)] = {
+  def getHbase_conf(sc: SparkContext): RDD[(ImmutableBytesWritable, Result)]
+  = {
     //定义HBase的配置
     val conf = HBaseConfiguration.create()
     conf.set("hbase.zookeeper.property.clientPort", "2181")
@@ -39,7 +40,8 @@ object EnterRiskEveryday extends Until {
   }
 
   //企业价值:计算真实评分
-  def get_Score(people: Double, end_premium_all: Double, three_slope: Double): (String, String, String) = {
+  def get_Score(people: Double, end_premium_all: Double, three_slope: Double): (String, String, String)
+  = {
     //计算人数评分
     val people_score = if (people >= 0 && people < 1000) {
       val p = (people - 0.0) / 1000.0
@@ -95,16 +97,13 @@ object EnterRiskEveryday extends Until {
     (people_end.toString, end_premium_all_score_end.toString, three_slope_scope_end.toString)
   }
 
-
   def main(args: Array[String]): Unit = {
-
-    System.setProperty("HADOOP_USER_NAME", "hdfs")
 
     val conf_spark: SparkConf = new SparkConf().setAppName("wuYu")
       .set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
       .registerKryoClasses(Array(classOf[org.apache.hadoop.hbase.io.ImmutableBytesWritable]))
       .set("spark.sql.broadcastTimeout", "36000")
-    //      .setMaster("local[2]")
+      .setMaster("local[2]")
 
     val sc: SparkContext = new SparkContext(conf_spark)
     val sqlContext: HiveContext = new HiveContext(sc)
@@ -115,11 +114,16 @@ object EnterRiskEveryday extends Until {
     val ods_policy_detail = sqlContext.sql("select ent_id,insure_code from odsdb_prd.ods_policy_detail").distinct()
     val d_city_grade_map: collection.Map[String, String] = city_code(sqlContext)
     val ods_bro = ods_policy_detail.map(x => {
-      val ent_id = x.getAs("ent_id").toString
-      val insure_code = x.getAs("insure_code")
-        .toString
-      (ent_id, insure_code)
-    }).filter(x => bro.value.contains(x._2)).map(_._1).collect
+
+      if (x.getAs("ent_id") != null) {
+        val ent_id = x.getAs("ent_id").toString
+        val insure_code = x.getAs("insure_code").toString
+        (ent_id, insure_code)
+      } else {
+        ("", "")
+      }
+
+    }).filter(x => !x._1.equals("")).filter(x => bro.value.contains(x._2)).map(_._1).collect
 
     val ods_bro_end = sc.broadcast(ods_bro)
 
@@ -129,14 +133,15 @@ object EnterRiskEveryday extends Until {
     val usersRDD = getHbase_conf(sc)
 
     import sqlContext.implicits._
-    val tepOne: RDD[((ImmutableBytesWritable, Result), String, String)] = usersRDD.map(x => {
+    val tepOne: RDD[((ImmutableBytesWritable, Result), String, String)] = usersRDD.map { x => {
       val s: (ImmutableBytesWritable, Result) = x
       val ent_man_woman_proportion = Bytes.toString(s._2.getValue("baseinfo".getBytes, "ent_man_woman_proportion".getBytes))
       val ent_scale = Bytes.toString(s._2.getValue("baseinfo".getBytes, "ent_scale".getBytes))
       val str = if (ent_man_woman_proportion == null) null else ent_man_woman_proportion.replaceAll(",", "-")
       //x | 男女比例 | 总人数
       (x, str, ent_scale)
-    })
+    }
+    }
     //企业价值：得到标签数据
     val vectors = getHbase_label(tepOne, d_city_grade_map).filter(x => if (x._2.length > 0 && ods_bro_end.value.contains(x._2)) true else false).map(x => {
       (x._2, Vectors.dense(x._1), x._1(1))
@@ -186,7 +191,9 @@ object EnterRiskEveryday extends Until {
       val enter_value_model = x.getAs("enter_value").toString
       (ent_id, enter_value_model, "enter_value_model")
     })
-    toHbase(one, columnFamily1, "enter_value_model", conf_fs, tableName, conf)
+
+    one.foreach(x => println(x))
+    //    toHbase(one, columnFamily1, "enter_value_model", conf_fs, tableName, conf)
 
     //将企业风险等级存入hbase中
     val two = enter_prise.map(x => {
@@ -194,10 +201,12 @@ object EnterRiskEveryday extends Until {
       val risk_value_model = x.getAs("risk_value").toString
       (ent_id, risk_value_model, "risk_value_model")
     })
-    toHbase(two, columnFamily1, "risk_value_model", conf_fs, tableName, conf)
 
-    //将其存入对应的hive表中
-    enter_prise.insertInto("model_final_value", overwrite = true)
+    two.foreach(x => println(x))
+    //    toHbase(two, columnFamily1, "risk_value_model", conf_fs, tableName, conf)
+    //
+    //    //将其存入对应的hive表中
+    //    enter_prise.insertInto("model_final_value", overwrite = true)
 
   }
 
