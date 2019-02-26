@@ -91,8 +91,9 @@ object membership_Level {
 
     val ods_policy_detail: DataFrame = sqlContext.read.jdbc(location_mysql_url, "ods_policy_detail", prop)
       .where("policy_status in ('1','0')")
-      .select("ent_id", "policy_id", "insure_code")
+      .select("ent_id", "policy_id", "insure_code","channel_name")
       .filter("ent_id is not null")
+      .filter("channel_name = '重庆翔耀保险咨询服务有限公司'")
     //    ods_policy_detail.foreach(println)
 
     val tep_ods_one = ods_policy_detail.map(x => (x.getAs[String]("insure_code"), x)).filter(x => if (dim_1.contains(x._1)) true else false)
@@ -141,7 +142,7 @@ object membership_Level {
       }
     })
 
-//    theEndRes.foreach(println)
+    theEndRes.foreach(println)
 //    println("---------")
     //    end_all.foreach(println)
     theEndRes
@@ -241,7 +242,7 @@ object membership_Level {
   def main(args: Array[String]): Unit = {
     val lines_source = Source.fromURL(getClass.getResource("/config_scala.properties")).getLines.toSeq
     val conf_s = new SparkConf().setAppName("membership_Level")
-    //      .setMaster("local[4]")
+          .setMaster("local[4]")
     val prop: Properties = new Properties
     val sc = new SparkContext(conf_s)
     val sqlContext: HiveContext = new HiveContext(sc)
@@ -350,7 +351,7 @@ object membership_Level {
       val yizhauan = x._2.map(_._1._3.toDouble).toArray.sum //所有的已赚
       //已赔率=(预估赔付or实际赔付)/已赚保费*100%
       val reimbursement_rate = jiner / yizhauan
-
+      println(yizhauan)
       val gold_yin_pu: (String, String, String) = if (ent_continuous_plc_month >= 9.0 && !partner_people_last.contains("no")) {
         val downgrade_he = if (reimbursement_rate >= 0.7 && reimbursement_rate < 1.0) "1" else if (reimbursement_rate >= 1.0) "2" else if (reimbursement_rate < 0.7) "0"
         (reimbursement_rate + "", "partner", downgrade_he + "")
@@ -401,19 +402,20 @@ object membership_Level {
       val now_Date = dateFormatOne.format(now)
       par.filter(_._2.split("-").contains(now_Date)).filter(_._1.split("mk6")(6).toDouble > 0.0)
     }).map(_._1)
-    val table_name = "mid_guzhu_member_hierarchy"
-
-    //得到时间戳
-    val timeMillions = System.currentTimeMillis
-
-    //HDFS需要传的路径
-    val path_hdfs = s"file:///share/${table_name}_$timeMillions"
-
-    //本地需要传的路径
-    val path = s"/share/${table_name}_$timeMillions"
-
-    //每天新创建一个目录，将数据写入到新目录中
-    toMsql(tep_end, path_hdfs, path, table_name, location_mysql_url)
+    tep_end.foreach(println)
+//    val table_name = "mid_guzhu_member_hierarchy"
+//
+//    //得到时间戳
+//    val timeMillions = System.currentTimeMillis
+//
+//    //HDFS需要传的路径
+//    val path_hdfs = s"file:///share/${table_name}_$timeMillions"
+//
+//    //本地需要传的路径
+//    val path = s"/share/${table_name}_$timeMillions"
+//
+//    //每天新创建一个目录，将数据写入到新目录中
+//    toMsql(tep_end, path_hdfs, path, table_name, location_mysql_url)
 
   }
 }

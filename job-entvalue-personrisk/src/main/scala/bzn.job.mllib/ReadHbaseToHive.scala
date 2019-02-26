@@ -157,12 +157,9 @@ object ReadHbaseToHive extends Until with PersonRiskUntil {
       val person_risk = person_model.predict(scaledFeatures)
       (cert_no, person_risk + "", "person_value_model")
     })
-
     saveToHbase(person_value_model, columnFamily1_person, "person_value_model", conf_fs_person, tableName_person, conf_person)
-
 
     //将其存入到hive中
     res_k_means.insertInto("personal_model_data", overwrite = true)
-
   }
 }
