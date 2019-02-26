@@ -87,62 +87,65 @@ object membership_Level {
     val now_Date = dateFormatOne.format(now)
 
     import sqlContext.implicits._
-    val dim_1 = sqlContext.read.jdbc(location_mysql_url_dwdb, "dim_product", prop)
-      .select("product_code", "dim_1")
-      .where("dim_1 in ('外包雇主','骑士保','大货车')")
-      .map(x => x.getAs[String]("product_code"))
-      .toDF("product_code")
-    //雇主表
+    val dim_1 = sqlContext.read.jdbc(location_mysql_url_dwdb, "dim_product", prop).select("product_code", "dim_1").where("dim_1 in ('外包雇主','骑士保','大货车')").map(x => x.getAs[String]("product_code")).collect
 
-    val ods_ent_guzhu_salesman = sqlContext.read.jdbc(location_mysql_url, "ods_ent_guzhu_salesman", prop).map(x => {
-      val ent_id = x.getAs[String]("ent_id")
-      val ent_name = x.getAs[String]("ent_name").trim
-      val channel_name = x.getAs[String]("channel_name")
-      val new_channel_name = if (channel_name == "直客") ent_name else channel_name
-      (ent_id,ent_name, new_channel_name)
-    }).toDF("ent_id","ent_name","channel_name")
-//      .filter("channel_name = '长沙安博企业管理咨询有限公司'")
+    val ods_policy_detail: DataFrame = sqlContext.read.jdbc(location_mysql_url, "ods_policy_detail", prop)
+      .where("policy_status in ('1','0')")
+      .select("ent_id", "policy_id", "insure_code","channel_name")
+      .filter("ent_id is not null")
+      .filter("channel_name = '重庆翔耀保险咨询服务有限公司'")
+    //    ods_policy_detail.foreach(println)
 
-    //保单详细临时表
-    val ods_policy_detail_temp =  sqlContext.read.jdbc(location_mysql_url, "ods_policy_detail", prop)
-
-    //保单详情表
-    val ods_policy_detail = ods_policy_detail_temp.join(dim_1,ods_policy_detail_temp("insure_code") === dim_1("product_code"))
-      .where("policy_status in ('0', '1')")
+    val tep_ods_one = ods_policy_detail.map(x => (x.getAs[String]("insure_code"), x)).filter(x => if (dim_1.contains(x._1)) true else false)
       .map(x => {
-        val holder_company = x.getAs[String]("holder_company").trim
-        val policy_code = x.getAs[String]("policy_code")
-        val policy_id = x.getAs[String]("policy_id")
-        (holder_company,policy_code,policy_id)
-      }).toDF("holder_company","policy_code","policy_id")
+        (x._2.getAs[String]("ent_id"), x._2.getAs[String]("policy_id"), x._2.getAs[String]("insure_code"))
+      }).toDF("ent_id", "policy_id", "insure_code").cache
 
-    val res_temp = ods_ent_guzhu_salesman.join(ods_policy_detail,ods_ent_guzhu_salesman("ent_name") === ods_policy_detail("holder_company"),"left")
-      .select("ent_id","policy_id")
+    //    tep_ods_one.foreach(println)
+    import sqlContext.implicits._
+    var res = sqlContext.read.jdbc(location_mysql_url, "ods_policy_curr_insured", prop)
+    val res_new = tep_ods_one.join(res, tep_ods_one("policy_id") === res("policy_id"), "left")
 
-    val ods_policy_curr_insured_temp = sqlContext.read.jdbc(location_mysql_url, "ods_policy_curr_insured", prop)
-      .map(x => {
-        val policy_id = x.getAs[String]("policy_id")
-        val day_id = x.getAs[String]("day_id")
-        val curr_insured = x.getAs[Long]("curr_insured")
-        (policy_id,day_id,curr_insured)
-      })
-      .toDF("policy_id","day_id","curr_insured")
+    val end = res_new.map(x => {
+      ((x.getAs[String]("ent_id"), x.getAs[String]("day_id")), x.getAs[Long]("curr_insured").toInt)
+    }).filter(_._1._2.toDouble == now_Date.toDouble)
+    //    val end = sqlContext.read.jdbc(location_mysql_url, "ods_policy_curr_insured", prop).join(tep_ods_one, "policy_id").map(x => {
+    //      ((x.getAs[String]("ent_id"), x.getAs[String]("day_id")), x.getAs[Long]("curr_insured").toInt)
+    //    }).filter(_._1._2.toDouble == now_Date.toDouble)
 
-    val res = res_temp.join(ods_policy_curr_insured_temp,res_temp("policy_id") === ods_policy_curr_insured_temp("policy_id"),"left")
-      .select("ent_id","day_id","curr_insured")
+    val end_ent_all = res_new.map(x => {
+      ((x.getAs[String]("ent_id"), x.getAs[String]("day_id")), x.getAs[Long]("curr_insured").toInt)
+    }).filter(_._1._2.toDouble <= now_Date.toDouble)
       .map(x => {
-        val ent_id = x.getAs[String]("ent_id")
-        val day_id = x.getAs[String]("day_id")
-        val curr_insured = x.getAs[Long]("curr_insured")
-        ((ent_id,day_id),curr_insured)
-      }).filter(x => x._1._2.toDouble == now_Date.toDouble)
-      .reduceByKey(_ + _)
-      .map(x => {
-        (x._1._1,(x._1._2.substring(0,6).toInt,x._2.toInt))
-      })
-//    res.map(x => ("1",x._2._2)).reduceByKey(_+_).foreach(println)
-//    res.foreach(println)
-    res
+        (x._1._1,"")
+      }).distinct()
+
+    //    end_ent_all.foreach(println)
+
+    //    end.foreach(println)
+    val end_all = end.reduceByKey(_ + _)
+
+      .map(x => ((x._1._1, x._1._2.substring(0, 6)), x._2))
+      .reduceByKey((x1, x2) => {
+        if (x1 >= x2) x1 else x2
+      }).map(x => (x._1._1, (x._1._2.toInt, x._2)))
+
+    var res_last: RDD[(String, (String, Option[(Int, Int)]))] = end_ent_all.leftOuterJoin(end_all)
+
+    var theEndRes: RDD[(String, (Int, Int))] = res_last.map(x => {
+      var key = x._1.toString
+
+      if(x._2._2.getOrElse("").toString.equals("")){
+        (key,(now_Date.substring(0,6).toInt,"0".toInt))
+      }else{
+        (key,(x._2._2.get._1.toInt,x._2._2.get._2.toInt))
+      }
+    })
+
+    theEndRes.foreach(println)
+//    println("---------")
+    //    end_all.foreach(println)
+    theEndRes
   }
 
   //遍历某目录下所有的文件和子文件
@@ -239,7 +242,7 @@ object membership_Level {
   def main(args: Array[String]): Unit = {
     val lines_source = Source.fromURL(getClass.getResource("/config_scala.properties")).getLines.toSeq
     val conf_s = new SparkConf().setAppName("membership_Level")
-    //      .setMaster("local[4]")
+          .setMaster("local[4]")
     val prop: Properties = new Properties
     val sc = new SparkContext(conf_s)
     val sqlContext: HiveContext = new HiveContext(sc)
@@ -348,7 +351,7 @@ object membership_Level {
       val yizhauan = x._2.map(_._1._3.toDouble).toArray.sum //所有的已赚
       //已赔率=(预估赔付or实际赔付)/已赚保费*100%
       val reimbursement_rate = jiner / yizhauan
-
+      println(yizhauan)
       val gold_yin_pu: (String, String, String) = if (ent_continuous_plc_month >= 9.0 && !partner_people_last.contains("no")) {
         val downgrade_he = if (reimbursement_rate >= 0.7 && reimbursement_rate < 1.0) "1" else if (reimbursement_rate >= 1.0) "2" else if (reimbursement_rate < 0.7) "0"
         (reimbursement_rate + "", "partner", downgrade_he + "")
@@ -399,19 +402,20 @@ object membership_Level {
       val now_Date = dateFormatOne.format(now)
       par.filter(_._2.split("-").contains(now_Date)).filter(_._1.split("mk6")(6).toDouble > 0.0)
     }).map(_._1)
-    val table_name = "mid_guzhu_member_hierarchy"
-
-    //得到时间戳
-    val timeMillions = System.currentTimeMillis
-
-    //HDFS需要传的路径
-    val path_hdfs = s"file:///share/${table_name}_$timeMillions"
-
-    //本地需要传的路径
-    val path = s"/share/${table_name}_$timeMillions"
-
-    //每天新创建一个目录，将数据写入到新目录中
-    toMsql(tep_end, path_hdfs, path, table_name, location_mysql_url)
+    tep_end.foreach(println)
+//    val table_name = "mid_guzhu_member_hierarchy"
+//
+//    //得到时间戳
+//    val timeMillions = System.currentTimeMillis
+//
+//    //HDFS需要传的路径
+//    val path_hdfs = s"file:///share/${table_name}_$timeMillions"
+//
+//    //本地需要传的路径
+//    val path = s"/share/${table_name}_$timeMillions"
+//
+//    //每天新创建一个目录，将数据写入到新目录中
+//    toMsql(tep_end, path_hdfs, path, table_name, location_mysql_url)
 
   }
 }
