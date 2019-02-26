@@ -16,8 +16,7 @@ import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.hive.HiveContext
 
-object BiUntil {
-
+trait BiUntil {
 
   //得到企业标签数据
   def getHbase_value(sc: SparkContext): RDD[(ImmutableBytesWritable, Result)] = {
