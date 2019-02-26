@@ -123,47 +123,47 @@ object SportGooutTest extends Until {
 
     //羽毛球的找出来
     val user_badminton = end.filter(_._2._1 == "羽毛球").reduceByKey((x1, x2) => if (x1._3 >= x2._3) x1 else x2).map(x => (x._1, x._2._1, x._2._2))
-//    toHbase(user_badminton, columnFamily1, "user_badminton", conf_fs, tableName, conf)
+//    saveToHbase(user_badminton, columnFamily1, "user_badminton", conf_fs, tableName, conf)
     user_badminton.take(10).foreach(x => println(x))
 
     //游泳
     val user_swimming = end.filter(_._2._1 == "游泳").reduceByKey((x1, x2) => if (x1._3 >= x2._3) x1 else x2).map(x => (x._1, x._2._1, x._2._2))
-//    toHbase(user_swimming, columnFamily1, "user_swimming", conf_fs, tableName, conf)
+//    saveToHbase(user_swimming, columnFamily1, "user_swimming", conf_fs, tableName, conf)
     user_swimming.take(10).foreach(x => println(x))
 
     //滑雪
     val user_skiing = end.filter(_._2._1 == "滑雪").reduceByKey((x1, x2) => if (x1._3 >= x2._3) x1 else x2).map(x => (x._1, x._2._1, x._2._2))
-//    toHbase(user_skiing, columnFamily1, "user_skiing", conf_fs, tableName, conf)
+//    saveToHbase(user_skiing, columnFamily1, "user_skiing", conf_fs, tableName, conf)
     user_skiing.take(10).foreach(x => println(x))
 
     //铁人三项
     val user_triathlon = end.filter(_._2._1 == "铁人三项").reduceByKey((x1, x2) => if (x1._3 >= x2._3) x1 else x2).map(x => (x._1, x._2._1, x._2._2))
-//    toHbase(user_triathlon, columnFamily1, "user_triathlon", conf_fs, tableName, conf)
+//    saveToHbase(user_triathlon, columnFamily1, "user_triathlon", conf_fs, tableName, conf)
     user_triathlon.take(10).foreach(x => println(x))
 
     //水上娱乐
     val user_water_entertainment = end.filter(_._2._1 == "水上娱乐").reduceByKey((x1, x2) => if (x1._3 >= x2._3) x1 else x2).map(x => (x._1, x._2._1, x._2._2))
-//    toHbase(user_water_entertainment, columnFamily1, "user_water_entertainment", conf_fs, tableName, conf)
+//    saveToHbase(user_water_entertainment, columnFamily1, "user_water_entertainment", conf_fs, tableName, conf)
     user_water_entertainment.take(10).foreach(x => println(x))
 
     //赛事
     val user_competition = end.filter(_._2._1 == "赛事").reduceByKey((x1, x2) => if (x1._3 >= x2._3) x1 else x2).map(x => (x._1, x._2._1, x._2._2))
-//    toHbase(user_competition, columnFamily1, "user_competition", conf_fs, tableName, conf)
+//    saveToHbase(user_competition, columnFamily1, "user_competition", conf_fs, tableName, conf)
     user_competition.take(10).foreach(x => println(x))
 
     //马拉松
     val user_marathon = end.filter(_._2._1 == "马拉松").reduceByKey((x1, x2) => if (x1._3 >= x2._3) x1 else x2).map(x => (x._1, x._2._1, x._2._2))
-//    toHbase(user_marathon, columnFamily1, "user_marathon", conf_fs, tableName, conf)
+//    saveToHbase(user_marathon, columnFamily1, "user_marathon", conf_fs, tableName, conf)
     user_marathon.take(10).foreach(x => println(x))
 
     //滑冰
     val user_skating = end.filter(_._2._1 == "滑冰").reduceByKey((x1, x2) => if (x1._3 >= x2._3) x1 else x2).map(x => (x._1, x._2._1, x._2._2))
-//    toHbase(user_skating, columnFamily1, "user_skating", conf_fs, tableName, conf)
+//    saveToHbase(user_skating, columnFamily1, "user_skating", conf_fs, tableName, conf)
     user_skating.take(10).foreach(x => println(x))
 
     //球类
     val user_footwear = end.filter(_._2._1 == "球类").reduceByKey((x1, x2) => if (x1._3 >= x2._3) x1 else x2).map(x => (x._1, x._2._1, x._2._2))
-//    toHbase(user_footwear, columnFamily1, "user_footwear", conf_fs, tableName, conf)
+//    saveToHbase(user_footwear, columnFamily1, "user_footwear", conf_fs, tableName, conf)
     user_footwear.take(10).foreach(x => println(x))
 
   }

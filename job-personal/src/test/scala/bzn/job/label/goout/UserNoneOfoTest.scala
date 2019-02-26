@@ -299,6 +299,6 @@ object UserNoneOfoTest extends Until {
       })
     user_person.take(10).foreach(x => println(x))
 
-    //    toHbase(user_person, columnFamily1, "user_person_none_ofo", conf_fs, tableName, conf)
+    //    saveToHbase(user_person, columnFamily1, "user_person_none_ofo", conf_fs, tableName, conf)
   }
 }

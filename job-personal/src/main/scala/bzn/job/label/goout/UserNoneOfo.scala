@@ -4,6 +4,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 
 import bzn.job.common.Until
+import bzn.job.until.PersonalUntil
 import com.alibaba.fastjson.{JSON, JSONObject}
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.hive.HiveContext
@@ -13,7 +14,7 @@ import sun.util.calendar.CalendarUtils.mod
 /**
   * Created by MK on 2018/4/8.
   */
-object UserNoneOfo extends Until {
+object UserNoneOfo extends Until with PersonalUntil {
 
   //各表查询
   def select_Table(sqlContext: HiveContext): (DataFrame) = {
@@ -299,6 +300,6 @@ object UserNoneOfo extends Until {
         res
       })
 
-    toHbase(user_person, columnFamily1, "user_person_none_ofo", conf_fs, tableName, conf)
+    saveToHbase(user_person, columnFamily1, "user_person_none_ofo", conf_fs, tableName, conf)
   }
 }
