@@ -1,3 +1,4 @@
+import Dependencies._
 import sbt._
 
 object Dependencies {
@@ -30,7 +31,31 @@ object Dependencies {
   val hbaseServerProvided = "org.apache.hbase" % "hbase-server" % "1.2.0" % "provided"
   val hbaseHadoopCompatProvided = "org.apache.hbase" % "hbase-hadoop-compat" % "1.2.0" % "provided"
 
+
+  //  hive
+  val sparkHive = "org.apache.spark" %% "spark-hive" % "1.6.1"
+  //  spark-neo4j
+  val sparkNeo4j = "neo4j-contrib" % "neo4j-spark-connector" % "2.1.0-M4"
+  //  spark-csv
+  val sparkCsv = "com.databricks" %% "spark-csv" % "1.4.0"
+  // sparkStreaming
+  val sparkStreaming = "org.apache.spark" %% "spark-streaming" % "1.6.1"
+  val sparkStreamingKafka = "org.apache.spark" %% "spark-streaming-kafka" % "1.6.1"
+  // spark-mllib
+  val sparkMllib = "org.apache.spark" % "spark-mllib_2.10" % "1.6.1"
+  //  hbase
+  val hbaseClient = "org.apache.hbase" % "hbase-client" % "1.2.0"
+  val hbaseCommon = "org.apache.hbase" % "hbase-common" % "1.2.0"
+  val hbaseServer = "org.apache.hbase" % "hbase-server" % "1.2.0"
+  val hbaseHadoopCompat = "org.apache.hbase" % "hbase-hadoop-compat" % "1.2.0"
+
+
   //--------------------------------------------全依赖-----------------------------------------------------------------
+  val allDeps = Seq(neo4jJavaDriver, mysqlConnectorJava, jedis, fastjson, ansjSeg, nlpLang,
+    sparkHive, sparkNeo4j, sparkCsv, sparkStreaming, sparkStreamingKafka, sparkMllib, hbaseClient,
+    hbaseCommon, hbaseServer, hbaseHadoopCompat)
+
+
   val allDepsProvided = Seq(neo4jJavaDriver, mysqlConnectorJava, jedis, fastjson, ansjSeg, nlpLang,
     sparkHiveProvided, sparkNeo4jProvided, sparkCsvProvided, sparkStreamingProvided,
     sparkStreamingKafkaProvided, sparkMllibProvided, hbaseClientProvided, hbaseCommonProvided, hbaseServerProvided,
