@@ -5,6 +5,7 @@ import java.sql.DriverManager
 import java.text.SimpleDateFormat
 import java.util.Date
 
+import bzn.job.common.Until
 import bzn.job.until.BiUntil
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.hive.HiveContext
@@ -14,7 +15,7 @@ import org.apache.spark.{SparkConf, SparkContext}
   * Created by MK on 2018/6/15.
   * 对小于当天的数据进行计算，同时对保单号进行分组。并将每天的保费进行相加
   */
-object YearMonthPremiumPolicyIdTest extends BiUntil {
+object YearMonthPremiumPolicyIdTest extends Until with BiUntil {
 
   //遍历某目录下所有的文件和子文件
   def subDir(dir: File): Iterator[File] = {

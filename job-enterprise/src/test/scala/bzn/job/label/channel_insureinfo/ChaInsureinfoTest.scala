@@ -230,7 +230,6 @@ object ChaInsureinfoTest extends ChaInsureinfoUntilTest {
 
   def main(args: Array[String]): Unit = {
     //得到标签数据
-    System.setProperty("HADOOP_USER_NAME", "hdfs")
     val conf_spark = new SparkConf().setAppName("Cha_insureinfo")
     conf_spark.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
     conf_spark.registerKryoClasses(Array(classOf[org.apache.hadoop.hbase.io.ImmutableBytesWritable]))
@@ -263,7 +262,7 @@ object ChaInsureinfoTest extends ChaInsureinfoUntilTest {
     val channel_ent_name: Array[String] = ods_ent_guzhu_salesman_channel_only_channel.map(_._1).collect
 
     //得到标签数据
-    val usersRDD: RDD[String] = getHbase_value(sc)
+    val usersRDD: RDD[String] = getHbaseValue(sc)
       .map(tuple => tuple._2)
       .map(result => {
         val ent_name = Bytes.toString(result.getValue("baseinfo".getBytes, "ent_name".getBytes))
@@ -276,7 +275,7 @@ object ChaInsureinfoTest extends ChaInsureinfoUntilTest {
       .cache
 
     //得到标签数据企业ID，与企业名称
-    val get_hbase_key_name: collection.Map[String, String] = getHbase_value(sc)
+    val get_hbase_key_name: collection.Map[String, String] = getHbaseValue(sc)
       .map(tuple => tuple._2)
       .map(result => {
         val key = Bytes.toString(result.getRow)
