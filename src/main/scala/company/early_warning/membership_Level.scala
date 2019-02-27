@@ -11,7 +11,6 @@ import org.apache.hadoop.hbase.io.ImmutableBytesWritable
 import org.apache.hadoop.hbase.mapreduce.TableInputFormat
 import org.apache.hadoop.hbase.util.Bytes
 import org.apache.spark.rdd.RDD
-import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.hive.HiveContext
 import org.apache.spark.storage.StorageLevel
 import org.apache.spark.{SparkConf, SparkContext}
@@ -101,7 +100,7 @@ object membership_Level {
     val new_channel_name = if (channel_name == "直客") ent_name else channel_name
     (ent_id,ent_name, new_channel_name)
     }).toDF("ent_id","ent_name","channel_name")
-    .filter("channel_name = '曹县山海源人力资源发展有限公司'")
+    .filter("channel_name = '广州市浩洋人力资源有限公司'")
     //保单详细临时表
     val ods_policy_detail_temp =  sqlContext.read.jdbc(location_mysql_url, "ods_policy_detail", prop)
 
@@ -239,7 +238,7 @@ object membership_Level {
   def main(args: Array[String]): Unit = {
     val lines_source = Source.fromURL(getClass.getResource("/config_scala.properties")).getLines.toSeq
     val conf_s = new SparkConf().setAppName("membership_Level")
-          .setMaster("local[4]")
+//          .setMaster("local[4]")
     val prop: Properties = new Properties
     val sc = new SparkContext(conf_s)
     val sqlContext: HiveContext = new HiveContext(sc)
@@ -302,11 +301,14 @@ object membership_Level {
 
 
       //计算渠道下面所有企业的连续在保月数
-      val month_sum_tep_one = x._2.map(x => x._1._5).reduce((x1, x2) => x1 + "-" + x2).split("-").distinct.mkString("-")
+//      println(x)
+      var month_sum_tep_one = x._2.map(x => x._1._5).reduce((x1, x2) => x1 + "-" + x2).split("-").filter(x => x.length == 6).distinct.mkString("-")
+//      println(month_sum_tep_one)
       val ent_continuous_plc_month = if (!month_sum_tep_one.contains("-") && month_sum_tep_one.length > 0) 1.0 else if (month_sum_tep_one.contains("-")) {
         //最近的一次断开的月份，得到连续在保月份
         val res = month_sum_tep_one.split("-").sorted
         val first_data = res(0)
+
         val final_data = res(res.length - 1)
         //2个日期相隔多少个月，包括开始日期和结束日期
         val get_res_day = getBeg_End_one_two_month(first_data, final_data)
@@ -320,10 +322,11 @@ object membership_Level {
         //得到2个日期之间相隔多少个月
         val end_final = getBeg_End_one_two_month(filter_date, final_data).length.toDouble
         end_final
+
       } else 0.0
 
       //得到我渠道的连续在保月数--每月显示
-      val tep_one_before = if (month_sum_tep_one != "0") show_months(month_sum_tep_one).mkString("-").split("-") else Array("")
+      val tep_one_before = if (month_sum_tep_one.length > 0) show_months(month_sum_tep_one).mkString("-").split("-") else Array("")
 
       //得到最近渠道的在保月份，显示每月
       val partner_people_last = if (ent_continuous_plc_month >= 9.0) {
@@ -345,11 +348,10 @@ object membership_Level {
       //取得最大的日期对应的在保人数(所有企业相加)--对应的也是渠道下所有企业的当前在保人数
       val max_month_people = month_ent.reduce((x1, x2) => if (x1._1 >= x2._1) x1 else x2)._2.toDouble
       val jiner = x._2.map(_._1._2.toDouble).toArray.sum //所有的金额
-      x._2.map(_._1._3.toDouble).toArray.foreach(println)
       val yizhauan = x._2.map(_._1._3.toDouble).toArray.sum //所有的已赚
       //已赔率=(预估赔付or实际赔付)/已赚保费*100%
       val reimbursement_rate = jiner / yizhauan
-      println(jiner+" "+yizhauan+" "+reimbursement_rate)
+//      println(jiner+" "+yizhauan+" "+reimbursement_rate)
 
       val gold_yin_pu: (String, String, String) = if (ent_continuous_plc_month >= 9.0 && !partner_people_last.contains("no")) {
         val downgrade_he = if (reimbursement_rate >= 0.7 && reimbursement_rate < 1.0) "1" else if (reimbursement_rate >= 1.0) "2" else if (reimbursement_rate < 0.7) "0"
@@ -401,20 +403,20 @@ object membership_Level {
       val now_Date = dateFormatOne.format(now)
       par.filter(_._2.split("-").contains(now_Date)).filter(_._1.split("mk6")(6).toDouble > 0.0)
     }).map(_._1)
-    tep_end.foreach(println)
-//    val table_name = "mid_guzhu_member_hierarchy"
-//
-//    //得到时间戳
-//    val timeMillions = System.currentTimeMillis
-//
-//    //HDFS需要传的路径
-//    val path_hdfs = s"file:///share/${table_name}_$timeMillions"
-//
-//    //本地需要传的路径
-//    val path = s"/share/${table_name}_$timeMillions"
-//
-//    //每天新创建一个目录，将数据写入到新目录中
-//    toMsql(tep_end, path_hdfs, path, table_name, location_mysql_url)
+//    tep_end.foreach(println)
+    val table_name = "mid_guzhu_member_hierarchy"
+
+    //得到时间戳
+    val timeMillions = System.currentTimeMillis
+
+    //HDFS需要传的路径
+    val path_hdfs = s"file:///share/${table_name}_$timeMillions"
+
+    //本地需要传的路径
+    val path = s"/share/${table_name}_$timeMillions"
+
+    //每天新创建一个目录，将数据写入到新目录中
+    toMsql(tep_end, path_hdfs, path, table_name, location_mysql_url)
 
   }
 }

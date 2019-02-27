@@ -693,7 +693,7 @@ trait Claiminfo_until {
     val numberFormat = NumberFormat.getInstance
     numberFormat.setMaximumFractionDigits(2)
     var ods_ent_guzhu_salesman_temp = ods_ent_guzhu_salesman.toDF("ent_name","channel_name")
-    //      .filter("channel_name = '重庆翔耀保险咨询服务有限公司'")
+          .filter("channel_name = '广州市浩洋人力资源有限公司'")
     val tep_temp = ods_policy_detail.map(x => (x.getAs[String]("insure_code"), x)).filter(x => if (bro_dim.value.contains(x._1)) true else false)
       .map(x => {
         (x._2.getAs[String]("ent_id"), x._2.getAs[String]("policy_code"),x._2.getAs[String]("holder_company"))
@@ -715,6 +715,7 @@ trait Claiminfo_until {
     //    |0a789d56b7444d519...|  900000047702719243|  900000047702719243|             |   5000|
 
     //end_id | 金额总值(存到HBase中的pre_all_compensation)
+    tepThree.foreach(println)
     val end: RDD[(String, String, String)] = tepThree.map(x => x)
       .filter(x => {
         var str = ""
