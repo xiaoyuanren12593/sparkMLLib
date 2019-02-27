@@ -6,6 +6,7 @@ import java.time.format.{DateTimeFormatter, DateTimeFormatterBuilder}
 import java.time.temporal.ChronoField
 
 import bzn.job.common.Until
+import bzn.job.until.EnterpriseUntil
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.DataFrame
 import sun.util.calendar.CalendarUtils.mod
@@ -13,7 +14,7 @@ import sun.util.calendar.CalendarUtils.mod
 /**
   * Created by a2589 on 2018/4/3.
   */
-trait BaseinfoUntilTest extends Until {
+trait BaseinfoUntilTest extends Until with EnterpriseUntil {
   //得到投保人投保了多少年(麻烦)
   def year_tb_one(before: String, after: String): String = {
     val formatter_before = DateTimeFormatter.ofPattern("yyyy-MM-dd")

@@ -4,7 +4,6 @@ import java.text.NumberFormat
 import java.util.Properties
 import java.util.regex.Pattern
 
-import bzn.job.until.EnterpriseUntil
 import com.alibaba.fastjson.JSONObject
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.hbase.util.Bytes

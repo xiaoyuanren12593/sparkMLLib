@@ -4,6 +4,7 @@ import java.text.NumberFormat
 import java.util.regex.Pattern
 
 import bzn.job.common.Until
+import bzn.job.until.EnterpriseUntil
 import com.alibaba.fastjson.JSON
 import org.apache.hadoop.conf.Configuration
 import org.apache.spark.rdd.RDD
@@ -13,7 +14,7 @@ import org.apache.spark.sql.hive.HiveContext
 /**
   * Created by MK on 2018/11/1.
   */
-trait ChaClaiminfoUntilTest extends Until {
+trait ChaClaiminfoUntilTest extends Until with EnterpriseUntil {
   /**
     * 渠道风险等级
     **/
@@ -468,12 +469,12 @@ trait ChaClaiminfoUntilTest extends Until {
   /**
     * 渠道重大案件率
     *
-    * @param ods_policy_detail ods_policy_detail
-    * @param employer_liability_claims employer_liability_claims
-    * @param get_hbase_key_name get_hbase_key_name
-    * @param sql_context sqlContext
+    * @param ods_policy_detail              ods_policy_detail
+    * @param employer_liability_claims      employer_liability_claims
+    * @param get_hbase_key_name             get_hbase_key_name
+    * @param sql_context                    sqlContext
     * @param ods_ent_guzhu_salesman_channel ods_ent_guzhu_salesman_channel
-    * @param en_before en_before
+    * @param en_before                      en_before
     * @return
     */
   def largecase_rate(ods_policy_detail: DataFrame, employer_liability_claims: DataFrame,

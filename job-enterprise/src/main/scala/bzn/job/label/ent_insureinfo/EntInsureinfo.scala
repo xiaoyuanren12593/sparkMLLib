@@ -3,8 +3,6 @@ package bzn.job.label.ent_insureinfo
 import java.text.SimpleDateFormat
 import java.util.{Calendar, Properties}
 
-import bzn.job.common.Until
-import bzn.job.until.EnterpriseUntil
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.hive.HiveContext

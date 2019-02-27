@@ -3,6 +3,8 @@ package bzn.job.etl
 import java.io.File
 import java.sql.DriverManager
 import java.util.Properties
+
+import bzn.job.until.BiUntil
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.hive.HiveContext
 import org.apache.spark.sql.types.{StringType, StructField, StructType}
@@ -15,7 +17,7 @@ import scala.io.Source
 /**
   * Created by 邢万成 on 2019/01/16.
   */
-object BaseinfoMergeSparkTest extends YearUntil {
+object BaseinfoMergeSparkTest extends BiUntil {
   //遍历某目录下所有的文件和子文件
   def subDir(dir: File): Iterator[File]
   = {
@@ -333,7 +335,7 @@ object BaseinfoMergeSparkTest extends YearUntil {
 
     val hdfs_url: String = lines.filter(_.contains("hdfs_url")).map(_.split("==")(1)).mkString("")
 
-//    System.setProperty("HADOOP_USER_NAME", "hdfs")
+    //    System.setProperty("HADOOP_USER_NAME", "hdfs")
     val conf_s = new SparkConf()
       .setAppName("baseinfo_merge")
       .setMaster("local[4]")

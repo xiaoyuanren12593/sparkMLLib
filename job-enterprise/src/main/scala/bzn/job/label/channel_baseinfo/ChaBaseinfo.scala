@@ -2,7 +2,6 @@ package bzn.job.label.channel_baseinfo
 
 import java.util.Properties
 
-import bzn.job.until.EnterpriseUntil
 import com.alibaba.fastjson.{JSON, JSONObject}
 import org.apache.hadoop.hbase.util.Bytes
 import org.apache.spark.rdd.RDD

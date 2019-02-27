@@ -101,7 +101,6 @@ object MembershipLevel {
       }).toDF("ent_id", "policy_id", "insure_code").cache
 
     //    tep_ods_one.foreach(println)
-    import sqlContext.implicits._
     var res = sqlContext.read.jdbc(location_mysql_url, "ods_policy_curr_insured", prop)
     val res_new = tep_ods_one.join(res, tep_ods_one("policy_id") === res("policy_id"), "left")
 
@@ -116,7 +115,7 @@ object MembershipLevel {
       ((x.getAs[String]("ent_id"), x.getAs[String]("day_id")), x.getAs[Long]("curr_insured").toInt)
     }).filter(_._1._2.toDouble == now_Date.toDouble)
       .map(x => {
-        (x._1._1,"")
+        (x._1._1, "")
       }).distinct()
 
     //    end_ent_all.foreach(println)
@@ -134,10 +133,10 @@ object MembershipLevel {
     var theEndRes: RDD[(String, (Int, Int))] = res_last.map(x => {
       var key = x._1.toString
 
-      if(x._2._2.getOrElse("").toString.equals("")){
-        (key,(now_Date.substring(0,6).toInt,"0".toInt))
-      }else{
-        (key,(x._2._2.get._1.toInt,x._2._2.get._2.toInt))
+      if (x._2._2.getOrElse("").toString.equals("")) {
+        (key, (now_Date.substring(0, 6).toInt, "0".toInt))
+      } else {
+        (key, (x._2._2.get._1.toInt, x._2._2.get._2.toInt))
       }
     })
 

@@ -64,7 +64,11 @@ lazy val jobUtil = (project in file("job-util"))
 lazy val jobEnterprise = (project in file("job-enterprise"))
   .dependsOn(jobUtil)
   .settings(
-    libraryDependencies ++= enterpriseDeps)
+    libraryDependencies ++= enterpriseDeps.map(
+      _.excludeAll(ExclusionRule(organization = "org.mortbay.jetty"))
+    ).map(
+      _.excludeAll(ExclusionRule(organization = "javax.servlet"))
+    ))
   .settings(commonSettings)
   .settings(commonAssemblySettings)
   .settings(
@@ -77,7 +81,11 @@ lazy val jobEnterprise = (project in file("job-enterprise"))
 lazy val jobEntValuePersonRisk = (project in file("job-entvalue-personrisk"))
   .dependsOn(jobUtil)
   .settings(
-    libraryDependencies ++= entvaluePersonrisklDeps)
+    libraryDependencies ++= entvaluePersonrisklDeps.map(
+      _.excludeAll(ExclusionRule(organization = "org.mortbay.jetty"))
+    ).map(
+      _.excludeAll(ExclusionRule(organization = "javax.servlet"))
+    ))
   .settings(commonSettings)
   .settings(commonAssemblySettings)
   .settings(
@@ -91,7 +99,11 @@ lazy val jobEntValuePersonRisk = (project in file("job-entvalue-personrisk"))
 lazy val jobEtlBi3 = (project in file("job-etl-bi3"))
   .dependsOn(jobUtil)
   .settings(
-    libraryDependencies ++= etlBi3Deps)
+    libraryDependencies ++= etlBi3Deps.map(
+      _.excludeAll(ExclusionRule(organization = "org.mortbay.jetty"))
+    ).map(
+      _.excludeAll(ExclusionRule(organization = "javax.servlet"))
+    ))
   .settings(commonSettings)
   .settings(commonAssemblySettings)
   .settings(
@@ -105,7 +117,11 @@ lazy val jobEtlBi3 = (project in file("job-etl-bi3"))
 lazy val jobEtlPiwik = (project in file("job-etl-piwik"))
   .dependsOn(jobUtil)
   .settings(
-    libraryDependencies ++= etlPiwikDeps)
+    libraryDependencies ++= etlPiwikDeps.map(
+      _.excludeAll(ExclusionRule(organization = "org.mortbay.jetty"))
+    ).map(
+      _.excludeAll(ExclusionRule(organization = "javax.servlet"))
+    ))
   .settings(commonSettings)
   .settings(commonAssemblySettings)
   .settings(
@@ -119,7 +135,11 @@ lazy val jobEtlPiwik = (project in file("job-etl-piwik"))
 lazy val jobEtlRedis = (project in file("job-etl-redis"))
   .dependsOn(jobUtil)
   .settings(
-    libraryDependencies ++= etlRedisDeps)
+    libraryDependencies ++= etlRedisDeps.map(
+      _.excludeAll(ExclusionRule(organization = "org.mortbay.jetty"))
+    ).map(
+      _.excludeAll(ExclusionRule(organization = "javax.servlet"))
+    ))
   .settings(commonSettings)
   .settings(commonAssemblySettings)
   .settings(
@@ -133,7 +153,11 @@ lazy val jobEtlRedis = (project in file("job-etl-redis"))
 lazy val jobPersonal = (project in file("job-personal"))
   .dependsOn(jobUtil)
   .settings(
-    libraryDependencies ++= personalDeps)
+    libraryDependencies ++= personalDeps.map(
+      _.excludeAll(ExclusionRule(organization = "org.mortbay.jetty"))
+    ).map(
+      _.excludeAll(ExclusionRule(organization = "javax.servlet"))
+    ))
   .settings(commonSettings)
   .settings(commonAssemblySettings)
   .settings(

@@ -3,7 +3,6 @@ package bzn.job.label.channel_insureinfo
 import java.text.SimpleDateFormat
 import java.util.{Calendar, Properties}
 
-import bzn.job.until.EnterpriseUntil
 import com.alibaba.fastjson.{JSON, JSONObject}
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.hbase.util.Bytes

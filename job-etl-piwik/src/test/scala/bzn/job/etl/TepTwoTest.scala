@@ -3,6 +3,7 @@ package bzn.job.etl
 import java.io.File
 import java.sql.DriverManager
 
+import bzn.job.common.Until
 import bzn.job.until.PiwikUntil
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.hive.HiveContext
@@ -16,7 +17,7 @@ import scala.io.Source
 /**
   * Created by MK on 2018/7/12.
   */
-object TepTwoTest extends PiwikUntil {
+object TepTwoTest extends Until {
 
   def loadToHive(sqlContext: HiveContext): DataFrame = {
     //得到piwik_log_action可找到type

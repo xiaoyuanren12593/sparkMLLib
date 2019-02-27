@@ -4,12 +4,13 @@ import java.text.NumberFormat
 import java.util.regex.Pattern
 
 import bzn.job.common.Until
+import bzn.job.until.PersonalUntil
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.hive.HiveContext
 import org.apache.spark.{SparkConf, SparkContext}
 
-object PersonalClaimServiceTest extends Until {
+object PersonalClaimServiceTest extends Until with PersonalUntil {
   //个人报案件数
   def report_count(employer_liability_claims: DataFrame): RDD[(String, String, String)] = {
     val end: RDD[(String, String, String)] = employer_liability_claims
@@ -336,7 +337,7 @@ object PersonalClaimServiceTest extends Until {
       .registerKryoClasses(Array(classOf[org.apache.hadoop.hbase.io.ImmutableBytesWritable]))
       .set("spark.sql.broadcastTimeout", "36000")
       .set("spark.network.timeout", "36000")
-          .setMaster("local[2]")
+      .setMaster("local[2]")
     val sc = new SparkContext(conf_s)
     val sqlContext: HiveContext = new HiveContext(sc)
 

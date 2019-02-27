@@ -3,6 +3,8 @@ package bzn.job.etl
 import java.io.File
 import java.sql.DriverManager
 import java.util.Properties
+
+import bzn.job.common.Until
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.hive.HiveContext
 import org.apache.spark.sql.types.{StringType, StructField, StructType}
@@ -15,7 +17,7 @@ import scala.io.Source
 /**
   * Created by MK on 2018/7/5.
   */
-object OneAndTwoDataTest extends YearUntil {
+object OneAndTwoDataTest extends Until {
 
   //遍历某目录下所有的文件和子文件
   def subDir(dir: File): Iterator[File] = {
