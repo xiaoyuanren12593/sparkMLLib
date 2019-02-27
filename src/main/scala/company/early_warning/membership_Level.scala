@@ -403,7 +403,7 @@ object membership_Level {
       val now_Date = dateFormatOne.format(now)
       par.filter(_._2.split("-").contains(now_Date)).filter(_._1.split("mk6")(6).toDouble > 0.0)
     }).map(_._1)
-    tep_end.foreach(println)
+//    tep_end.foreach(println)
     val table_name = "mid_guzhu_member_hierarchy"
 
     //得到时间戳
@@ -416,7 +416,7 @@ object membership_Level {
     val path = s"/share/${table_name}_$timeMillions"
 
     //每天新创建一个目录，将数据写入到新目录中
-//    toMsql(tep_end, path_hdfs, path, table_name, location_mysql_url)
+    toMsql(tep_end, path_hdfs, path, table_name, location_mysql_url)
 
   }
 }
