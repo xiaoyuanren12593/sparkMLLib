@@ -131,7 +131,10 @@ object MembershipLevel {
       .select("ent_id","day_id","curr_insured")
       .map(x => {
         val ent_id = x.getAs[String]("ent_id")
-        val day_id = x.getAs[String]("day_id")
+        var day_id = x.getAs[String]("day_id")
+        if(x.getAs[String]("day_id") == null){
+          day_id = "-1"
+        }
         val curr_insured = x.getAs[Long]("curr_insured")
         ((ent_id,day_id),curr_insured)
       }).filter(x => x._1._2.toDouble == now_Date.toDouble)

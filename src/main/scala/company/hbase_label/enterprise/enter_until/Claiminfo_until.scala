@@ -764,6 +764,7 @@ trait Claiminfo_until {
     }).map(x => {
       (x._1, x._2 + "", "charged_premium")
     })
+    end.foreach(println)
     end
   }
 
