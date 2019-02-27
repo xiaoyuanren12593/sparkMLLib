@@ -2,6 +2,7 @@ package bzn.job.etl
 
 import java.util.Properties
 
+import bzn.job.common.Until
 import bzn.job.until.PiwikUntil
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.hive.HiveContext
@@ -20,7 +21,7 @@ import scala.io.Source
   * getResource("/data/test.data"))
   */
 
-object TepOneTest extends PiwikUntil {
+object TepOneTest extends Until {
 
   //字段与字段值合并
   def merge(df: DataFrame): (RDD[Row], StructType) = {

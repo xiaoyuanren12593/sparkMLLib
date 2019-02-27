@@ -1,6 +1,7 @@
 package company.canal_streaming
 
 import bzn.job.common.Until
+import bzn.job.until.BiUntil
 import org.apache.hadoop.hbase.HBaseConfiguration
 import org.apache.hadoop.hbase.client.Result
 import org.apache.hadoop.hbase.io.ImmutableBytesWritable
@@ -18,7 +19,7 @@ import org.apache.spark.{SparkConf, SparkContext}
   * Created by MK on 2018/5/22.
   * 企业风险实时，每天运行，调用模型进行计算
   */
-object EnterRiskEverydayTest extends Until {
+object EnterRiskEverydayTest extends Until with BiUntil {
 
   //企业风险::创建hbase配置文件
   def getHbase_conf(sc: SparkContext): RDD[(ImmutableBytesWritable, Result)]

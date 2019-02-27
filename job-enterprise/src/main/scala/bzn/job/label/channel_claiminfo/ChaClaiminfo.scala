@@ -4,7 +4,6 @@ import java.text.NumberFormat
 import java.util.Properties
 import java.util.regex.Pattern
 
-import bzn.job.until.EnterpriseUntil
 import com.alibaba.fastjson.JSONObject
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.hbase.util.Bytes
@@ -344,7 +343,7 @@ object ChaClaiminfo extends ChaClaiminfoUntil {
 
 
     //读取渠道表
-    val lines_source = Source.fromURL(getClass.getResource("/config_scala.properties")).getLines.toSeq
+    val lines_source = Source.fromURL(getClass.getResource("/config-scala.properties")).getLines.toSeq
     val location_mysql_url: String = lines_source(2).toString.split("==")(1)
     val prop: Properties = new Properties
 

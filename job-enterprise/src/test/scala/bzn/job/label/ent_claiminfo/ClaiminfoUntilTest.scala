@@ -5,6 +5,7 @@ import java.util.regex.Pattern
 import java.util.{Date, Properties}
 
 import bzn.job.common.Until
+import bzn.job.until.EnterpriseUntil
 import org.apache.hadoop.conf.Configuration
 import org.apache.spark.broadcast.Broadcast
 import org.apache.spark.rdd.RDD
@@ -14,7 +15,7 @@ import org.apache.spark.sql.hive.HiveContext
 /**
   * Created by a2589 on 2018/4/3.
   */
-trait ClaiminfoUntilTest extends Until {
+trait ClaiminfoUntilTest extends Until with EnterpriseUntil {
 
   //计算2个日期相隔多好天
   def xg(date3: String, date4: String): Int = {
@@ -402,30 +403,30 @@ trait ClaiminfoUntilTest extends Until {
   }
 
   //预估总赔付金额
-  def pre_all_compensation(ods_ent_guzhu_salesman:RDD[(String, String)],sqlContext:HiveContext,bro_dim: Broadcast[Array[String]],employer_liability_claims: DataFrame, ods_policy_detail: DataFrame): RDD[(String, String, String)] = {
+  def pre_all_compensation(ods_ent_guzhu_salesman: RDD[(String, String)], sqlContext: HiveContext, bro_dim: Broadcast[Array[String]], employer_liability_claims: DataFrame, ods_policy_detail: DataFrame): RDD[(String, String, String)] = {
     //final_payment：最终赔付金额
     //pre_com：预估赔付金额
     import sqlContext.implicits._
     val numberFormat = NumberFormat.getInstance
     numberFormat.setMaximumFractionDigits(2)
-    var ods_ent_guzhu_salesman_temp = ods_ent_guzhu_salesman.toDF("ent_name","channel_name")
+    var ods_ent_guzhu_salesman_temp = ods_ent_guzhu_salesman.toDF("ent_name", "channel_name")
     //      .filter("channel_name = '重庆翔耀保险咨询服务有限公司'")
     val tep_temp = ods_policy_detail.map(x => (x.getAs[String]("insure_code"), x)).filter(x => if (bro_dim.value.contains(x._1)) true else false)
       .map(x => {
-        (x._2.getAs[String]("ent_id"), x._2.getAs[String]("policy_code"),x._2.getAs[String]("holder_company"))
-      }).toDF("ent_id", "policy_code","holder_company").filter("ent_id is not null").cache
+        (x._2.getAs[String]("ent_id"), x._2.getAs[String]("policy_code"), x._2.getAs[String]("holder_company"))
+      }).toDF("ent_id", "policy_code", "holder_company").filter("ent_id is not null").cache
     val tepOne = tep_temp.join(ods_ent_guzhu_salesman_temp, tep_temp("holder_company") === ods_ent_guzhu_salesman_temp("ent_name"))
       .map(x => {
-        (x.getAs[String]("ent_id").toString,x.getAs[String]("policy_code").toString)
-      }).toDF("ent_id","policy_code")
+        (x.getAs[String]("ent_id").toString, x.getAs[String]("policy_code").toString)
+      }).toDF("ent_id", "policy_code")
 
     val tepTwo = employer_liability_claims.select("policy_no", "final_payment", "pre_com").map(x => {
       var policy_no = x.getAs[String]("policy_no").trim
       var final_payment = x.getAs[String]("final_payment")
       var pre_com = x.getAs[String]("pre_com")
-      (policy_no,final_payment,pre_com)
-    }).toDF("policy_no","final_payment","pre_com")
-    val tepThree = tepOne.join(tepTwo, tepOne("policy_code") === tepTwo("policy_no"),"left").filter("LENGTH(ent_id)>0")
+      (policy_no, final_payment, pre_com)
+    }).toDF("policy_no", "final_payment", "pre_com")
+    val tepThree = tepOne.join(tepTwo, tepOne("policy_code") === tepTwo("policy_no"), "left").filter("LENGTH(ent_id)>0")
     //      .show()
     //    |              ent_id|         policy_code|           policy_no|final_payment|pre_com|
     //    |0a789d56b7444d519...|  900000047702719243|  900000047702719243|             |   5000|
@@ -434,7 +435,7 @@ trait ClaiminfoUntilTest extends Until {
     val end: RDD[(String, String, String)] = tepThree.map(x => x)
       .filter(x => {
         var str = ""
-        if(x.get(4) != null){
+        if (x.get(4) != null) {
           str = x.get(4).toString
         }
         val p = Pattern.compile("[\u4e00-\u9fa5]")
@@ -448,7 +449,7 @@ trait ClaiminfoUntilTest extends Until {
         val res = if (final_payment == "" || final_payment == null) pre_com else if (final_payment != "" || final_payment != null) final_payment else ""
         (x.getString(0), res)
       })
-      .filter(x => x._2 != "").filter(_._2 != ".").filter(_._2 != "#N/A").filter(x =>x._2 != null)
+      .filter(x => x._2 != "").filter(_._2 != ".").filter(_._2 != "#N/A").filter(x => x._2 != null)
       .map(x => (x._1, x._2.toDouble))
       .reduceByKey(_ + _).map(x => {
       //      (x._1, numberFormat.format(x._2), "pre_all_compensation")

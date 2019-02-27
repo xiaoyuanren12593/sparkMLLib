@@ -4,6 +4,7 @@ import java.text.{NumberFormat, SimpleDateFormat}
 import java.util.{Date, Properties}
 
 import bzn.job.common.Until
+import bzn.job.until.EnterpriseUntil
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.hive.HiveContext
@@ -13,7 +14,7 @@ import scala.collection.mutable
 /**
   * Created by a2589 on 2018/4/3.
   */
-trait InsureinfoUntilTest extends Until {
+trait InsureinfoUntilTest extends Until with EnterpriseUntil {
   //累计增减员次数
   def ent_add_regulation_times(ods_policy_detail: DataFrame, ods_policy_preserve_detail: DataFrame): RDD[(String, String, String)] = {
     //preserve_status：4：已处理，5：已生效

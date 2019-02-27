@@ -4,7 +4,6 @@ import java.text.{NumberFormat, SimpleDateFormat}
 import java.util.Properties
 import java.util.regex.Pattern
 
-import bzn.job.until.EnterpriseUntil
 import org.apache.spark.broadcast.Broadcast
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.DataFrame
@@ -15,15 +14,15 @@ import org.apache.spark.{SparkConf, SparkContext}
 import scala.io.Source
 
 
-object EntClaiminfo extends ClaiminfoUntil{
+object EntClaiminfo extends ClaiminfoUntil {
 
-  def is_not_chinese(str: String): Boolean  = {
+  def is_not_chinese(str: String): Boolean = {
     val p = Pattern.compile("[\u4e00-\u9fa5]")
     val m = p.matcher(str)
     m.find()
   }
 
-  def is_not_date(str: String): Boolean  = {
+  def is_not_date(str: String): Boolean = {
     var convertSuccess: Boolean = true
     // 指定日期格式为四位年/两位月份/两位日期，注意yyyy/MM/dd区分大小写；
     var format = new SimpleDateFormat("yyyy/MM/dd")
@@ -281,7 +280,7 @@ object EntClaiminfo extends ClaiminfoUntil{
 
 
     //已赚保费
-    val lines_source = Source.fromURL(getClass.getResource("/config_scala.properties")).getLines.toSeq
+    val lines_source = Source.fromURL(getClass.getResource("/config-scala.properties")).getLines.toSeq
     val location_mysql_url: String = lines_source(2).toString.split("==")(1)
     val prop: Properties = new Properties
 
@@ -321,7 +320,7 @@ object EntClaiminfo extends ClaiminfoUntil{
 
   def main(args: Array[String]): Unit = {
     val conf_s = new SparkConf().setAppName("wuYu")
-    val lines_source = Source.fromURL(getClass.getResource("/config_scala.properties")).getLines.toSeq
+    val lines_source = Source.fromURL(getClass.getResource("/config-scala.properties")).getLines.toSeq
     val location_mysql_url: String = lines_source(2).toString.split("==")(1)
     conf_s.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer") //使用spark的序列化
     conf_s.registerKryoClasses(Array(classOf[org.apache.hadoop.hbase.io.ImmutableBytesWritable]))

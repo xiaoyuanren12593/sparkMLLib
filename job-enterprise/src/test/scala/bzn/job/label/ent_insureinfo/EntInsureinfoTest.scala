@@ -253,7 +253,7 @@ object EntInsureinfoTest extends InsureinfoUntilTest {
       .registerKryoClasses(Array(classOf[org.apache.hadoop.hbase.io.ImmutableBytesWritable]))
       .set("spark.sql.broadcastTimeout", "36000")
           .setMaster("local[4]")
-    val lines_source = Source.fromURL(getClass.getResource("/config_scala.properties")).getLines.toSeq
+    val lines_source = Source.fromURL(getClass.getResource("/config-scala.properties")).getLines.toSeq
     val location_mysql_url: String = lines_source(2).toString.split("==")(1)
     val location_mysql_url_dwdb: String = lines_source(10).toString.split("==")(1)
     val prop: Properties = new Properties

@@ -1,13 +1,14 @@
 package bzn.job.label.baseinfo
 
 import bzn.job.common.Until
+import bzn.job.until.PersonalUntil
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.hive.HiveContext
 import org.apache.spark.{SparkConf, SparkContext}
 
 //所在单位
-object CbaseinfoTest extends Until {
+object CbaseinfoTest extends Until with PersonalUntil {
   //只用到了官网的表
   //所在单位
   def user_company(ods_policy_insured_detail: DataFrame): RDD[(String, String, String)] = {
@@ -130,7 +131,7 @@ object CbaseinfoTest extends Until {
       })
     val end = j_after
       .map(x => {
-        val bz = if (x._2 != null ) x._2 else "null"
+        val bz = if (x._2 != null) x._2 else "null"
         (x._1, bz, " official_website_coverage")
       })
 
@@ -139,7 +140,7 @@ object CbaseinfoTest extends Until {
 
   def main(args: Array[String]): Unit = {
     val conf_s = new SparkConf().setAppName("wuYu")
-            .setMaster("local[2]")
+      .setMaster("local[2]")
       .set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
       .registerKryoClasses(Array(classOf[org.apache.hadoop.hbase.io.ImmutableBytesWritable]))
       .set("spark.sql.broadcastTimeout", "36000")
@@ -168,44 +169,44 @@ object CbaseinfoTest extends Until {
 
     //所在单位
     val user_company_rs = user_company(ods_policy_insured_detail)
-//    saveToHbase(user_company_rs, columnFamily1, "user_company", conf_fs, tableName, conf)
+    //    saveToHbase(user_company_rs, columnFamily1, "user_company", conf_fs, tableName, conf)
     user_company_rs.take(10).foreach(x => println(x))
 
     //查看该投保人有没有子女
     val user_child_rs = user_child(ods_policy_insured_detail)
-//    saveToHbase(user_child_rs, columnFamily1, "user_child", conf_fs, tableName, conf)
+    //    saveToHbase(user_child_rs, columnFamily1, "user_child", conf_fs, tableName, conf)
     user_child_rs.take(10).foreach(x => println(x))
 
     //C端用户工种级别 (C端是个体户，B端是企业)
     val user_craft_level_rs = user_craft_level(d_work_level, ods_policy_insured_detail)
-//    saveToHbase(user_craft_level_rs, columnFamily1, "user_craft_level", conf_fs, tableName, conf)
+    //    saveToHbase(user_craft_level_rs, columnFamily1, "user_craft_level", conf_fs, tableName, conf)
     user_craft_level_rs.take(10).foreach(x => println(x))
 
     //C端用户企业ID
     val user_ent_id_rs = user_ent_id(ods_policy_detail, ods_policy_insured_detail)
-//    saveToHbase(user_ent_id_rs, columnFamily1, "user_ent_id", conf_fs, tableName, conf)
+    //    saveToHbase(user_ent_id_rs, columnFamily1, "user_ent_id", conf_fs, tableName, conf)
     user_ent_id_rs.take(10).foreach(x => println(x))
 
     //单人报案次数
     val user_report_num_rs = user_report_num(employer_liability_claims: DataFrame)
-//    saveToHbase(user_report_num_rs, columnFamily1, "user_report_num", conf_fs, tableName, conf)
+    //    saveToHbase(user_report_num_rs, columnFamily1, "user_report_num", conf_fs, tableName, conf)
     user_report_num_rs.take(10).foreach(x => println(x))
 
     //出险周期
     //统计单人出险周期小于3的保单,出现的个数
     val user_aging_risk_rs = user_aging_risk(ods_policy_risk_period)
-//    saveToHbase(user_aging_risk_rs, columnFamily1, "user_aging_risk", conf_fs, tableName, conf)
+    //    saveToHbase(user_aging_risk_rs, columnFamily1, "user_aging_risk", conf_fs, tableName, conf)
     user_aging_risk_rs.take(10).foreach(x => println(x))
 
     //official_website_coverage:保障情况:官网
     val official_website_coverage_rs = official_website_coverage(sqlContext, ods_policy_detail)
-//    saveToHbase(official_website_coverage_rs, columnFamily1, "official_website_coverage", conf_fs, tableName, conf)
+    //    saveToHbase(official_website_coverage_rs, columnFamily1, "official_website_coverage", conf_fs, tableName, conf)
     official_website_coverage_rs.take(10).foreach(x => println(x))
 
     //user_now_efficient_singular:当前生效保单数,使用官网计算
     val user_now_efficient_singular_rs = ods_policy_insured_detail.filter("length(insured_cert_no)=18")
       .select("insured_cert_no").map(x => (x.getString(0), 1)).reduceByKey(_ + _).map(x => (x._1, x._2 + "", "user_now_efficient_singular"))
-//    saveToHbase(user_now_efficient_singular_rs, columnFamily1, "user_now_efficient_singular", conf_fs, tableName, conf)
+    //    saveToHbase(user_now_efficient_singular_rs, columnFamily1, "user_now_efficient_singular", conf_fs, tableName, conf)
     user_now_efficient_singular_rs.take(10).foreach(x => println(x))
   }
 }
