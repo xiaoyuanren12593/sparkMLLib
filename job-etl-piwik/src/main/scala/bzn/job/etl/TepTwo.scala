@@ -151,7 +151,7 @@ object TepTwo extends Until {
   }
 
   def main(args: Array[String]): Unit = {
-    val lines: Iterator[String] = Source.fromURL(getClass.getResource("/config_scala.properties")).getLines
+    val lines: Iterator[String] = Source.fromURL(getClass.getResource("/config-scala.properties")).getLines
     val url_location: String = lines.filter(_.contains("location_mysql_url")).map(_.split("==")(1)).mkString("")
 
     val conf_spark: SparkConf = new SparkConf().setAppName("piwik").set("spark.sql.broadcastTimeout", "36000")

@@ -349,7 +349,7 @@ object OneAndTwoDataTest extends Until {
   }
 
   def main(args: Array[String]): Unit = {
-    val lines: Iterator[String] = Source.fromURL(getClass.getResource("/config_scala.properties")).getLines
+    val lines: Iterator[String] = Source.fromURL(getClass.getResource("/config-scala.properties")).getLines
     val url: String = lines.filter(_.contains("location_mysql_url")).map(_.split("==")(1)).mkString("")
     val hdfs_url: String = lines.filter(_.contains("hdfs_url")).map(_.split("==")(1)).mkString("")
 
