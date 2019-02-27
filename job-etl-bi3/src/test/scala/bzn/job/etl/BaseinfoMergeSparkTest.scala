@@ -4,6 +4,7 @@ import java.io.File
 import java.sql.DriverManager
 import java.util.Properties
 
+import bzn.job.common.Until
 import bzn.job.until.BiUntil
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.hive.HiveContext
@@ -17,7 +18,7 @@ import scala.io.Source
 /**
   * Created by 邢万成 on 2019/01/16.
   */
-object BaseinfoMergeSparkTest extends BiUntil {
+object BaseinfoMergeSparkTest extends Until with BiUntil {
   //遍历某目录下所有的文件和子文件
   def subDir(dir: File): Iterator[File]
   = {
@@ -329,7 +330,7 @@ object BaseinfoMergeSparkTest extends BiUntil {
 
   def main(args: Array[String]): Unit = {
 
-    val lines: Iterator[String] = Source.fromURL(getClass.getResource("/config_scala.properties")).getLines
+    val lines: Iterator[String] = Source.fromURL(getClass.getResource("/config-scala.properties")).getLines
 
     val url: String = lines.filter(_.contains("location_mysql_url")).map(_.split("==")(1)).mkString("")
 

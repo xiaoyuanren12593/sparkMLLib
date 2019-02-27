@@ -3,7 +3,6 @@ package bzn.job.etl
 import java.util.Properties
 
 import bzn.job.common.Until
-import bzn.job.until.PiwikUntil
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.hive.HiveContext
 import org.apache.spark.sql.types.{StringType, StructField, StructType}
@@ -111,7 +110,7 @@ object TepOneTest extends Until {
   }
 
   def main(args: Array[String]): Unit = {
-    val lines: Iterator[String] = Source.fromURL(getClass.getResource("/config_scala.properties")).getLines
+    val lines: Iterator[String] = Source.fromURL(getClass.getResource("/config-scala.properties")).getLines
     val url: String = lines.filter(_.contains("cloud_piwik_url")).map(_.split("==")(1)).mkString("")
     val conf_spark: SparkConf = new SparkConf()
       .setAppName("piwik")

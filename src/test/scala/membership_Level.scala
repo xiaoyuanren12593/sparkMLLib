@@ -1,5 +1,3 @@
-package company.early_warning
-
 import java.io.File
 import java.sql.DriverManager
 import java.text.SimpleDateFormat
@@ -95,12 +93,12 @@ object membership_Level {
 
     val ods_ent_guzhu_salesman = sqlContext.read.jdbc(location_mysql_url, "ods_ent_guzhu_salesman", prop).map(x => {
       val ent_id = x.getAs[String]("ent_id")
-    val ent_name = x.getAs[String]("ent_name").trim
-    val channel_name = x.getAs[String]("channel_name")
-    val new_channel_name = if (channel_name == "直客") ent_name else channel_name
-    (ent_id,ent_name, new_channel_name)
+      val ent_name = x.getAs[String]("ent_name").trim
+      val channel_name = x.getAs[String]("channel_name")
+      val new_channel_name = if (channel_name == "直客") ent_name else channel_name
+      (ent_id,ent_name, new_channel_name)
     }).toDF("ent_id","ent_name","channel_name")
-    .filter("channel_name = '广州市浩洋人力资源有限公司'")
+
     //保单详细临时表
     val ods_policy_detail_temp =  sqlContext.read.jdbc(location_mysql_url, "ods_policy_detail", prop)
 
@@ -110,37 +108,40 @@ object membership_Level {
       .map(x => {
         val holder_company = x.getAs[String]("holder_company").trim
         val policy_code = x.getAs[String]("policy_code")
-        val policy_id = x.getAs[String]("policy_id").trim
+        val policy_id = x.getAs[String]("policy_id")
         (holder_company,policy_code,policy_id)
       }).toDF("holder_company","policy_code","policy_id")
+
     val res_temp = ods_ent_guzhu_salesman.join(ods_policy_detail,ods_ent_guzhu_salesman("ent_name") === ods_policy_detail("holder_company"),"left")
       .select("ent_id","policy_id")
+
     val ods_policy_curr_insured_temp = sqlContext.read.jdbc(location_mysql_url, "ods_policy_curr_insured", prop)
       .map(x => {
-        val policy_id = x.getAs[String]("policy_id").trim
-        val day_id = x.getAs[String]("day_id").trim
+        val policy_id = x.getAs[String]("policy_id")
+        val day_id = x.getAs[String]("day_id")
         val curr_insured = x.getAs[Long]("curr_insured")
         (policy_id,day_id,curr_insured)
-      }).filter(x => x._2.toDouble == now_Date.toDouble)
+      })
       .toDF("policy_id","day_id","curr_insured")
+
     val res = res_temp.join(ods_policy_curr_insured_temp,res_temp("policy_id") === ods_policy_curr_insured_temp("policy_id"),"left")
       .select("ent_id","day_id","curr_insured")
       .map(x => {
         val ent_id = x.getAs[String]("ent_id")
         var day_id = x.getAs[String]("day_id")
         if(x.getAs[String]("day_id") == null){
-          day_id = now_Date
+          day_id = "-1"
         }
         val curr_insured = x.getAs[Long]("curr_insured")
+        println(day_id+"  "+curr_insured)
         ((ent_id,day_id),curr_insured)
       }).filter(x => x._1._2.toDouble == now_Date.toDouble)
       .reduceByKey(_ + _)
       .map(x => {
         (x._1._1,(x._1._2.substring(0,6).toInt,x._2.toInt))
       })
-
-    //    res.map(x => ("1",x._2._2)).reduceByKey(_+_).foreach(println)
-    res.foreach(println)
+//    res.map(x => ("1",x._2._2)).reduceByKey(_+_).foreach(println)
+//    res.foreach(println)
     res
   }
 
@@ -301,14 +302,11 @@ object membership_Level {
 
 
       //计算渠道下面所有企业的连续在保月数
-//      println(x)
-      var month_sum_tep_one = x._2.map(x => x._1._5).reduce((x1, x2) => x1 + "-" + x2).split("-").filter(x => x.length == 6).distinct.mkString("-")
-//      println(month_sum_tep_one)
+      val month_sum_tep_one = x._2.map(x => x._1._5).reduce((x1, x2) => x1 + "-" + x2).split("-").distinct.mkString("-")
       val ent_continuous_plc_month = if (!month_sum_tep_one.contains("-") && month_sum_tep_one.length > 0) 1.0 else if (month_sum_tep_one.contains("-")) {
         //最近的一次断开的月份，得到连续在保月份
         val res = month_sum_tep_one.split("-").sorted
         val first_data = res(0)
-
         val final_data = res(res.length - 1)
         //2个日期相隔多少个月，包括开始日期和结束日期
         val get_res_day = getBeg_End_one_two_month(first_data, final_data)
@@ -322,11 +320,10 @@ object membership_Level {
         //得到2个日期之间相隔多少个月
         val end_final = getBeg_End_one_two_month(filter_date, final_data).length.toDouble
         end_final
-
       } else 0.0
 
       //得到我渠道的连续在保月数--每月显示
-      val tep_one_before = if (month_sum_tep_one.length > 0) show_months(month_sum_tep_one).mkString("-").split("-") else Array("")
+      val tep_one_before = if (month_sum_tep_one != "0") show_months(month_sum_tep_one).mkString("-").split("-") else Array("")
 
       //得到最近渠道的在保月份，显示每月
       val partner_people_last = if (ent_continuous_plc_month >= 9.0) {
@@ -351,7 +348,6 @@ object membership_Level {
       val yizhauan = x._2.map(_._1._3.toDouble).toArray.sum //所有的已赚
       //已赔率=(预估赔付or实际赔付)/已赚保费*100%
       val reimbursement_rate = jiner / yizhauan
-//      println(jiner+" "+yizhauan+" "+reimbursement_rate)
 
       val gold_yin_pu: (String, String, String) = if (ent_continuous_plc_month >= 9.0 && !partner_people_last.contains("no")) {
         val downgrade_he = if (reimbursement_rate >= 0.7 && reimbursement_rate < 1.0) "1" else if (reimbursement_rate >= 1.0) "2" else if (reimbursement_rate < 0.7) "0"
@@ -403,7 +399,7 @@ object membership_Level {
       val now_Date = dateFormatOne.format(now)
       par.filter(_._2.split("-").contains(now_Date)).filter(_._1.split("mk6")(6).toDouble > 0.0)
     }).map(_._1)
-    tep_end.foreach(println)
+//    tep_end.foreach(println)
     val table_name = "mid_guzhu_member_hierarchy"
 
     //得到时间戳
@@ -416,7 +412,7 @@ object membership_Level {
     val path = s"/share/${table_name}_$timeMillions"
 
     //每天新创建一个目录，将数据写入到新目录中
-//    toMsql(tep_end, path_hdfs, path, table_name, location_mysql_url)
+    toMsql(tep_end, path_hdfs, path, table_name, location_mysql_url)
 
   }
 }

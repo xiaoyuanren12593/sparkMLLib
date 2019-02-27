@@ -4,7 +4,6 @@ import java.io.File
 import java.sql.DriverManager
 
 import bzn.job.common.Until
-import bzn.job.until.PiwikUntil
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.hive.HiveContext
 import org.apache.spark.sql.types.{StringType, StructField, StructType}
@@ -152,7 +151,7 @@ object TepTwo extends Until {
   }
 
   def main(args: Array[String]): Unit = {
-    val lines: Iterator[String] = Source.fromURL(getClass.getResource("/config_scala.properties")).getLines
+    val lines: Iterator[String] = Source.fromURL(getClass.getResource("/config-scala.properties")).getLines
     val url_location: String = lines.filter(_.contains("location_mysql_url")).map(_.split("==")(1)).mkString("")
 
     val conf_spark: SparkConf = new SparkConf().setAppName("piwik").set("spark.sql.broadcastTimeout", "36000")

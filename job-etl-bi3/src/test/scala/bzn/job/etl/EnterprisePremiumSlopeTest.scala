@@ -3,6 +3,7 @@ package bzn.job.etl
 import java.text.{NumberFormat, SimpleDateFormat}
 import java.util.Date
 
+import bzn.job.common.Until
 import bzn.job.until.BiUntil
 import org.apache.spark.sql.hive.HiveContext
 import org.apache.spark.{SparkConf, SparkContext}
@@ -11,7 +12,7 @@ import org.apache.spark.{SparkConf, SparkContext}
   * Created by MK on 2018/5/4.
   * 企业保费，平均增长率，已在oozie上每天更新表
   */
-object EnterprisePremiumSlopeTest extends BiUntil {
+object EnterprisePremiumSlopeTest extends Until with BiUntil {
 
   //  读取ods_policy_insured_charged_vt，对(企业，月份)分组，找到企业每月的保费存入表中
   def ent_permium(sqlContext: HiveContext): Unit = {

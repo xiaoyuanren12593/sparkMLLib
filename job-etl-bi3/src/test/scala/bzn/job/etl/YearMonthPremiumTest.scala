@@ -4,6 +4,7 @@ import java.io.File
 import java.sql.DriverManager
 import java.text.NumberFormat
 
+import bzn.job.common.Until
 import bzn.job.until.BiUntil
 import org.apache.spark.broadcast.Broadcast
 import org.apache.spark.rdd.RDD
@@ -15,7 +16,7 @@ import org.apache.spark.{SparkConf, SparkContext}
   * Created by MK on 2018/4/26.
   * 保费，精确到天，有年单的也有月单的
   */
-object YearMonthPremiumTest extends BiUntil {
+object YearMonthPremiumTest extends Until with BiUntil {
 
   //遍历某目录下所有的文件和子文件
   def subDir(dir: File): Iterator[File] = {

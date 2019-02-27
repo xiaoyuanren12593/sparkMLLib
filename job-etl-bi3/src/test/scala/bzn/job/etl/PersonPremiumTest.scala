@@ -3,6 +3,7 @@ package bzn.job.etl
 import java.io.File
 import java.sql.DriverManager
 
+import bzn.job.common.Until
 import bzn.job.until.BiUntil
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.hive.HiveContext
@@ -11,7 +12,7 @@ import org.apache.spark.{SparkConf, SparkContext}
 /**
   * Created by MK on 2018/6/21.
   */
-object PersonPremiumTest extends BiUntil {
+object PersonPremiumTest extends Until with BiUntil {
   //遍历某目录下所有的文件和子文件
   def subDir(dir: File): Iterator[File] = {
     val dirs = dir.listFiles().filter(_.isDirectory())

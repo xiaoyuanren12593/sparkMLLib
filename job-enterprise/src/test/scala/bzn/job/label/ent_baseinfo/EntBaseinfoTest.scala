@@ -171,7 +171,6 @@ object EntBaseinfoTest extends BaseinfoUntilTest {
 
   //列族是:baseinfo
   def main(args: Array[String]): Unit = {
-    System.setProperty("HADOOP_USER_NAME", "hdfs")
     val conf_spark = new SparkConf()
       .setAppName("wuYu")
     conf_spark.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")

@@ -65,31 +65,26 @@ object Dependencies {
   val utilDeps = Seq(jodaTime)
 
   //---------------------------------------------企业模块标签------------------------------------------------------------
-  // 企业标签本地引用
   val enterpriseDepsProvided = Seq(mysqlConnectorJava, fastjson, jodaTime, sparkHiveProvided, hbaseClientProvided,
     hbaseServerProvided, hbaseCommonProvided)
 
   //---------------------------------------------企业价值个人风险标签------------------------------------------------------------
-  // 个人标签打包时需要的引用
   val entvaluePersonrisklDepsProvided = Seq(fastjson, sparkHiveProvided, sparkMllibProvided, hbaseClientProvided,
     hbaseServerProvided, hbaseCommonProvided)
 
   //---------------------------------------------etl bi3模块标签-------------------------------------------------------
-  // 个人标签本地引用
   val etlBi3DepsProvided = Seq(mysqlConnectorJava, fastjson, sparkHiveProvided, sparkMllibProvided,
     hbaseClientProvided, hbaseServerProvided, hbaseCommonProvided)
 
   //---------------------------------------------etl piwik模块标签-------------------------------------------------------
-  // 个人标签本地引用
   val etlPiwikDepsProvided = Seq(mysqlConnectorJava, sparkHiveProvided, sparkMllibProvided, hbaseClientProvided,
     hbaseServerProvided, hbaseCommonProvided)
 
   //---------------------------------------------etl redis模块标签-------------------------------------------------------
-  // 个人标签本地引用
-  val etlRedisDepsProvided = Seq(mysqlConnectorJava, sparkHiveProvided, sparkMllibProvided, hbaseClientProvided,
+  val etlRedisDepsProvided = Seq(mysqlConnectorJava, neo4jJavaDriver, fastjson, jedis, ansjSeg,
+    sparkStreamingKafkaProvided, sparkHiveProvided, sparkMllibProvided, hbaseClientProvided,
     hbaseServerProvided, hbaseCommonProvided)
 
   //---------------------------------------------个人模块标签------------------------------------------------------------
-  // 企业标签本地引用
   val personalDepsProvided = Seq(fastjson, sparkHiveProvided, hbaseClientProvided, hbaseServerProvided, hbaseCommonProvided)
 }

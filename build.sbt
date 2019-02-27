@@ -18,10 +18,7 @@ val commonSettings = Seq(
   version := "0.1",
   scalaVersion := "2.10.4",
   //挡在java项目中写中文时，编译会报错，加上该行就行了
-  javacOptions ++= Seq("-encoding", "UTF-8"),
-  // the 'run' task uses all the libraries, including the ones marked with "provided". 
-  run in Compile := Defaults.runTask(fullClasspath in Compile, mainClass in (Compile, run), runner in (Compile, run)).evaluated,
-  runMain in Compile := Defaults.runMainTask(fullClasspath in Compile, runner in(Compile, run)).evaluated
+  javacOptions ++= Seq("-encoding", "UTF-8")
 )
 
 // 公共的 打包 配置
@@ -82,7 +79,6 @@ lazy val jobEnterprise = (project in file("job-enterprise"))
     //定义jar包的名字
     assemblyJarName in assembly := "bzn-label-enterprise.jar"
   )
-
 
 // 企业价值与个人风险
 lazy val jobEntValuePersonRisk = (project in file("job-entvalue-personrisk"))
