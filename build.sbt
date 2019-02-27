@@ -43,8 +43,8 @@ val commonAssemblySettings = Seq(
 lazy val bznSparkNeed = (project in file("."))
   .settings(
     libraryDependencies ++= allDeps)
-    .settings(commonSettings)
-    .settings(commonAssemblySettings)
+  .settings(commonSettings)
+  .settings(commonAssemblySettings)
   .settings(
     name := "bznSparkNeed"
   )
@@ -56,8 +56,6 @@ lazy val jobUtil = (project in file("job-util"))
   .settings(commonSettings)
   .settings(commonAssemblySettings)
   .settings(
-    //指定类的名字
-    //    mainClass in assembly := Some("com.ladder.example.hive.SparkHiveExample"),
     //定义jar包的名字
     assemblyJarName in assembly := "bzn-util.jar"
   )
@@ -66,14 +64,69 @@ lazy val jobUtil = (project in file("job-util"))
 lazy val jobEnterprise = (project in file("job-enterprise"))
   .dependsOn(jobUtil)
   .settings(
-    libraryDependencies ++= enterpriseProvidedDeps)
+    libraryDependencies ++= enterpriseDeps)
+  .settings(commonSettings)
+  .settings(commonAssemblySettings)
+  .settings(
+    //定义jar包的名字
+    assemblyJarName in assembly := "bzn-label-enterprise.jar"
+  )
+
+
+// 企业价值与个人风险
+lazy val jobEntValuePersonRisk = (project in file("job-entvalue-personrisk"))
+  .dependsOn(jobUtil)
+  .settings(
+    libraryDependencies ++= entvaluePersonrisklDeps)
   .settings(commonSettings)
   .settings(commonAssemblySettings)
   .settings(
     //指定类的名字
     //    mainClass in assembly := Some("com.ladder.example.hive.SparkHiveExample"),
     //定义jar包的名字
-    assemblyJarName in assembly := "bzn-label-enterprise.jar"
+    assemblyJarName in assembly := "bzn-entvalue-personrisk.jar"
+  )
+
+// 企业价值与个人风险
+lazy val jobEtlBi3 = (project in file("job-etl-bi3"))
+  .dependsOn(jobUtil)
+  .settings(
+    libraryDependencies ++= etlBi3Deps)
+  .settings(commonSettings)
+  .settings(commonAssemblySettings)
+  .settings(
+    //指定类的名字
+    //    mainClass in assembly := Some("com.ladder.example.hive.SparkHiveExample"),
+    //定义jar包的名字
+    assemblyJarName in assembly := "bzn-jobEtlBi3.jar"
+  )
+
+// 企业价值与个人风险
+lazy val jobEtlPiwik = (project in file("job-etl-piwik"))
+  .dependsOn(jobUtil)
+  .settings(
+    libraryDependencies ++= etlPiwikDeps)
+  .settings(commonSettings)
+  .settings(commonAssemblySettings)
+  .settings(
+    //指定类的名字
+    //    mainClass in assembly := Some("com.ladder.example.hive.SparkHiveExample"),
+    //定义jar包的名字
+    assemblyJarName in assembly := "bzn-jobEtlPiwik.jar"
+  )
+
+// 企业价值与个人风险
+lazy val jobEtlRedis = (project in file("job-etl-redis"))
+  .dependsOn(jobUtil)
+  .settings(
+    libraryDependencies ++= etlRedisDeps)
+  .settings(commonSettings)
+  .settings(commonAssemblySettings)
+  .settings(
+    //指定类的名字
+    //    mainClass in assembly := Some("com.ladder.example.hive.SparkHiveExample"),
+    //定义jar包的名字
+    assemblyJarName in assembly := "bzn-jobEtlRedis.jar"
   )
 
 // 个人相关
@@ -88,60 +141,4 @@ lazy val jobPersonal = (project in file("job-personal"))
     //    mainClass in assembly := Some("com.ladder.example.hive.SparkHiveExample"),
     //定义jar包的名字
     assemblyJarName in assembly := "bzn-personal.jar"
-  )
-
-// 企业价值与个人风险
-lazy val jobEntValuePersonRisk = (project in file("job-entvalue-personrisk"))
-  .dependsOn(jobUtil)
-  .settings(
-    libraryDependencies ++= personalDeps)
-  .settings(commonSettings)
-  .settings(commonAssemblySettings)
-  .settings(
-    //指定类的名字
-    //    mainClass in assembly := Some("com.ladder.example.hive.SparkHiveExample"),
-    //定义jar包的名字
-    assemblyJarName in assembly := "bzn-entvalue-personrisk.jar"
-  )
-
-// 企业价值与个人风险
-lazy val jobEtlBi3 = (project in file("job-etl-bi3"))
-  .dependsOn(jobUtil)
-  .settings(
-    libraryDependencies ++= personalDeps)
-  .settings(commonSettings)
-  .settings(commonAssemblySettings)
-  .settings(
-    //指定类的名字
-    //    mainClass in assembly := Some("com.ladder.example.hive.SparkHiveExample"),
-    //定义jar包的名字
-    assemblyJarName in assembly := "bzn-jobEtlBi3.jar"
-  )
-
-// 企业价值与个人风险
-lazy val jobEtlPiwik = (project in file("job-etl-piwik"))
-  .dependsOn(jobUtil)
-  .settings(
-    libraryDependencies ++= personalDeps)
-  .settings(commonSettings)
-  .settings(commonAssemblySettings)
-  .settings(
-    //指定类的名字
-    //    mainClass in assembly := Some("com.ladder.example.hive.SparkHiveExample"),
-    //定义jar包的名字
-    assemblyJarName in assembly := "bzn-jobEtlPiwik.jar"
-  )
-
-// 企业价值与个人风险
-lazy val jobEtlRedis = (project in file("job-etl-redis"))
-  .dependsOn(jobUtil)
-  .settings(
-    libraryDependencies ++= personalDeps)
-  .settings(commonSettings)
-  .settings(commonAssemblySettings)
-  .settings(
-    //指定类的名字
-    //    mainClass in assembly := Some("com.ladder.example.hive.SparkHiveExample"),
-    //定义jar包的名字
-    assemblyJarName in assembly := "bzn-jobEtlRedis.jar"
   )

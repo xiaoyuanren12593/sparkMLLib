@@ -51,17 +51,6 @@ object Dependencies {
   val hbaseHadoopCompatProvided = "org.apache.hbase" % "hbase-hadoop-compat" % "1.2.0" % "provided"
   //---------------------------------------------以上打包使用------------------------------------------------------------
 
-  //---------------------------------------------标签分组------------------------------------------------------------
-  // 公共引用
-  val commonDeps = Seq(neo4jJavaDriver, mysqlConnectorJava, jedis, fastjson, ansjSeg, nlpLang)
-  // 打包时大数据处理需要的引用
-  val sparkDeps = Seq(sparkHive, sparkNeo4j, sparkCsv, sparkStreaming, sparkStreamingKafka, sparkMllib, hbaseClient,
-    hbaseCommon, hbaseServer, hbaseHadoopCompat)
-  // 打包时大数据处理需要过滤的引用
-  val sparkProvidedDeps = Seq(sparkHiveProvided, sparkNeo4jProvided, sparkCsvProvided, sparkStreamingProvided,
-    sparkStreamingKafkaProvided, sparkMllibProvided, hbaseClientProvided, hbaseCommonProvided, hbaseServerProvided,
-    hbaseHadoopCompatProvided)
-
   //--------------------------------------------全依赖-----------------------------------------------------------------
   val allDeps = Seq(neo4jJavaDriver, mysqlConnectorJava, jedis, fastjson, ansjSeg, nlpLang,
     sparkHive, sparkNeo4j, sparkCsv, sparkStreaming, sparkStreamingKafka, sparkMllib, hbaseClient,
@@ -74,36 +63,50 @@ object Dependencies {
   val allDepsProvided = Seq(neo4jJavaDriver, mysqlConnectorJava, jedis, fastjson, ansjSeg, nlpLang,
     sparkHiveProvided, sparkNeo4jProvided, sparkCsvProvided, sparkStreamingProvided,
     sparkStreamingKafkaProvided, sparkMllibProvided, hbaseClientProvided, hbaseCommonProvided, hbaseServerProvided,
-    hbaseHadoopCompatProvided).map(
-    _.excludeAll(ExclusionRule(organization = "org.mortbay.jetty"))
-  ).map(
-    _.excludeAll(ExclusionRule(organization = "javax.servlet"))
-  )
+    hbaseHadoopCompatProvided)
 
   //--------------------------------------------工具模块----------------------------------------------------------------
   val utilDeps = Seq(jodaTime)
-  
+
   //---------------------------------------------企业模块标签------------------------------------------------------------
   // 企业标签打包时需要的引用
-  val enterpriseProvidedDeps = (commonDeps ++ sparkProvidedDeps)
+  val enterpriseDeps = Seq(mysqlConnectorJava, fastjson, jodaTime, sparkHive, hbaseClient, hbaseServer, hbaseCommon)
   // 企业标签本地引用
-  val enterpriseDeps = (commonDeps ++ sparkDeps).map(
-    _.excludeAll(ExclusionRule(organization = "org.mortbay.jetty"))
-  ).map(
-    _.excludeAll(ExclusionRule(organization = "javax.servlet"))
-  )
+  val enterpriseDepsProvided = Seq(mysqlConnectorJava, fastjson, jodaTime, sparkHiveProvided, hbaseClientProvided,
+    hbaseServerProvided, hbaseCommonProvided)
 
   //---------------------------------------------个人模块标签------------------------------------------------------------
-  // 个人标签打包时需要的引用
-  val personalProvidedDeps = (commonDeps ++ sparkProvidedDeps).map(
-    _.excludeAll(ExclusionRule(organization = "org.mortbay.jetty"))
-  ).map(
-    _.excludeAll(ExclusionRule(organization = "javax.servlet"))
-  )
   // 个人标签本地引用
-  val personalDeps = (commonDeps ++ sparkDeps).map(
-    _.excludeAll(ExclusionRule(organization = "org.mortbay.jetty"))
-  ).map(
-    _.excludeAll(ExclusionRule(organization = "javax.servlet"))
-  )
+  val entvaluePersonrisklDeps = Seq(fastjson, sparkHive, sparkMllib, hbaseClient, hbaseServer, hbaseCommon)
+  // 个人标签打包时需要的引用
+  val entvaluePersonrisklDepsProvided = Seq(fastjson, sparkHive, sparkMllibProvided, hbaseClientProvided,
+    hbaseServerProvided, hbaseCommonProvided)
+
+  //---------------------------------------------etl bi3模块标签-------------------------------------------------------
+  // 个人标签打包时需要的引用
+  val etlBi3Deps = Seq(mysqlConnectorJava, fastjson, sparkHive, sparkMllib, hbaseClient, hbaseServer, hbaseCommon)
+  // 个人标签本地引用
+  val etlBi3DepsProvided = Seq(mysqlConnectorJava, fastjson, sparkHiveProvided, sparkMllibProvided,
+    hbaseClientProvided, hbaseServerProvided, hbaseCommonProvided)
+
+  //---------------------------------------------etl piwik模块标签-------------------------------------------------------
+  // 个人标签打包时需要的引用
+  val etlPiwikDeps = Seq(mysqlConnectorJava, sparkHive, sparkMllib, hbaseClient, hbaseServer, hbaseCommon)
+  // 个人标签本地引用
+  val etlPiwikDepsProvided = Seq(mysqlConnectorJava, sparkHiveProvided, sparkMllibProvided, hbaseClientProvided,
+    hbaseServerProvided, hbaseCommonProvided)
+
+  //---------------------------------------------etl redis模块标签-------------------------------------------------------
+  // 个人标签打包时需要的引用
+  val etlRedisDeps = Seq(neo4jJavaDriver, mysqlConnectorJava, jedis, fastjson, ansjSeg, sparkStreaming, 
+    sparkStreamingKafka, sparkMllib, sparkHive, sparkMllib)
+  // 个人标签本地引用
+  val etlRedisDepsProvided = Seq(mysqlConnectorJava, sparkHiveProvided, sparkMllibProvided, hbaseClientProvided,
+    hbaseServerProvided, hbaseCommonProvided)
+
+  //---------------------------------------------个人模块标签------------------------------------------------------------
+  // 企业标签打包时需要的引用
+  val personalDeps = Seq(fastjson, sparkHive, hbaseClient, hbaseServer, hbaseCommon)
+  // 企业标签本地引用
+  val personalDepsProvided = Seq(fastjson, sparkHiveProvided, hbaseClientProvided, hbaseServerProvided, hbaseCommonProvided)
 }
