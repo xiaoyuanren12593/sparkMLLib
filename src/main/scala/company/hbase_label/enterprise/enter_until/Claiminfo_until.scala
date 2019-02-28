@@ -693,14 +693,14 @@ trait Claiminfo_until {
     val numberFormat = NumberFormat.getInstance
     numberFormat.setMaximumFractionDigits(2)
     var ods_ent_guzhu_salesman_temp = ods_ent_guzhu_salesman.toDF("ent_name","channel_name")
-    .filter("channel_name = '漳州市合兴人力资源服务有限公司'")
     val tep_temp = ods_policy_detail.map(x => (x.getAs[String]("insure_code"), x)).filter(x => if (bro_dim.value.contains(x._1)) true else false)
       .map(x => {
         (x._2.getAs[String]("ent_id"), x._2.getAs[String]("policy_code"),x._2.getAs[String]("holder_company"),x._2.getAs[String]("policy_id"))
       }).toDF("ent_id", "policy_code","holder_company","policy_id").filter("ent_id is not null").cache
-    val tepOne = ods_ent_guzhu_salesman_temp.join(tep_temp, tep_temp("holder_company") === ods_ent_guzhu_salesman_temp("ent_name"),"left")
+    val tepOne = ods_ent_guzhu_salesman_temp.join(tep_temp, tep_temp("holder_company") === ods_ent_guzhu_salesman_temp("ent_name"))
+      .filter("ent_id is not null")
       .map(x => {
-        (x.getAs[String]("ent_id").toString,x.getAs[String]("policy_code").toString)
+        (x.getAs[String]("ent_id"),x.getAs[String]("policy_code"))
       }).toDF("ent_id","policy_code")
 
     val tepTwo = employer_liability_claims.select("policy_no", "final_payment", "pre_com").map(x => {
@@ -709,7 +709,10 @@ trait Claiminfo_until {
       var pre_com = x.getAs[String]("pre_com")
       (policy_no,final_payment,pre_com)
     }).toDF("policy_no","final_payment","pre_com").filter("pre_com <> '#N/A'").map(x => x).filter(x => {
-      val str = x.getAs[String]("pre_com")
+      var str = ""
+      if( x.getAs[String]("pre_com") != null){
+        str =x.getAs[String]("pre_com")
+      }
       val p = Pattern.compile("[\u4e00-\u9fa5]")
       val m = p.matcher(str)
       if (!m.find) true else false
@@ -730,9 +733,6 @@ trait Claiminfo_until {
       .map(x =>{
       (x._1, x._2.toString, "pre_all_compensation")
     })
-
-    tepThree.foreach(println)
-
     tepThree
   }
 

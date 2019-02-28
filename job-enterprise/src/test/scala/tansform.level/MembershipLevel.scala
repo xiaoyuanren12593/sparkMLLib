@@ -238,7 +238,7 @@ object MembershipLevel {
   }
 
   def main(args: Array[String]): Unit = {
-    val lines_source = Source.fromURL(getClass.getResource("/config-scala.properties")).getLines.toSeq
+    val lines_source = Source.fromURL(getClass.getResource("/config_scala.properties")).getLines.toSeq
     val conf_s = new SparkConf().setAppName("membership_Level")
           .setMaster("local[4]")
     val prop: Properties = new Properties

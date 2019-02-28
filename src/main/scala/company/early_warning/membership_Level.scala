@@ -238,7 +238,7 @@ object membership_Level {
   def main(args: Array[String]): Unit = {
     val lines_source = Source.fromURL(getClass.getResource("/config_scala.properties")).getLines.toSeq
     val conf_s = new SparkConf().setAppName("membership_Level")
-          .setMaster("local[4]")
+//          .setMaster("local[4]")
     val prop: Properties = new Properties
     val sc = new SparkContext(conf_s)
     val sqlContext: HiveContext = new HiveContext(sc)

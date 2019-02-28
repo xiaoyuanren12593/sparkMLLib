@@ -334,7 +334,7 @@ object Ent_claiminfo extends Claiminfo_until with until {
     conf_s.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer") //使用spark的序列化
     conf_s.registerKryoClasses(Array(classOf[org.apache.hadoop.hbase.io.ImmutableBytesWritable]))
     conf_s.set("spark.sql.broadcastTimeout", "36000") //等待时长
-//          .setMaster("local[2]")
+          .setMaster("local[2]")
     val sc = new SparkContext(conf_s)
     val prop: Properties = new Properties
     val sqlContext: HiveContext = new HiveContext(sc)
