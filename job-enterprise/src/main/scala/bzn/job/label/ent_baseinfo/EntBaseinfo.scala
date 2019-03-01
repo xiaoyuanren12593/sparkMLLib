@@ -54,7 +54,7 @@ object EntBaseinfo extends BaseinfoUntil with EnterpriseUntil {
     //    val ods_policy_detail_table: DataFrame = sqlContext.sql("select policy_id,ent_id,user_id,policy_status from odsdb_prd.ods_policy_detail").cache()
     //现在使用的是ent_id，与ent_enterprise_info表的id关联，以前是user_id相关联的
     val ods_policy_detail_table: DataFrame = sqlContext.sql("select policy_id,ent_id,ent_id as user_id,policy_status from odsdb_prd.ods_policy_detail").cache()
-    val ods_policy_detail_table_T: DataFrame = sqlContext.sql("select policy_id,ent_id from odsdb_prd.ods_policy_detail").cache()
+    val ods_policy_detail_table_T: DataFrame = sqlContext.sql("select policy_id,ent_id from odsdb_prd.ods_policy_detail").filter("ent_id is not null").cache()
     val ods_policy_detail: DataFrame = sqlContext.sql("select * from odsdb_prd.ods_policy_detail").cache()
 
     val ent_enterprise_info = sqlContext.sql("select * from odsdb_prd.ent_enterprise_info").cache()

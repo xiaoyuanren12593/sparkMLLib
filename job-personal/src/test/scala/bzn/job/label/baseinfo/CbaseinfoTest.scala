@@ -121,26 +121,36 @@ object CbaseinfoTest extends Until with PersonalUntil {
     val after = sqlContext.sql("select * from odsdb_prd.ods_policy_insured_detail")
       .filter("LENGTH(insured_cert_no)=18")
       .select("policy_id", "insured_cert_no")
-    val j_after: RDD[(String, String)] = ods_policy_detail
+    val j_after = ods_policy_detail
       .join(after, "policy_id")
       .select("insured_cert_no", "sku_coverage")
-      .map(x => (x.getString(0), x.getString(1)))
-      .reduceByKey((x1, x2) => {
+      .map(x => {
+        (x.getAs[String]("insured_cert_no"), x.getAs[String]("sku_coverage"))
+      }).map(x => {
+      if(x._2 == null){
+        (x._1,"-1")
+      }else{
+        (x._1,x._2)
+      }
+    }).reduceByKey((x1, x2) => {
         val res = if (x1 >= x2) x1 else x2
         res
       })
     val end = j_after
       .map(x => {
-        val bz = if (x._2 != null) x._2 else "null"
-        (x._1, bz, " official_website_coverage")
-      })
-
+        val bz = if (x._2 != null ) x._2  else "null"
+        (x._1, bz)
+      }).map(x => {
+      var res = x._2
+      if("-1".equals(res)) res = "null"
+      (x._1, res, " official_website_coverage")
+    })
     end
   }
 
   def main(args: Array[String]): Unit = {
     val conf_s = new SparkConf().setAppName("wuYu")
-      .setMaster("local[2]")
+            .setMaster("local[4]")
       .set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
       .registerKryoClasses(Array(classOf[org.apache.hadoop.hbase.io.ImmutableBytesWritable]))
       .set("spark.sql.broadcastTimeout", "36000")
@@ -168,45 +178,38 @@ object CbaseinfoTest extends Until with PersonalUntil {
     val columnFamily1 = "baseinfo"
 
     //所在单位
-    val user_company_rs = user_company(ods_policy_insured_detail)
-    //    saveToHbase(user_company_rs, columnFamily1, "user_company", conf_fs, tableName, conf)
-    user_company_rs.take(10).foreach(x => println(x))
-
-    //查看该投保人有没有子女
-    val user_child_rs = user_child(ods_policy_insured_detail)
-    //    saveToHbase(user_child_rs, columnFamily1, "user_child", conf_fs, tableName, conf)
-    user_child_rs.take(10).foreach(x => println(x))
-
-    //C端用户工种级别 (C端是个体户，B端是企业)
-    val user_craft_level_rs = user_craft_level(d_work_level, ods_policy_insured_detail)
-    //    saveToHbase(user_craft_level_rs, columnFamily1, "user_craft_level", conf_fs, tableName, conf)
-    user_craft_level_rs.take(10).foreach(x => println(x))
-
-    //C端用户企业ID
-    val user_ent_id_rs = user_ent_id(ods_policy_detail, ods_policy_insured_detail)
-    //    saveToHbase(user_ent_id_rs, columnFamily1, "user_ent_id", conf_fs, tableName, conf)
-    user_ent_id_rs.take(10).foreach(x => println(x))
-
-    //单人报案次数
-    val user_report_num_rs = user_report_num(employer_liability_claims: DataFrame)
-    //    saveToHbase(user_report_num_rs, columnFamily1, "user_report_num", conf_fs, tableName, conf)
-    user_report_num_rs.take(10).foreach(x => println(x))
-
-    //出险周期
-    //统计单人出险周期小于3的保单,出现的个数
-    val user_aging_risk_rs = user_aging_risk(ods_policy_risk_period)
-    //    saveToHbase(user_aging_risk_rs, columnFamily1, "user_aging_risk", conf_fs, tableName, conf)
-    user_aging_risk_rs.take(10).foreach(x => println(x))
+//    val user_company_rs = user_company(ods_policy_insured_detail)
+//    saveToHbase(user_company_rs, columnFamily1, "user_company", conf_fs, tableName, conf)
+//
+//    //查看该投保人有没有子女
+//    val user_child_rs = user_child(ods_policy_insured_detail)
+//    saveToHbase(user_child_rs, columnFamily1, "user_child", conf_fs, tableName, conf)
+//
+//    //C端用户工种级别 (C端是个体户，B端是企业)
+//    val user_craft_level_rs = user_craft_level(d_work_level, ods_policy_insured_detail)
+//    saveToHbase(user_craft_level_rs, columnFamily1, "user_craft_level", conf_fs, tableName, conf)
+//
+//    //C端用户企业ID
+//    val user_ent_id_rs = user_ent_id(ods_policy_detail, ods_policy_insured_detail)
+//    saveToHbase(user_ent_id_rs, columnFamily1, "user_ent_id", conf_fs, tableName, conf)
+//
+//    //单人报案次数
+//    val user_report_num_rs = user_report_num(employer_liability_claims: DataFrame)
+//    saveToHbase(user_report_num_rs, columnFamily1, "user_report_num", conf_fs, tableName, conf)
+//
+//    //出险周期
+//    //统计单人出险周期小于3的保单,出现的个数
+//    val user_aging_risk_rs = user_aging_risk(ods_policy_risk_period)
+//    saveToHbase(user_aging_risk_rs, columnFamily1, "user_aging_risk", conf_fs, tableName, conf)
 
     //official_website_coverage:保障情况:官网
     val official_website_coverage_rs = official_website_coverage(sqlContext, ods_policy_detail)
-    //    saveToHbase(official_website_coverage_rs, columnFamily1, "official_website_coverage", conf_fs, tableName, conf)
-    official_website_coverage_rs.take(10).foreach(x => println(x))
+//    official_website_coverage_rs.foreach(println)
+//    saveToHbase(official_website_coverage_rs, columnFamily1, "official_website_coverage", conf_fs, tableName, conf)
 
     //user_now_efficient_singular:当前生效保单数,使用官网计算
-    val user_now_efficient_singular_rs = ods_policy_insured_detail.filter("length(insured_cert_no)=18")
-      .select("insured_cert_no").map(x => (x.getString(0), 1)).reduceByKey(_ + _).map(x => (x._1, x._2 + "", "user_now_efficient_singular"))
-    //    saveToHbase(user_now_efficient_singular_rs, columnFamily1, "user_now_efficient_singular", conf_fs, tableName, conf)
-    user_now_efficient_singular_rs.take(10).foreach(x => println(x))
+    val user_now_efficient_singular_rs = ods_policy_insured_detail.filter("length(insured_cert_no)=18").select("insured_cert_no").map(x => (x.getString(0), 1)).reduceByKey(_ + _).map(x => (x._1, x._2 + "", "user_now_efficient_singular"))
+    user_now_efficient_singular_rs.take(100).foreach(println)
+//    saveToHbase(user_now_efficient_singular_rs, columnFamily1, "user_now_efficient_singular", conf_fs, tableName, conf)
   }
 }

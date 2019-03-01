@@ -122,20 +122,30 @@ object Cbaseinfo extends Until with PersonalUntil {
     val after = sqlContext.sql("select * from odsdb_prd.ods_policy_insured_detail")
       .filter("LENGTH(insured_cert_no)=18")
       .select("policy_id", "insured_cert_no")
-    val j_after: RDD[(String, String)] = ods_policy_detail
+    val j_after = ods_policy_detail
       .join(after, "policy_id")
       .select("insured_cert_no", "sku_coverage")
-      .map(x => (x.getString(0), x.getString(1)))
-      .reduceByKey((x1, x2) => {
-        val res = if (x1 >= x2) x1 else x2
-        res
-      })
+      .map(x => {
+        (x.getAs[String]("insured_cert_no"), x.getAs[String]("sku_coverage"))
+      }).map(x => {
+      if(x._2 == null){
+        (x._1,"-1")
+      }else{
+        (x._1,x._2)
+      }
+    }).reduceByKey((x1, x2) => {
+      val res = if (x1 >= x2) x1 else x2
+      res
+    })
     val end = j_after
       .map(x => {
-        val bz = if (x._2 != null ) x._2 else "null"
-        (x._1, bz, " official_website_coverage")
-      })
-
+        val bz = if (x._2 != null ) x._2  else "null"
+        (x._1, bz)
+      }).map(x => {
+      var res = x._2
+      if("-1".equals(res)) res = "null"
+      (x._1, res, " official_website_coverage")
+    })
     end
   }
 

@@ -16,13 +16,15 @@ import scala.io.Source
 
 object EntClaiminfo extends ClaiminfoUntil {
 
-  def is_not_chinese(str: String): Boolean = {
+  def is_not_chinese(str: String): Boolean
+  = {
     val p = Pattern.compile("[\u4e00-\u9fa5]")
     val m = p.matcher(str)
     m.find()
   }
 
-  def is_not_date(str: String): Boolean = {
+  def is_not_date(str: String): Boolean
+  = {
     var convertSuccess: Boolean = true
     // 指定日期格式为四位年/两位月份/两位日期，注意yyyy/MM/dd区分大小写；
     var format = new SimpleDateFormat("yyyy/MM/dd")
@@ -31,8 +33,8 @@ object EntClaiminfo extends ClaiminfoUntil {
       format.setLenient(false);
       format.parse(str)
     } catch {
-      case _: Throwable => convertSuccess = false
-    }
+      case e => convertSuccess = false
+    };
     convertSuccess
   }
 
@@ -45,11 +47,13 @@ object EntClaiminfo extends ClaiminfoUntil {
     val numberFormat = NumberFormat.getInstance
     numberFormat.setMaximumFractionDigits(2)
     val employer_liability_claims = employer_liability_claims_r.filter("length(report_date)>3 and length(risk_date)>3").select("policy_no", "report_date", "risk_date")
+      //    val employer_liability_claims = sqlContext.sql("select lc.policy_no, lc.report_date ,lc.risk_date from  odsdb_prd.employer_liability_claims lc")
+      //      .filter("length(report_date)>3 and length(risk_date)>3")
       .map(x => x).filter(x => {
       val date3 = x.getString(1)
       val date4 = x.getString(2)
       if (!is_not_chinese(date3) && !is_not_chinese(date4)) {
-        if (is_not_date(date3) && is_not_date(date4)) {
+        if(is_not_date(date3) && is_not_date(date4)) {
           true
         } else {
           false
@@ -143,7 +147,7 @@ object EntClaiminfo extends ClaiminfoUntil {
     end
   }
 
-  def Claminfo(ods_ent_guzhu_salesman_channel: RDD[(String, String)], sqlContext: HiveContext, sc: SparkContext) {
+  def Claminfo(employer_liability_claims:DataFrame,ods_ent_guzhu_salesman_channel: RDD[(String, String)],sqlContext: HiveContext, sc: SparkContext) {
 
     //HBaseConf
     val conf = HbaseConf("labels:label_user_enterprise_vT")._1
@@ -157,8 +161,8 @@ object EntClaiminfo extends ClaiminfoUntil {
     //    ods_policy_detail：保单表
     //    dim_product	企业产品信息表
 
-    val employer_liability_claims: DataFrame = sqlContext.sql("select * from odsdb_prd.employer_liability_claims").cache
-    //    val employer_liability_claims_tep_one: DataFrame = sqlContext.sql("select * from odsdb_prd.employer_liability_claims").cache
+    //    val employer_liability_claims: DataFrame = sqlContext.sql("select * from odsdb_prd.employer_liability_claims").cache
+    //        val employer_liability_claims: DataFrame = sqlContext.sql("select * from odsdb_prd.employer_liability_claims").cache
 
     //    val employer_liability_claims_fields = employer_liability_claims_tep_one.schema.map(x => (x.name, x.dataType))
     //    val value = employer_liability_claims_tep_one.map(x => {
@@ -169,6 +173,7 @@ object EntClaiminfo extends ClaiminfoUntil {
     //
     //    val schema = StructType(employer_liability_claims_fields.map(field => StructField(field._1, field._2, nullable = true)))
     //    val employer_liability_claims = sqlContext.createDataFrame(value, schema) //.show()
+
 
 
     val ods_policy_detail: DataFrame = sqlContext.sql("select * from odsdb_prd.ods_policy_detail")
@@ -245,7 +250,7 @@ object EntClaiminfo extends ClaiminfoUntil {
 
 
     //预估总赔付金额
-    val pre_all_compensation_r = pre_all_compensation(ods_ent_guzhu_salesman_channel, sqlContext, bro_dim, employer_liability_claims, ods_policy_detail).distinct()
+    val pre_all_compensation_r = pre_all_compensation(ods_ent_guzhu_salesman_channel,sqlContext,bro_dim,employer_liability_claims, ods_policy_detail).distinct()
     saveToHbase(pre_all_compensation_r, columnFamily1, "pre_all_compensation", conf_fs, tableName, conf)
 
 
@@ -284,7 +289,7 @@ object EntClaiminfo extends ClaiminfoUntil {
     val location_mysql_url: String = lines_source(2).toString.split("==")(1)
     val prop: Properties = new Properties
 
-    val charged_premium_r = charged_premium_new(sqlContext: HiveContext, location_mysql_url: String, prop: Properties, ods_policy_detail: DataFrame).distinct()
+    val charged_premium_r = charged_premium_new(ods_ent_guzhu_salesman_channel,sqlContext,bro_dim, location_mysql_url: String, prop: Properties, ods_policy_detail: DataFrame).distinct()
     saveToHbase(charged_premium_r, columnFamily1, "charged_premium", conf_fs, tableName, conf)
 
 
@@ -325,11 +330,13 @@ object EntClaiminfo extends ClaiminfoUntil {
     conf_s.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer") //使用spark的序列化
     conf_s.registerKryoClasses(Array(classOf[org.apache.hadoop.hbase.io.ImmutableBytesWritable]))
     conf_s.set("spark.sql.broadcastTimeout", "36000") //等待时长
-    //          .setMaster("local[2]")
+//      .setMaster("local[2]")
     val sc = new SparkContext(conf_s)
     val prop: Properties = new Properties
     val sqlContext: HiveContext = new HiveContext(sc)
     val ods_ent_guzhu_salesman: Array[String] = sqlContext.read.jdbc(location_mysql_url, "ods_ent_guzhu_salesman", prop).map(x => x.getAs[String]("ent_name").trim).distinct.collect
+    val employer_liability_claims:DataFrame = sqlContext.read.jdbc(location_mysql_url, "employer_liability_claims", prop).cache()
+
     val ods_ent_guzhu_salesman_channel: RDD[(String, String)] = sqlContext.read.jdbc(location_mysql_url, "ods_ent_guzhu_salesman", prop).map(x => {
       val ent_name = x.getAs[String]("ent_name").trim
       val channel_name = x.getAs[String]("channel_name")
@@ -337,7 +344,7 @@ object EntClaiminfo extends ClaiminfoUntil {
       (ent_name, new_channel_name)
     }).filter(x => if (ods_ent_guzhu_salesman.contains(x._1)) true else false).persist(StorageLevel.MEMORY_ONLY)
 
-    Claminfo(ods_ent_guzhu_salesman_channel, sqlContext: HiveContext, sc)
+    Claminfo(employer_liability_claims,ods_ent_guzhu_salesman_channel,sqlContext: HiveContext, sc)
     sc.stop()
   }
 }

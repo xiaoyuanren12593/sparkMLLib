@@ -53,7 +53,7 @@ object EntBaseinfoTest extends BaseinfoUntilTest {
     //    val ods_policy_detail_table: DataFrame = sqlContext.sql("select policy_id,ent_id,user_id,policy_status from odsdb_prd.ods_policy_detail").cache()
     //现在使用的是ent_id，与ent_enterprise_info表的id关联，以前是user_id相关联的
     val ods_policy_detail_table: DataFrame = sqlContext.sql("select policy_id,ent_id,ent_id as user_id,policy_status from odsdb_prd.ods_policy_detail").cache()
-    val ods_policy_detail_table_T: DataFrame = sqlContext.sql("select policy_id,ent_id from odsdb_prd.ods_policy_detail").cache()
+    val ods_policy_detail_table_T: DataFrame = sqlContext.sql("select policy_id,ent_id from odsdb_prd.ods_policy_detail").filter("ent_id is not null").cache()
     val ods_policy_detail: DataFrame = sqlContext.sql("select * from odsdb_prd.ods_policy_detail").cache()
 
     val ent_enterprise_info = sqlContext.sql("select * from odsdb_prd.ent_enterprise_info").cache()
@@ -87,16 +87,14 @@ object EntBaseinfoTest extends BaseinfoUntilTest {
 
     //企业类型:列是(ent_type) [00ca1da523344782b34b9b63ec95913b,三证合一]
     val et = ent_type(ent_enterprise_info, d_id_certificate, ods_policy_detail_table).distinct()
-    et.take(10).foreach(println)
-//    saveToHbase(et, columnFamily1, "ent_type", conf_fs, tableName, conf)
+    saveToHbase(et, columnFamily1, "ent_type", conf_fs, tableName, conf)
 
     //企业的注册时间:register_time [001eb1b2458940659345dd543245b86a,2017-07-13]
     val rt = ent_enterprise_info
       .select("id", "create_time")
       .map(x => (x.getString(0), x.getString(1).split(" ")(0), "register_time"))
       .distinct()
-    rt.take(10).foreach(println)
-//    saveToHbase(rt, columnFamily1, "register_time", conf_fs, tableName, conf)
+    saveToHbase(rt, columnFamily1, "register_time", conf_fs, tableName, conf)
 
     //企业名称：ent_name [001eb1b2458940659345dd543245b86a,青岛中企联人力资源开发有限公司]
     val en = ent_enterprise_info
@@ -104,8 +102,7 @@ object EntBaseinfoTest extends BaseinfoUntilTest {
       .filter("length(ent_name)>0")
       .map(x => (x.getString(0), x.getString(1), "ent_name"))
       .distinct()
-    en.take(10).foreach(println)
-//    saveToHbase(en, columnFamily1, "ent_name", conf_fs, tableName, conf)
+    saveToHbase(en, columnFamily1, "ent_name", conf_fs, tableName, conf)
 
     //企业所在省份：ent_province [69d42cd85a59444895210bb781919228,湖南省]
     val ep = ent_enterprise_info
@@ -114,8 +111,7 @@ object EntBaseinfoTest extends BaseinfoUntilTest {
       .join(d_cant.select("name", "code"), ent_enterprise_info("office_province") === d_cant("code"))
       .map(x => (x.get(0) + "", x.get(2) + "", "ent_province"))
       .distinct()
-    ep.take(10).foreach(println)
-//    saveToHbase(ep, columnFamily1, "ent_province", conf_fs, tableName, conf)
+    saveToHbase(ep, columnFamily1, "ent_province", conf_fs, tableName, conf)
 
     //企业所在城市：ent_city [309925dae0cd41f78dd25fd93a30e004,邯郸市]
     val ec = ent_enterprise_info
@@ -124,8 +120,7 @@ object EntBaseinfoTest extends BaseinfoUntilTest {
       .join(d_cant.select("short_name", "code"), ent_enterprise_info("office_city") === d_cant("code"))
       .map(x => (x.get(0) + "", x.get(2) + "", "ent_city")).
       distinct()
-    ec.take(10).foreach(println)
-//    saveToHbase(ec, columnFamily1, "ent_city", conf_fs, tableName, conf)
+    saveToHbase(ec, columnFamily1, "ent_city", conf_fs, tableName, conf)
 
     //该企业所在的城市类型：ent_city_type
     val ect = ent_enterprise_info
@@ -135,48 +130,42 @@ object EntBaseinfoTest extends BaseinfoUntilTest {
       .filter("city_code>1")
       .map(x => (x(0) + "", x(2) + "", "ent_city_type"))
       .distinct()
-    ect.take(10).foreach(println)
-//    saveToHbase(ect, columnFamily1, "ent_city_type", conf_fs, tableName, conf)
+    saveToHbase(ect, columnFamily1, "ent_city_type", conf_fs, tableName, conf)
 
     //企业产品ID
     val qCp = qy_cp(ods_policy_detail: DataFrame).distinct
-    qCp.take(10).foreach(println)
-//    saveToHbase(qCp, columnFamily1, "ent_insure_code", conf_fs, tableName, conf)
+    saveToHbase(qCp, columnFamily1, "ent_insure_code", conf_fs, tableName, conf)
 
     //企业的男女比例
     val qy_sex_r = qy_sex(ods_policy_insured_detail, ods_policy_detail_table_T).distinct
-    qy_sex_r.take(10).foreach(println)
-//    saveToHbase(qy_sex_r, columnFamily1, "ent_man_woman_proportion", conf_fs, tableName, conf)
+    saveToHbase(qy_sex_r, columnFamily1, "ent_man_woman_proportion", conf_fs, tableName, conf)
 
     //企业平均投保年龄
     val qy_avg_r = qy_avg(ods_policy_insured_detail, ods_policy_detail_table_T).distinct
-    qy_avg_r.take(10).foreach(println)
-//    saveToHbase(qy_avg_r, columnFamily1, "ent_employee_age", conf_fs, tableName, conf)
+    saveToHbase(qy_avg_r, columnFamily1, "ent_employee_age", conf_fs, tableName, conf)
 
     //企业的人员规模
     val qy_gm_r = qy_gm(ent_sum_level).distinct
-    qy_gm_r.take(10).foreach(println)
-//    saveToHbase(qy_gm_r, columnFamily1, "ent_scale", conf_fs, tableName, conf)
+    saveToHbase(qy_gm_r, columnFamily1, "ent_scale", conf_fs, tableName, conf)
 
     //企业品牌影响力:end_id(企业id) ,ent_influence_level(企业的等级)
     val qy_pp_r = qy_pp(ent_sum_level).distinct
-    qy_pp_r.take(11).foreach(println)
-//    saveToHbase(qy_pp_r, columnFamily1, "ent_influence_level", conf_fs, tableName, conf)
+    saveToHbase(qy_pp_r, columnFamily1, "ent_influence_level", conf_fs, tableName, conf)
 
     //企业潜在人员规模
     val qy_qz_r = qy_qz(ods_policy_detail, ods_policy_insured_detail, ent_sum_level).distinct
-    qy_qz_r.take(10).foreach(println)
-//    saveToHbase(qy_qz_r, columnFamily1, "ent_potential_scale", conf_fs, tableName, conf)
+    saveToHbase(qy_qz_r, columnFamily1, "ent_potential_scale", conf_fs, tableName, conf)
   }
 
   //列族是:baseinfo
   def main(args: Array[String]): Unit = {
+    System.setProperty("HADOOP_USER_NAME", "hdfs")
     val conf_spark = new SparkConf()
       .setAppName("wuYu")
     conf_spark.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
     conf_spark.registerKryoClasses(Array(classOf[org.apache.hadoop.hbase.io.ImmutableBytesWritable]))
     conf_spark.set("spark.sql.broadcastTimeout", "36000")
-          .setMaster("local[2]")
+    //      .setMaster("local[2]")
 
     val sc = new SparkContext(conf_spark)
     val sqlContext: HiveContext = new HiveContext(sc)

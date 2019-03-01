@@ -4,7 +4,6 @@ import java.text.{NumberFormat, SimpleDateFormat}
 import java.util.Properties
 import java.util.regex.Pattern
 
-import bzn.job.common.Until
 import org.apache.spark.broadcast.Broadcast
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.DataFrame
@@ -34,7 +33,7 @@ object EntClaiminfoTest extends ClaiminfoUntilTest {
       format.setLenient(false);
       format.parse(str)
     } catch {
-      case e: Throwable => convertSuccess = false
+      case e => convertSuccess = false
     };
     convertSuccess
   }
@@ -54,7 +53,7 @@ object EntClaiminfoTest extends ClaiminfoUntilTest {
       val date3 = x.getString(1)
       val date4 = x.getString(2)
       if (!is_not_chinese(date3) && !is_not_chinese(date4)) {
-        if (is_not_date(date3) && is_not_date(date4)) {
+        if(is_not_date(date3) && is_not_date(date4)) {
           true
         } else {
           false
@@ -148,7 +147,7 @@ object EntClaiminfoTest extends ClaiminfoUntilTest {
     end
   }
 
-  def Claminfo(ods_ent_guzhu_salesman_channel: RDD[(String, String)], sqlContext: HiveContext, sc: SparkContext) {
+  def Claminfo(employer_liability_claims:DataFrame,ods_ent_guzhu_salesman_channel: RDD[(String, String)],sqlContext: HiveContext, sc: SparkContext) {
 
     //HBaseConf
     val conf = HbaseConf("labels:label_user_enterprise_vT")._1
@@ -162,8 +161,8 @@ object EntClaiminfoTest extends ClaiminfoUntilTest {
     //    ods_policy_detail：保单表
     //    dim_product	企业产品信息表
 
-    val employer_liability_claims: DataFrame = sqlContext.sql("select * from odsdb_prd.employer_liability_claims").cache
-    //    val employer_liability_claims_tep_one: DataFrame = sqlContext.sql("select * from odsdb_prd.employer_liability_claims").cache
+    //    val employer_liability_claims: DataFrame = sqlContext.sql("select * from odsdb_prd.employer_liability_claims").cache
+    //        val employer_liability_claims: DataFrame = sqlContext.sql("select * from odsdb_prd.employer_liability_claims").cache
 
     //    val employer_liability_claims_fields = employer_liability_claims_tep_one.schema.map(x => (x.name, x.dataType))
     //    val value = employer_liability_claims_tep_one.map(x => {
@@ -174,6 +173,7 @@ object EntClaiminfoTest extends ClaiminfoUntilTest {
     //
     //    val schema = StructType(employer_liability_claims_fields.map(field => StructField(field._1, field._2, nullable = true)))
     //    val employer_liability_claims = sqlContext.createDataFrame(value, schema) //.show()
+
 
 
     val ods_policy_detail: DataFrame = sqlContext.sql("select * from odsdb_prd.ods_policy_detail")
@@ -188,166 +188,140 @@ object EntClaiminfoTest extends ClaiminfoUntilTest {
     val ods_policy_preserve_detail = sqlContext.sql("select * from odsdb_prd.ods_policy_preserve_detail")
 
 
-    //工种风险等级：对应的有多少人
-    val ent_work_risk_r: RDD[(String, String, String)] = ent_work_risk(ods_policy_insured_detail, ods_policy_detail, d_work_level).cache()
-    //    ent_work_risk_r_To_Hbase(ent_work_risk_r, columnFamily1, conf_fs, tableName, conf)
-    ent_work_risk_r.take(10).foreach(println)
-    //员工增减行为(人数):在同一个年单中超过2次减员的人的个数
-    val ent_employee_increase_r = ent_employee_increase(ods_policy_preserve_detail, ods_policy_detail).distinct
-    ent_employee_increase_r.take(10).foreach(println)
-    //    saveToHbase(ent_employee_increase_r, columnFamily1, "ent_employee_increase", conf_fs, tableName, conf)
-
-    //c,每百人月均出险概率（逻辑改为:  每百人出险人数=总出险概率*100）
-    val ent_monthly_risk_r = ent_monthly_risk(employer_liability_claims, ods_policy_detail, ods_policy_insured_detail).distinct
-    ent_monthly_risk_r.take(10).foreach(println)
-    //    saveToHbase(ent_monthly_risk_r, columnFamily1, "ent_monthly_risk", conf_fs, tableName, conf)
-
-    //材料完整度
-    val ent_material_integrity_r = ent_material_integrity(employer_liability_claims, ods_policy_detail).distinct()
-    ent_material_integrity_r.take(10).foreach(println)
-    //    saveToHbase(ent_material_integrity_r, columnFamily1, "ent_material_integrity", conf_fs, tableName, conf)
-
-    //企业报案时效（小时）
-    val ent_report_time_r = ent_report_time(employer_liability_claims, ods_policy_detail).distinct()
-    ent_report_time_r.take(10).foreach(println)
-    //    saveToHbase(ent_report_time_r, columnFamily1, "ent_report_time", conf_fs, tableName, conf)
-
-
-    //平均申请理赔周期(天)
-    val avg_aging_claim_r = avg_aging_claim(employer_liability_claims, ods_policy_detail).distinct()
-    avg_aging_claim_r.take(10).foreach(println)
-    //    saveToHbase(avg_aging_claim_r, columnFamily1, "avg_aging_claim", conf_fs, tableName, conf)
-
-
-    //平均赔付时效
-    val avg_aging_cps_r = avg_aging_cps(employer_liability_claims, ods_policy_detail).distinct()
-    avg_aging_cps_r.take(10).foreach(println)
-    //    saveToHbase(avg_aging_cps_r, columnFamily1, "avg_aging_cps", conf_fs, tableName, conf)
-
-
-    //企业报案件数
-    val report_num_r = report_num(employer_liability_claims, ods_policy_detail).distinct()
-    report_num_r.take(10).foreach(println)
-    //    saveToHbase(report_num_r, columnFamily1, "report_num", conf_fs, tableName, conf)
-
-
-    //企业理赔件数
-    val claim_num_r = claim_num(employer_liability_claims, ods_policy_detail).distinct()
-    claim_num_r.take(10).foreach(println)
-    //    saveToHbase(claim_num_r, columnFamily1, "claim_num", conf_fs, tableName, conf)
-
-
-    //死亡案件统计
-    val death_num_r = death_num(employer_liability_claims, ods_policy_detail).distinct()
-    death_num_r.take(10).foreach(println)
-    //    saveToHbase(death_num_r, columnFamily1, "death_num", conf_fs, tableName, conf)
-
-
-    //伤残案件数
-    val disability_num_r = disability_num(employer_liability_claims, ods_policy_detail).distinct()
-    disability_num_r.take(10).foreach(println)
-    //    saveToHbase(disability_num_r, columnFamily1, "disability_num", conf_fs, tableName, conf)
-
-
-    //工作期间案件数
-    val worktime_num_r = worktime_num(employer_liability_claims, ods_policy_detail).distinct()
-    worktime_num_r.take(10).foreach(println)
-    //    saveToHbase(worktime_num_r, columnFamily1, "worktime_num", conf_fs, tableName, conf)
-
-
-    //非工作期间案件数
-    val nonworktime_num_r = nonworktime_num(employer_liability_claims, ods_policy_detail).distinct()
-    nonworktime_num_r.take(10).foreach(println)
-    //    saveToHbase(nonworktime_num_r, columnFamily1, "nonworktime_num", conf_fs, tableName, conf)
-
-
-    //预估总赔付金额
-    val pre_all_compensation_r = pre_all_compensation(ods_ent_guzhu_salesman_channel, sqlContext, bro_dim, employer_liability_claims, ods_policy_detail).distinct()
-    pre_all_compensation_r.take(10).foreach(println)
-    //    saveToHbase(pre_all_compensation_r, columnFamily1, "pre_all_compensation", conf_fs, tableName, conf)
-
-
-    //死亡预估配额
-    val pre_death_compensation_r = pre_death_compensation(employer_liability_claims, ods_policy_detail).distinct()
-    pre_death_compensation_r.take(10).foreach(println)
-    //    saveToHbase(pre_death_compensation_r, columnFamily1, "pre_death_compensation", conf_fs, tableName, conf)
-
-
-    //伤残预估配额
-    val pre_dis_compensation_r = pre_dis_compensation(employer_liability_claims, ods_policy_detail).distinct()
-    pre_dis_compensation_r.take(10).foreach(println)
-    //    saveToHbase(pre_dis_compensation_r, columnFamily1, "pre_dis_compensation", conf_fs, tableName, conf)
-
-
-    //工作期间预估赔付
-    val pre_wt_compensation_r = pre_wt_compensation(employer_liability_claims, ods_policy_detail).distinct()
-    pre_wt_compensation_r.take(10).foreach(println)
-    //    saveToHbase(pre_wt_compensation_r, columnFamily1, "pre_wt_compensation", conf_fs, tableName, conf)
-
-
-    //非工作期间预估赔付
-    val pre_nwt_compensation_r = pre_nwt_compensation(employer_liability_claims, ods_policy_detail).distinct()
-    pre_nwt_compensation_r.take(10).foreach(println)
-    //    saveToHbase(pre_nwt_compensation_r, columnFamily1, "pre_nwt_compensation", conf_fs, tableName, conf)
-
-
-    //实际已赔付金额
-    val all_compensation_r = all_compensation(employer_liability_claims, ods_policy_detail).distinct()
-    all_compensation_r.take(10).foreach(println)
-    //    saveToHbase(all_compensation_r, columnFamily1, "all_compensation", conf_fs, tableName, conf)
-
-
-    //超时赔付案件数
-    val overtime_compensation_r = overtime_compensation(employer_liability_claims, ods_policy_detail).distinct()
-    overtime_compensation_r.take(10).foreach(println)
-    //    saveToHbase(overtime_compensation_r, columnFamily1, "overtime_compensation", conf_fs, tableName, conf)
-
-
+//    //工种风险等级：对应的有多少人
+//    val ent_work_risk_r: RDD[(String, String, String)] = ent_work_risk(ods_policy_insured_detail, ods_policy_detail, d_work_level).cache()
+//    ent_work_risk_r_To_Hbase(ent_work_risk_r, columnFamily1, conf_fs, tableName, conf)
+//
+//    //员工增减行为(人数):在同一个年单中超过2次减员的人的个数
+//    val ent_employee_increase_r = ent_employee_increase(ods_policy_preserve_detail, ods_policy_detail).distinct
+//    saveToHbase(ent_employee_increase_r, columnFamily1, "ent_employee_increase", conf_fs, tableName, conf)
+//
+//    //c,每百人月均出险概率（逻辑改为:  每百人出险人数=总出险概率*100）
+//    val ent_monthly_risk_r = ent_monthly_risk(employer_liability_claims, ods_policy_detail, ods_policy_insured_detail).distinct
+//    saveToHbase(ent_monthly_risk_r, columnFamily1, "ent_monthly_risk", conf_fs, tableName, conf)
+//
+//    //材料完整度
+//    val ent_material_integrity_r = ent_material_integrity(employer_liability_claims, ods_policy_detail).distinct()
+//    saveToHbase(ent_material_integrity_r, columnFamily1, "ent_material_integrity", conf_fs, tableName, conf)
+//
+//    //企业报案时效（小时）
+//    val ent_report_time_r = ent_report_time(employer_liability_claims, ods_policy_detail).distinct()
+//    saveToHbase(ent_report_time_r, columnFamily1, "ent_report_time", conf_fs, tableName, conf)
+//
+//
+//    //平均申请理赔周期(天)
+//    val avg_aging_claim_r = avg_aging_claim(employer_liability_claims, ods_policy_detail).distinct()
+//    saveToHbase(avg_aging_claim_r, columnFamily1, "avg_aging_claim", conf_fs, tableName, conf)
+//
+//
+//    //平均赔付时效
+//    val avg_aging_cps_r = avg_aging_cps(employer_liability_claims, ods_policy_detail).distinct()
+//    saveToHbase(avg_aging_cps_r, columnFamily1, "avg_aging_cps", conf_fs, tableName, conf)
+//
+//
+//    //企业报案件数
+//    val report_num_r = report_num(employer_liability_claims, ods_policy_detail).distinct()
+//    saveToHbase(report_num_r, columnFamily1, "report_num", conf_fs, tableName, conf)
+//
+//
+//    //企业理赔件数
+//    val claim_num_r = claim_num(employer_liability_claims, ods_policy_detail).distinct()
+//    saveToHbase(claim_num_r, columnFamily1, "claim_num", conf_fs, tableName, conf)
+//
+//
+//    //死亡案件统计
+//    val death_num_r = death_num(employer_liability_claims, ods_policy_detail).distinct()
+//    saveToHbase(death_num_r, columnFamily1, "death_num", conf_fs, tableName, conf)
+//
+//
+//    //伤残案件数
+//    val disability_num_r = disability_num(employer_liability_claims, ods_policy_detail).distinct()
+//    saveToHbase(disability_num_r, columnFamily1, "disability_num", conf_fs, tableName, conf)
+//
+//
+//    //工作期间案件数
+//    val worktime_num_r = worktime_num(employer_liability_claims, ods_policy_detail).distinct()
+//    saveToHbase(worktime_num_r, columnFamily1, "worktime_num", conf_fs, tableName, conf)
+//
+//
+//    //非工作期间案件数
+//    val nonworktime_num_r = nonworktime_num(employer_liability_claims, ods_policy_detail).distinct()
+//    saveToHbase(nonworktime_num_r, columnFamily1, "nonworktime_num", conf_fs, tableName, conf)
+//
+//
+//    //预估总赔付金额
+//    val pre_all_compensation_r = pre_all_compensation(ods_ent_guzhu_salesman_channel,sqlContext,bro_dim,employer_liability_claims, ods_policy_detail).distinct()
+//    saveToHbase(pre_all_compensation_r, columnFamily1, "pre_all_compensation", conf_fs, tableName, conf)
+//
+//
+//    //死亡预估配额
+//    val pre_death_compensation_r = pre_death_compensation(employer_liability_claims, ods_policy_detail).distinct()
+//    saveToHbase(pre_death_compensation_r, columnFamily1, "pre_death_compensation", conf_fs, tableName, conf)
+//
+//
+//    //伤残预估配额
+//    val pre_dis_compensation_r = pre_dis_compensation(employer_liability_claims, ods_policy_detail).distinct()
+//    saveToHbase(pre_dis_compensation_r, columnFamily1, "pre_dis_compensation", conf_fs, tableName, conf)
+//
+//
+//    //工作期间预估赔付
+//    val pre_wt_compensation_r = pre_wt_compensation(employer_liability_claims, ods_policy_detail).distinct()
+//    saveToHbase(pre_wt_compensation_r, columnFamily1, "pre_wt_compensation", conf_fs, tableName, conf)
+//
+//
+//    //非工作期间预估赔付
+//    val pre_nwt_compensation_r = pre_nwt_compensation(employer_liability_claims, ods_policy_detail).distinct()
+//    saveToHbase(pre_nwt_compensation_r, columnFamily1, "pre_nwt_compensation", conf_fs, tableName, conf)
+//
+//
+//    //实际已赔付金额
+//    val all_compensation_r = all_compensation(employer_liability_claims, ods_policy_detail).distinct()
+//    saveToHbase(all_compensation_r, columnFamily1, "all_compensation", conf_fs, tableName, conf)
+//
+//
+//    //超时赔付案件数
+//    val overtime_compensation_r = overtime_compensation(employer_liability_claims, ods_policy_detail).distinct()
+//    saveToHbase(overtime_compensation_r, columnFamily1, "overtime_compensation", conf_fs, tableName, conf)
+//
+//
     //已赚保费
     val lines_source = Source.fromURL(getClass.getResource("/config_scala.properties")).getLines.toSeq
     val location_mysql_url: String = lines_source(2).toString.split("==")(1)
     val prop: Properties = new Properties
 
-    val charged_premium_r = charged_premium_new(sqlContext: HiveContext, location_mysql_url: String, prop: Properties, ods_policy_detail: DataFrame).distinct()
-    charged_premium_r.take(10).foreach(println)
-
-    //    saveToHbase(charged_premium_r, columnFamily1, "charged_premium", conf_fs, tableName, conf)
-
-
-    //企业拒赔次数
-    val ent_rejected_count_r = ent_rejected_count(employer_liability_claims, ods_policy_detail).distinct()
-    ent_rejected_count_r.take(10).foreach(println)
-    //    saveToHbase(ent_rejected_count_r, columnFamily1, "ent_rejected_count", conf_fs, tableName, conf)
-
-
-    //企业撤案次数
-    val ent_withdrawn_count_r = ent_withdrawn_count(employer_liability_claims, ods_policy_detail).distinct()
-    ent_withdrawn_count_r.take(10).foreach(println)
-    //    saveToHbase(ent_withdrawn_count_r, columnFamily1, "ent_withdrawn_count", conf_fs, tableName, conf)
-
-
-    //平均出险周期
-    val avg_aging_risk_r = avg_aging_risk(ods_policy_detail, ods_policy_risk_period).distinct()
-    avg_aging_risk_r.take(10).foreach(println)
-    //    saveToHbase(avg_aging_risk_r, columnFamily1, "avg_aging_risk", conf_fs, tableName, conf)
-
-
-    //极短周期特征（出险周期小于3的案件数）
-    val mix_period_count_r = mix_period_count(ods_policy_detail, ods_policy_risk_period).distinct()
-    mix_period_count_r.take(10).foreach(println)
-    //    saveToHbase(mix_period_count_r, columnFamily1, "mix_period_count", conf_fs, tableName, conf)
-
-
-    //极短周期百分比(只取极短特征个数大于1的企业)
-    val mix_period_rate_r = mix_period_rate(ods_policy_detail, ods_policy_risk_period).distinct
-    mix_period_rate_r.take(10).foreach(println)
-    //    saveToHbase(mix_period_rate_r, columnFamily1, "mix_period_rate", conf_fs, tableName, conf)
-
-
-    //重大案件率
-    val largecase_rate_r = largecase_rate(ods_policy_detail, employer_liability_claims).distinct()
-    largecase_rate_r.take(10).foreach(println)
-    //    saveToHbase(largecase_rate_r, columnFamily1, "largecase_rate", conf_fs, tableName, conf)
+    val charged_premium_r = charged_premium_new(ods_ent_guzhu_salesman_channel,sqlContext,bro_dim, location_mysql_url: String, prop: Properties, ods_policy_detail: DataFrame).distinct()
+//    saveToHbase(charged_premium_r, columnFamily1, "charged_premium", conf_fs, tableName, conf)
+//
+//
+//
+//    //企业拒赔次数
+//    val ent_rejected_count_r = ent_rejected_count(employer_liability_claims, ods_policy_detail).distinct()
+//    saveToHbase(ent_rejected_count_r, columnFamily1, "ent_rejected_count", conf_fs, tableName, conf)
+//
+//
+//    //企业撤案次数
+//    val ent_withdrawn_count_r = ent_withdrawn_count(employer_liability_claims, ods_policy_detail).distinct()
+//    saveToHbase(ent_withdrawn_count_r, columnFamily1, "ent_withdrawn_count", conf_fs, tableName, conf)
+//
+//
+//    //平均出险周期
+//    val avg_aging_risk_r = avg_aging_risk(ods_policy_detail, ods_policy_risk_period).distinct()
+//    saveToHbase(avg_aging_risk_r, columnFamily1, "avg_aging_risk", conf_fs, tableName, conf)
+//
+//
+//    //极短周期特征（出险周期小于3的案件数）
+//    val mix_period_count_r = mix_period_count(ods_policy_detail, ods_policy_risk_period).distinct()
+//    saveToHbase(mix_period_count_r, columnFamily1, "mix_period_count", conf_fs, tableName, conf)
+//
+//
+//    //极短周期百分比(只取极短特征个数大于1的企业)
+//    val mix_period_rate_r = mix_period_rate(ods_policy_detail, ods_policy_risk_period).distinct
+//    saveToHbase(mix_period_rate_r, columnFamily1, "mix_period_rate", conf_fs, tableName, conf)
+//
+//
+//    //重大案件率
+//    val largecase_rate_r = largecase_rate(ods_policy_detail, employer_liability_claims).distinct()
+//    saveToHbase(largecase_rate_r, columnFamily1, "largecase_rate", conf_fs, tableName, conf)
   }
 
   def main(args: Array[String]): Unit = {
@@ -362,6 +336,8 @@ object EntClaiminfoTest extends ClaiminfoUntilTest {
     val prop: Properties = new Properties
     val sqlContext: HiveContext = new HiveContext(sc)
     val ods_ent_guzhu_salesman: Array[String] = sqlContext.read.jdbc(location_mysql_url, "ods_ent_guzhu_salesman", prop).map(x => x.getAs[String]("ent_name").trim).distinct.collect
+    val employer_liability_claims:DataFrame = sqlContext.read.jdbc(location_mysql_url, "employer_liability_claims", prop).cache()
+
     val ods_ent_guzhu_salesman_channel: RDD[(String, String)] = sqlContext.read.jdbc(location_mysql_url, "ods_ent_guzhu_salesman", prop).map(x => {
       val ent_name = x.getAs[String]("ent_name").trim
       val channel_name = x.getAs[String]("channel_name")
@@ -369,7 +345,7 @@ object EntClaiminfoTest extends ClaiminfoUntilTest {
       (ent_name, new_channel_name)
     }).filter(x => if (ods_ent_guzhu_salesman.contains(x._1)) true else false).persist(StorageLevel.MEMORY_ONLY)
 
-    Claminfo(ods_ent_guzhu_salesman_channel, sqlContext: HiveContext, sc)
+    Claminfo(employer_liability_claims,ods_ent_guzhu_salesman_channel,sqlContext: HiveContext, sc)
     sc.stop()
   }
 }

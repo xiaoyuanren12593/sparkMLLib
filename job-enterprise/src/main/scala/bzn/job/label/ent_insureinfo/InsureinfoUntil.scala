@@ -38,7 +38,9 @@ trait InsureinfoUntil extends Until with EnterpriseUntil {
   //月均增减员次数
   def ent_month_regulation_times(ent_add_regulation_times_data: RDD[(String, String, String)], ent_summary_month_1: DataFrame): RDD[(String, String, String)] = {
     //totalInsuredPersons：当月在保人数
-    val total = ent_summary_month_1.filter("data_type='totalInsuredPersons'").select("ent_id", "month_id")
+    val total = ent_summary_month_1.filter("data_type='totalInsuredPersons'")
+      .select("ent_id", "month_id")
+      .filter("LENGTH(ent_id)>0")
     //统计月份ID的次数
     val month_number = total.map(x => (x.getString(0), x.getString(1)))
       .reduceByKey((x1, x2) => {
@@ -68,6 +70,7 @@ trait InsureinfoUntil extends Until with EnterpriseUntil {
     val end: RDD[(String, String, String)] = ent_summary_month
       .where("data_type in('monAddPersons','monRenewalPersons')")
       .select("ent_id", "data_val")
+      .filter("LENGTH(ent_id)>0")
       .map(x => (x.getString(0), x.getString(1).toInt)).reduceByKey(_ + _)
       .map(x => (x._1, x._2 + "", "ent_add_sum_persons"))
     end
@@ -77,6 +80,7 @@ trait InsureinfoUntil extends Until with EnterpriseUntil {
   def ent_del_sum_persons(ent_summary_month: DataFrame): RDD[(String, String, String)] = {
     val end: RDD[(String, String, String)] = ent_summary_month.where("data_type='monSubPersons'")
       .select("ent_id", "data_val")
+      .filter("LENGTH(ent_id)>0")
       .map(x => (x.getString(0), x.getString(1).toInt))
       .reduceByKey(_ + _)
       .map(x => (x._1, x._2 + "", "ent_del_sum_persons"))
@@ -89,6 +93,7 @@ trait InsureinfoUntil extends Until with EnterpriseUntil {
     val end: RDD[(String, String, String)] = ent_summary_month_1
       .filter("data_type='totalInsuredPersons'")
       .select("ent_id", "data_val", "month_id")
+      .filter("LENGTH(ent_id)>0")
       //ent_id | 对data_val求和 | 求出month_id的次数，不去重
       .map(x => (x.getString(0), (x.getString(1).toDouble, x.getString(2))))
       .reduceByKey((x1, x2) => {
@@ -110,6 +115,7 @@ trait InsureinfoUntil extends Until with EnterpriseUntil {
     val end: RDD[(String, String, String)] = ent_summary_month
       .where("data_type='monRenewalPersons'")
       .select("ent_id", "data_val")
+      .filter("LENGTH(ent_id)>0")
       .map(x => (x.getString(0), x.getString(1).toInt))
       .reduceByKey(_ + _).map(x => (x._1, x._2 + "", "ent_continuous_plc_persons"))
 
@@ -118,7 +124,9 @@ trait InsureinfoUntil extends Until with EnterpriseUntil {
 
   //投保工种数
   def ent_insure_craft(ods_policy_detail: DataFrame, ods_policy_insured_detail: DataFrame): RDD[(String, String, String)] = {
-    val tepOne = ods_policy_detail.where("policy_status in ('0','1','7','9','10')").select("ent_id", "policy_id")
+    val tepOne = ods_policy_detail.where("policy_status in ('0','1','7','9','10')")
+      .select("ent_id", "policy_id")
+      .filter("LENGTH(ent_id)>0")
     val tepTwo = ods_policy_insured_detail.filter("length(insured_work_type)>0").select("policy_id", "insured_work_type")
 
     val tepThree = tepOne.join(tepTwo, "policy_id").filter("LENGTH(ent_id)>0")
@@ -142,7 +150,9 @@ trait InsureinfoUntil extends Until with EnterpriseUntil {
   //求出该企业中第一工种出现的类型哪个最多
   def ent_first_craft(ods_policy_insured_detail: DataFrame, ods_policy_detail: DataFrame, d_work_level: DataFrame): RDD[(String, String, String)] = {
     val tepOne = ods_policy_insured_detail.select("policy_id", "insured_cert_no", "insured_work_type", "insure_policy_status")
-    val tepTwo = ods_policy_detail.select("policy_id", "ent_id")
+    val tepTwo = ods_policy_detail
+      .select("policy_id", "ent_id")
+      .filter("LENGTH(ent_id)>0")
     val tepThree = d_work_level.select("work_type", "ai_level")
     val ss = tepOne.join(tepTwo, "policy_id")
     //    |         policy_id|   insured_cert_no|insured_work_type|insure_policy_status|              ent_id|
@@ -350,7 +360,9 @@ trait InsureinfoUntil extends Until with EnterpriseUntil {
 
   //有效保单数
   def effective_policy(ods_policy_detail: DataFrame): RDD[(String, String, String)] = {
-    val tepOne = ods_policy_detail.where("policy_status in('0','1','7','9','10') and ent_id!=''").select("ent_id")
+    val tepOne = ods_policy_detail.where("policy_status in('0','1','7','9','10') and ent_id!=''")
+      .select("ent_id")
+      .filter("LENGTH(ent_id)>0")
     val end: RDD[(String, String, String)] = tepOne
       .map(x => (x.getString(0), 1))
       .reduceByKey(_ + _)
@@ -376,7 +388,9 @@ trait InsureinfoUntil extends Until with EnterpriseUntil {
 
   //累计投保人数 totalInsuredPersons（去重）对身份证号去重
   def total_insured_persons(ods_policy_detail: DataFrame, ods_policy_insured_detail: DataFrame): RDD[(String, String, String)] = {
-    val tepOne = ods_policy_detail.where("policy_status in('0','1', '7', '9', '10')").select("ent_id", "policy_id")
+    val tepOne = ods_policy_detail.where("policy_status in('0','1', '7', '9', '10')")
+      .select("ent_id", "policy_id")
+      .filter("LENGTH(ent_id)>0")
     val tepTwo = ods_policy_insured_detail.select("policy_id", "insure_policy_status", "insured_cert_no")
     val tepThree = tepOne.join(tepTwo, "policy_id")
     //    |           policy_id|              ent_id|insure_policy_status|   insured_cert_no|
@@ -397,6 +411,7 @@ trait InsureinfoUntil extends Until with EnterpriseUntil {
   def cur_insured_persons(ods_policy_detail: DataFrame, ods_policy_insured_detail: DataFrame): RDD[(String, String, String)] = {
     //        val tepOne = ods_policy_detail.where("policy_status in('0','1', '7', '9', '10')").select("ent_id", "policy_id")
     val tepOne = ods_policy_detail.where("policy_status = '1'").select("ent_id", "policy_id")
+      .filter("LENGTH(ent_id)>0")
     val tepTwo = ods_policy_insured_detail.select("policy_id", "insure_policy_status", "insured_cert_no")
     val tepThree = tepOne.join(tepTwo, "policy_id").filter("length(ent_id)>0 and insure_policy_status='1'")
     //    |           policy_id|              ent_id|insure_policy_status|   insured_cert_no|
