@@ -53,7 +53,6 @@ object EnterprisePremiumSlopeTest extends Until with BiUntil {
         val month_premium = x1._3 + "\t" + x2._3
         (month, premium, month_premium)
       })
-      .filter(_._2._1.split("\t") != 1)
       .map(f = x => {
         val tepOne = x._2._3.split("\t")
         val x_Coordinate_axis = x._2._1.split("\t")
