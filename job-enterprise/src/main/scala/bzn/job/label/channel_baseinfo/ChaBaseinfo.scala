@@ -209,7 +209,7 @@ object ChaBaseinfo extends ChaBaseinfoUntil {
     val sqlContext: HiveContext = new HiveContext(sc)
 
     //读取渠道表
-    val lines_source = Source.fromURL(getClass.getResource("/config-scala.properties")).getLines.toSeq
+    val lines_source = Source.fromURL(getClass.getResource("/config_scala.properties")).getLines.toSeq
     val location_mysql_url: String = lines_source(2).toString.split("==")(1)
     val prop: Properties = new Properties
 

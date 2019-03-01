@@ -150,7 +150,7 @@ object Ent_claiminfo extends Claiminfo_until with until {
     end
   }
 
-  def Claminfo(ods_ent_guzhu_salesman_channel: RDD[(String, String)],sqlContext: HiveContext, sc: SparkContext) {
+  def Claminfo(employer_liability_claims:DataFrame,ods_ent_guzhu_salesman_channel: RDD[(String, String)],sqlContext: HiveContext, sc: SparkContext) {
 
     //HBaseConf
     val conf = HbaseConf("labels:label_user_enterprise_vT")._1
@@ -164,8 +164,8 @@ object Ent_claiminfo extends Claiminfo_until with until {
     //    ods_policy_detail：保单表
     //    dim_product	企业产品信息表
 
-    val employer_liability_claims: DataFrame = sqlContext.sql("select * from odsdb_prd.employer_liability_claims").cache
-    //    val employer_liability_claims_tep_one: DataFrame = sqlContext.sql("select * from odsdb_prd.employer_liability_claims").cache
+//    val employer_liability_claims: DataFrame = sqlContext.sql("select * from odsdb_prd.employer_liability_claims").cache
+//        val employer_liability_claims: DataFrame = sqlContext.sql("select * from odsdb_prd.employer_liability_claims").cache
 
     //    val employer_liability_claims_fields = employer_liability_claims_tep_one.schema.map(x => (x.name, x.dataType))
     //    val value = employer_liability_claims_tep_one.map(x => {
@@ -334,11 +334,13 @@ object Ent_claiminfo extends Claiminfo_until with until {
     conf_s.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer") //使用spark的序列化
     conf_s.registerKryoClasses(Array(classOf[org.apache.hadoop.hbase.io.ImmutableBytesWritable]))
     conf_s.set("spark.sql.broadcastTimeout", "36000") //等待时长
-//          .setMaster("local[2]")
+          .setMaster("local[2]")
     val sc = new SparkContext(conf_s)
     val prop: Properties = new Properties
     val sqlContext: HiveContext = new HiveContext(sc)
     val ods_ent_guzhu_salesman: Array[String] = sqlContext.read.jdbc(location_mysql_url, "ods_ent_guzhu_salesman", prop).map(x => x.getAs[String]("ent_name").trim).distinct.collect
+    val employer_liability_claims:DataFrame = sqlContext.read.jdbc(location_mysql_url, "employer_liability_claims", prop).cache()
+
     val ods_ent_guzhu_salesman_channel: RDD[(String, String)] = sqlContext.read.jdbc(location_mysql_url, "ods_ent_guzhu_salesman", prop).map(x => {
       val ent_name = x.getAs[String]("ent_name").trim
       val channel_name = x.getAs[String]("channel_name")
@@ -346,7 +348,7 @@ object Ent_claiminfo extends Claiminfo_until with until {
       (ent_name, new_channel_name)
     }).filter(x => if (ods_ent_guzhu_salesman.contains(x._1)) true else false).persist(StorageLevel.MEMORY_ONLY)
 
-    Claminfo(ods_ent_guzhu_salesman_channel,sqlContext: HiveContext, sc)
+    Claminfo(employer_liability_claims,ods_ent_guzhu_salesman_channel,sqlContext: HiveContext, sc)
     sc.stop()
   }
 }

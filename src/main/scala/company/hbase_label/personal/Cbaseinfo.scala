@@ -128,7 +128,7 @@ object Cbaseinfo extends until {
   def official_website_coverage(sqlContext: HiveContext, ods_policy_detail: DataFrame): RDD[(String, String, String)]
   = {
     val after = sqlContext.sql("select * from odsdb_prd.ods_policy_insured_detail").filter("LENGTH(insured_cert_no)=18").select("policy_id", "insured_cert_no")
-    val j_after: RDD[(String, String)] = ods_policy_detail.join(after, "policy_id").select("insured_cert_no", "sku_coverage").map(x => (x.getString(0), x.getString(1))).reduceByKey((x1, x2) => {
+    val j_after: RDD[(String, String)] = ods_policy_detail.join(after, "policy_id").select("insured_cert_no", "sku_coverage").filter("insured_cert_no is not null").map(x => (x.getString(0), x.getString(1))).reduceByKey((x1, x2) => {
       val res = if (x1 >= x2) x1 else x2
       res
     })

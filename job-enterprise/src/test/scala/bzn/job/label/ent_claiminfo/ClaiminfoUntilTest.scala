@@ -42,7 +42,7 @@ trait ClaiminfoUntilTest extends Until with EnterpriseUntil {
     val ods_policy_insured_detail = ods_policy_insured_detail_r
       .select("policy_id", "insured_cert_no", "insured_work_type", "insure_policy_status")
     //policy_id,ent_id
-    val ods_policy_detail = ods_policy_detail_r.select("policy_id", "ent_id")
+    val ods_policy_detail = ods_policy_detail_r.select("policy_id", "ent_id").filter("ent_id is not null")
     //work_type|ai_level
 
     val d_work_level = d_work_level_r.select("work_type", "ai_level")
@@ -101,7 +101,7 @@ trait ClaiminfoUntilTest extends Until with EnterpriseUntil {
       })
       .filter(_._2._2 > 2) //将大于2的次数过滤出去
 
-    val bd_id = ods_policy_detail.select("policy_id", "ent_id")
+    val bd_id = ods_policy_detail.select("policy_id", "ent_id").filter("ent_id is not null")
       .map(x => (x.getString(0), x.getString(1)))
 
     //ent_id(rowKey),证件编号出现的次数（以“ent_monthly_risk”字段命名）
@@ -135,7 +135,7 @@ trait ClaiminfoUntilTest extends Until with EnterpriseUntil {
     //    policy_code：保单号
     //求出对应企业中有多少人出险了（怎么求出？我要计算出该出险保单所在的是哪个企业，使用的是join）
     val employer_liability_claims = employer_liability_claims_r.select("policy_no")
-    val ods_policy_detail_before = ods_policy_detail_r.filter("length(ent_id)>0").select("ent_id", "policy_code")
+    val ods_policy_detail_before = ods_policy_detail_r.filter("length(ent_id)>0").select("ent_id", "policy_code").filter("ent_id is not null")
     val t1: RDD[(String, Int)] = employer_liability_claims
       .join(ods_policy_detail_before, employer_liability_claims("policy_no") === ods_policy_detail_before("policy_code"))
       .map(x => {
@@ -188,7 +188,7 @@ trait ClaiminfoUntilTest extends Until with EnterpriseUntil {
     //employer_liability_claims	雇主保理赔记录表（是通过policy_no进行记的，因为报案这张表是手动进行等级的因此，它没办法记住ID）
     val employer_liability_claims = employer_liability_claims_r.select("policy_no", "if_resubmit_paper")
     //    val employer_liability_claims = sqlContext.sql("select lc.policy_no,lc.if_resubmit_paper from odsdb_prd.employer_liability_claims lc")
-    val ods_policy_detail = ods_policy_detail_r.select("ent_id", "policy_code")
+    val ods_policy_detail = ods_policy_detail_r.select("ent_id", "policy_code").filter("ent_id is not null")
     //    val ods_policy_detail = sqlContext.sql("select pd.ent_id ,pd.policy_code from odsdb_prd.ods_policy_detail pd")
 
     //通过保单号对理赔表，进行join，该张意外险所对应的，在保单表中的信息
@@ -403,59 +403,54 @@ trait ClaiminfoUntilTest extends Until with EnterpriseUntil {
   }
 
   //预估总赔付金额
-  def pre_all_compensation(ods_ent_guzhu_salesman: RDD[(String, String)], sqlContext: HiveContext, bro_dim: Broadcast[Array[String]], employer_liability_claims: DataFrame, ods_policy_detail: DataFrame): RDD[(String, String, String)] = {
+  def pre_all_compensation(ods_ent_guzhu_salesman:RDD[(String, String)],sqlContext:HiveContext,bro_dim: Broadcast[Array[String]],employer_liability_claims: DataFrame, ods_policy_detail: DataFrame): RDD[(String, String, String)] = {
     //final_payment：最终赔付金额
     //pre_com：预估赔付金额
     import sqlContext.implicits._
     val numberFormat = NumberFormat.getInstance
     numberFormat.setMaximumFractionDigits(2)
-    var ods_ent_guzhu_salesman_temp = ods_ent_guzhu_salesman.toDF("ent_name", "channel_name")
-    //      .filter("channel_name = '重庆翔耀保险咨询服务有限公司'")
+    var ods_ent_guzhu_salesman_temp = ods_ent_guzhu_salesman.toDF("ent_name","channel_name")
     val tep_temp = ods_policy_detail.map(x => (x.getAs[String]("insure_code"), x)).filter(x => if (bro_dim.value.contains(x._1)) true else false)
       .map(x => {
-        (x._2.getAs[String]("ent_id"), x._2.getAs[String]("policy_code"), x._2.getAs[String]("holder_company"))
-      }).toDF("ent_id", "policy_code", "holder_company").filter("ent_id is not null").cache
-    val tepOne = tep_temp.join(ods_ent_guzhu_salesman_temp, tep_temp("holder_company") === ods_ent_guzhu_salesman_temp("ent_name"))
+        (x._2.getAs[String]("ent_id"), x._2.getAs[String]("policy_code"),x._2.getAs[String]("holder_company"),x._2.getAs[String]("policy_id"))
+      }).toDF("ent_id", "policy_code","holder_company","policy_id").filter("ent_id is not null").cache
+    val tepOne = ods_ent_guzhu_salesman_temp.join(tep_temp, tep_temp("holder_company") === ods_ent_guzhu_salesman_temp("ent_name"))
+      .filter("ent_id is not null")
       .map(x => {
-        (x.getAs[String]("ent_id").toString, x.getAs[String]("policy_code").toString)
-      }).toDF("ent_id", "policy_code")
+        (x.getAs[String]("ent_id"),x.getAs[String]("policy_code"))
+      }).toDF("ent_id","policy_code")
 
     val tepTwo = employer_liability_claims.select("policy_no", "final_payment", "pre_com").map(x => {
       var policy_no = x.getAs[String]("policy_no").trim
       var final_payment = x.getAs[String]("final_payment")
       var pre_com = x.getAs[String]("pre_com")
-      (policy_no, final_payment, pre_com)
-    }).toDF("policy_no", "final_payment", "pre_com")
-    val tepThree = tepOne.join(tepTwo, tepOne("policy_code") === tepTwo("policy_no"), "left").filter("LENGTH(ent_id)>0")
-    //      .show()
-    //    |              ent_id|         policy_code|           policy_no|final_payment|pre_com|
-    //    |0a789d56b7444d519...|  900000047702719243|  900000047702719243|             |   5000|
+      (policy_no,final_payment,pre_com)
+    }).toDF("policy_no","final_payment","pre_com").filter("pre_com <> '#N/A'").map(x => x).filter(x => {
+      var str = ""
+      if( x.getAs[String]("pre_com") != null){
+        str =x.getAs[String]("pre_com")
+      }
+      val p = Pattern.compile("[\u4e00-\u9fa5]")
+      val m = p.matcher(str)
+      if (!m.find) true else false
+    }).map(x => {
+      val policy_no = x.getAs[String]("policy_no")
+      val final_payment = x.getAs[String]("final_payment")
+      val pre_com = x.getAs[String]("pre_com")
+      val res = if (final_payment == "" || final_payment == null) pre_com else if (final_payment != "" || final_payment != null) final_payment else ""
+      (policy_no,res.toDouble)
+    }).reduceByKey(_ + _).toDF("policy_no","res")
 
-    //end_id | 金额总值(存到HBase中的pre_all_compensation)
-    val end: RDD[(String, String, String)] = tepThree.map(x => x)
-      .filter(x => {
-        var str = ""
-        if (x.get(4) != null) {
-          str = x.get(4).toString
-        }
-        val p = Pattern.compile("[\u4e00-\u9fa5]")
-        val m = p.matcher(str)
-        if (!m.find) true else false
-      })
+
+    val tepThree = tepOne.join(tepTwo, tepOne("policy_code") === tepTwo("policy_no"),"left").filter("LENGTH(ent_id)>0")
       .map(x => {
-        val final_payment = x.getAs[String]("final_payment")
-        val pre_com = x.getAs[String]("pre_com")
-        //如果最终赔付金额有值，就取最终金额，否则就取预估金额
-        val res = if (final_payment == "" || final_payment == null) pre_com else if (final_payment != "" || final_payment != null) final_payment else ""
-        (x.getString(0), res)
+        (x.getAs[String]("ent_id"),x.getAs[Double]("res"))
       })
-      .filter(x => x._2 != "").filter(_._2 != ".").filter(_._2 != "#N/A").filter(x => x._2 != null)
-      .map(x => (x._1, x._2.toDouble))
-      .reduceByKey(_ + _).map(x => {
-      //      (x._1, numberFormat.format(x._2), "pre_all_compensation")
-      (x._1, x._2.toString, "pre_all_compensation")
-    })
-    end
+      .reduceByKey(_+_)
+      .map(x =>{
+        (x._1, x._2.toString, "pre_all_compensation")
+      })
+    tepThree
   }
 
   //死亡预估配额
@@ -659,7 +654,7 @@ trait ClaiminfoUntilTest extends Until with EnterpriseUntil {
     //    |365104828040476c9...|HL1100000176000538|HL1100000176000538|       是|77053|
     val end = tepThree
       //ent_id | id
-      .map(x => (x.getString(0), x.getString(4)))
+      .map(x => (x.getAs[String]("ent_id"), x.getAs[Long]("id").toString))
       .reduceByKey((x1, x2) => {
         //通过reduceByKey对Key进行分组，然后去重
         val sum = x1 + "\t" + x2
@@ -723,9 +718,22 @@ trait ClaiminfoUntilTest extends Until with EnterpriseUntil {
   }
 
   //已赚保费新
-  def charged_premium_new(sqlContext: HiveContext, location_mysql_url: String, prop: Properties,
+  def charged_premium_new(ods_ent_guzhu_salesman:RDD[(String, String)],sqlContext:HiveContext,bro_dim: Broadcast[Array[String]], location_mysql_url: String, prop: Properties,
                           ods_policy_detail: DataFrame): RDD[(String, String, String)] = {
     import sqlContext.implicits._
+    val numberFormat = NumberFormat.getInstance
+    numberFormat.setMaximumFractionDigits(2)
+    var ods_ent_guzhu_salesman_temp = ods_ent_guzhu_salesman.toDF("ent_name","channel_name")
+    val tep_temp = ods_policy_detail.map(x => (x.getAs[String]("insure_code"), x)).filter(x => if (bro_dim.value.contains(x._1)) true else false)
+      .map(x => {
+        (x._2.getAs[String]("ent_id"), x._2.getAs[String]("policy_code"),x._2.getAs[String]("holder_company"),x._2.getAs[String]("policy_id"))
+      }).toDF("ent_id", "policy_code","holder_company","policy_id").filter("ent_id is not null").cache
+    val tepOne = ods_ent_guzhu_salesman_temp.join(tep_temp, tep_temp("holder_company") === ods_ent_guzhu_salesman_temp("ent_name"))
+      .filter("ent_id is not null")
+      .map(x => {
+        var policy_id = x.getAs[String]("policy_id").trim
+        (x.getAs[String]("ent_id"),policy_id)
+      }).toDF("ent_id","policy_id")
 
     val ods_policy_charged_month = sqlContext.read.jdbc(location_mysql_url, "ods_policy_charged_month", prop)
       .mapPartitions(par => {
@@ -733,20 +741,21 @@ trait ClaiminfoUntilTest extends Until with EnterpriseUntil {
         val dateFormatOne: SimpleDateFormat = new SimpleDateFormat("yyyyMMdd")
         val now_Date = dateFormatOne.format(now)
         par.map(x => {
-          (x.getAs[String]("policy_id"), x.getAs[java.math.BigDecimal]("charged_premium"), x.getAs[String]("day_id"))
+          var policy_id = x.getAs[String]("policy_id").trim
+          (policy_id, x.getAs[java.math.BigDecimal]("charged_premium"), x.getAs[String]("day_id"))
         }).filter(_._3.toDouble <= now_Date.toDouble)
       })
       .toDF("policy_id", "charged_premium", "day_id")
 
-    val end: RDD[(String, String, String)] = ods_policy_charged_month
-      .join(ods_policy_detail, "policy_id")
+    val end: RDD[(String, String, String)] = ods_policy_detail
+      .join(ods_policy_charged_month, "policy_id").filter("ent_id is not null")
       .map(x => {
         val ent_id = x.getAs[String]("ent_id")
         val charged_premium = x.getAs[java.math.BigDecimal]("charged_premium").toString.toDouble
         (ent_id, charged_premium)
       })
       .reduceByKey((x1, x2) => x1 + x2).map(x => (x._1, x._2 + "", "charged_premium"))
-
+    end.foreach(println)
     end
   }
 
@@ -761,7 +770,7 @@ trait ClaiminfoUntilTest extends Until with EnterpriseUntil {
     //    |              ent_id|       policy_code|         policy_no|status|   id|
     //    |365104828040476c9...|HL1100000064004245|HL1100000064004245|    拒赔|77222|
     val end: RDD[(String, String, String)] = tepThree
-      .map(x => (x.getString(0), x.getString(4)))
+      .map(x => (x.getAs[String]("ent_id"), x.getAs[Long]("id").toString))
       .reduceByKey((x1, x2) => {
         val sum = x1 + "\t" + x2
         sum
@@ -783,7 +792,7 @@ trait ClaiminfoUntilTest extends Until with EnterpriseUntil {
     //    |              ent_id|       policy_code|         policy_no|status|   id|
     //    |365104828040476c9...|HL1100000064004245|HL1100000064004245|    撤案|77222|
     val end: RDD[(String, String, String)] = tepThree
-      .map(x => (x.getString(0), x.getString(4)))
+      .map(x => (x.getAs[String]("ent_id"), x.getAs[Long]("id").toString))
       .reduceByKey((x1, x2) => {
         val sum = x1 + "\t" + x2
         sum
@@ -885,7 +894,7 @@ trait ClaiminfoUntilTest extends Until with EnterpriseUntil {
     val numberFormat = NumberFormat.getInstance
     numberFormat.setMaximumFractionDigits(6)
 
-    val tepOne = ods_policy_detail.select("ent_id", "policy_code")
+    val tepOne = ods_policy_detail.select("ent_id", "policy_code").filter("ent_id is not null")
     val tepTwo = employer_liability_claims.select("policy_no", "case_type")
     val tepThree = tepOne.join(tepTwo, ods_policy_detail("policy_code") === employer_liability_claims("policy_no")).filter("length(ent_id) > 0")
     //该企业发生死亡的人数
