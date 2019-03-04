@@ -45,7 +45,7 @@ val commonAssemblySettings = Seq(
 // 主工程
 lazy val bznSparkNeed = (project in file("."))
   .settings(
-    libraryDependencies ++= allDeps.map(
+    libraryDependencies ++= allDepsProvided.map(
       _.excludeAll(ExclusionRule(organization = "org.mortbay.jetty"))
     ).map(
       _.excludeAll(ExclusionRule(organization = "javax.servlet"))
