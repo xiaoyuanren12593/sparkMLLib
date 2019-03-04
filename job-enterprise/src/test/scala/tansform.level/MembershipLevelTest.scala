@@ -92,8 +92,7 @@ object MembershipLevelTest {
       .where("dim_1 in ('外包雇主','骑士保','大货车')")
       .map(x => x.getAs[String]("product_code"))
       .toDF("product_code")
-    //雇主表
-
+    //雇主销售人员表
     val ods_ent_guzhu_salesman = sqlContext.read.jdbc(location_mysql_url, "ods_ent_guzhu_salesman", prop).map(x => {
       val ent_id = x.getAs[String]("ent_id")
       val ent_name = x.getAs[String]("ent_name").trim
@@ -101,12 +100,12 @@ object MembershipLevelTest {
       val new_channel_name = if (channel_name == "直客") ent_name else channel_name
       (ent_id,ent_name, new_channel_name)
     }).toDF("ent_id","ent_name","channel_name")
-        .filter("channel_name = '重庆翔耀保险咨询服务有限公司'")
+        .filter("channel_name = '长沙安博企业管理咨询有限公司'")
     //保单详细临时表
     val ods_policy_detail_temp =  sqlContext.read.jdbc(location_mysql_url, "ods_policy_detail", prop)
 
     //保单详情表
-    val ods_policy_detail = ods_policy_detail_temp.join(dim_1,ods_policy_detail_temp("insure_code") === dim_1("product_code"))
+    val ods_policy_detail = ods_policy_detail_temp.join(dim_1,ods_policy_detail_temp("insure_code") ===  dim_1("product_code"))
       .where("policy_status in ('0', '1')")
       .map(x => {
         val holder_company = x.getAs[String]("holder_company").trim

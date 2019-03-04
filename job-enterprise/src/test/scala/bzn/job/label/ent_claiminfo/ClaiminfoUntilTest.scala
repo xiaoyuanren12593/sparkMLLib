@@ -414,6 +414,7 @@ trait ClaiminfoUntilTest extends Until with EnterpriseUntil {
       .map(x => {
         (x._2.getAs[String]("ent_id"), x._2.getAs[String]("policy_code"),x._2.getAs[String]("holder_company"),x._2.getAs[String]("policy_id"))
       }).toDF("ent_id", "policy_code","holder_company","policy_id").filter("ent_id is not null").cache
+    println(tep_temp.count())
     val tepOne = ods_ent_guzhu_salesman_temp.join(tep_temp, tep_temp("holder_company") === ods_ent_guzhu_salesman_temp("ent_name"))
       .filter("ent_id is not null")
       .map(x => {
@@ -450,6 +451,7 @@ trait ClaiminfoUntilTest extends Until with EnterpriseUntil {
       .map(x =>{
         (x._1, x._2.toString, "pre_all_compensation")
       })
+    tepThree.take(10).foreach(println)
     tepThree
   }
 
@@ -724,9 +726,9 @@ trait ClaiminfoUntilTest extends Until with EnterpriseUntil {
     val numberFormat = NumberFormat.getInstance
     numberFormat.setMaximumFractionDigits(2)
     var ods_ent_guzhu_salesman_temp = ods_ent_guzhu_salesman.toDF("ent_name","channel_name")
-    val tep_temp = ods_policy_detail.map(x => (x.getAs[String]("insure_code"), x)).filter(x => if (bro_dim.value.contains(x._1)) true else false)
+    val tep_temp = ods_policy_detail
       .map(x => {
-        (x._2.getAs[String]("ent_id"), x._2.getAs[String]("policy_code"),x._2.getAs[String]("holder_company"),x._2.getAs[String]("policy_id"))
+        (x.getAs[String]("ent_id"), x.getAs[String]("policy_code"),x.getAs[String]("holder_company"),x.getAs[String]("policy_id"))
       }).toDF("ent_id", "policy_code","holder_company","policy_id").filter("ent_id is not null").cache
     val tepOne = ods_ent_guzhu_salesman_temp.join(tep_temp, tep_temp("holder_company") === ods_ent_guzhu_salesman_temp("ent_name"))
       .filter("ent_id is not null")

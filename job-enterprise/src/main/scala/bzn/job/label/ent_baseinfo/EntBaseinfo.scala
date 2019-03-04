@@ -53,15 +53,21 @@ object EntBaseinfo extends BaseinfoUntil with EnterpriseUntil {
   def BaseInfo(sqlContext: HiveContext) {
     //    val ods_policy_detail_table: DataFrame = sqlContext.sql("select policy_id,ent_id,user_id,policy_status from odsdb_prd.ods_policy_detail").cache()
     //现在使用的是ent_id，与ent_enterprise_info表的id关联，以前是user_id相关联的
+   //保单明细表
     val ods_policy_detail_table: DataFrame = sqlContext.sql("select policy_id,ent_id,ent_id as user_id,policy_status from odsdb_prd.ods_policy_detail").cache()
     val ods_policy_detail_table_T: DataFrame = sqlContext.sql("select policy_id,ent_id from odsdb_prd.ods_policy_detail").filter("ent_id is not null").cache()
     val ods_policy_detail: DataFrame = sqlContext.sql("select * from odsdb_prd.ods_policy_detail").cache()
-
+    //官网企业信息表
     val ent_enterprise_info = sqlContext.sql("select * from odsdb_prd.ent_enterprise_info").cache()
+    //城市级别信息码表
     val d_city_grade = sqlContext.sql("select * from odsdb_prd.d_city_grade").cache()
+    //省市地区码表
     val d_cant = sqlContext.sql("select * from odsdb_prd.d_cant").cache()
+    //三证和一表
     val d_id_certificate = sqlContext.sql("select * from odsdb_prd.d_id_certificate").cache()
+    //被保人信息明细表
     val ods_policy_insured_detail = sqlContext.sql("select * from odsdb_prd.ods_policy_insured_detail")
+    //企业级别表
     val ent_sum_level = sqlContext.sql("select * from odsdb_prd.ent_sum_level").cache()
 
 

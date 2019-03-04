@@ -250,7 +250,7 @@ object EntClaiminfoTest extends ClaiminfoUntilTest {
 //
 //
 //    //预估总赔付金额
-//    val pre_all_compensation_r = pre_all_compensation(ods_ent_guzhu_salesman_channel,sqlContext,bro_dim,employer_liability_claims, ods_policy_detail).distinct()
+    val pre_all_compensation_r = pre_all_compensation(ods_ent_guzhu_salesman_channel,sqlContext,bro_dim,employer_liability_claims, ods_policy_detail).distinct()
 //    saveToHbase(pre_all_compensation_r, columnFamily1, "pre_all_compensation", conf_fs, tableName, conf)
 //
 //
@@ -284,7 +284,7 @@ object EntClaiminfoTest extends ClaiminfoUntilTest {
 //    saveToHbase(overtime_compensation_r, columnFamily1, "overtime_compensation", conf_fs, tableName, conf)
 //
 //
-    //已赚保费
+//    //已赚保费
     val lines_source = Source.fromURL(getClass.getResource("/config_scala.properties")).getLines.toSeq
     val location_mysql_url: String = lines_source(2).toString.split("==")(1)
     val prop: Properties = new Properties
