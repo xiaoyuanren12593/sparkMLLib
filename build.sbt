@@ -163,3 +163,19 @@ lazy val jobPersonal = (project in file("job-personal"))
     //定义jar包的名字
     assemblyJarName in assembly := "bzn-personal.jar"
   )
+
+// error and warn
+lazy val jobCountErrorAndWarn = (project in file("job-count-error"))
+  .dependsOn(jobUtil)
+  .settings(
+    libraryDependencies ++= errorAndWarnDepsProvided.map(
+      _.excludeAll(ExclusionRule(organization = "org.mortbay.jetty"))
+    ).map(
+      _.excludeAll(ExclusionRule(organization = "javax.servlet"))
+    ))
+  .settings(commonSettings)
+  .settings(commonAssemblySettings)
+  .settings(
+    //定义jar包的名字
+    assemblyJarName in assembly := "bzn-count-error.jar"
+  )

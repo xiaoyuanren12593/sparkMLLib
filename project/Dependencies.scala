@@ -64,6 +64,11 @@ object Dependencies {
   //--------------------------------------------工具模块----------------------------------------------------------------
   val utilDeps = Seq(jodaTime)
 
+  //---------------------------------------------error和warn个数------------------------------------------------------------
+  val errorAndWarnDepsProvided = Seq(mysqlConnectorJava, fastjson, sparkHiveProvided, sparkStreamingProvided,
+    sparkStreamingKafkaProvided, hbaseClientProvided, hbaseCommonProvided, hbaseServerProvided,
+    hbaseHadoopCompatProvided)
+
   //---------------------------------------------企业模块标签------------------------------------------------------------
   val enterpriseDepsProvided = Seq(mysqlConnectorJava, fastjson, jodaTime, sparkHiveProvided, hbaseClientProvided,
     hbaseServerProvided, hbaseCommonProvided)
@@ -87,4 +92,5 @@ object Dependencies {
 
   //---------------------------------------------个人模块标签------------------------------------------------------------
   val personalDepsProvided = Seq(fastjson, sparkHiveProvided, hbaseClientProvided, hbaseServerProvided, hbaseCommonProvided)
+
 }
