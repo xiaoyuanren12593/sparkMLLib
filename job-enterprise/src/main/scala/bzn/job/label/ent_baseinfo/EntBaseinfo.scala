@@ -1,12 +1,15 @@
 package bzn.job.label.ent_baseinfo
 
 import java.text.NumberFormat
+import java.util.Properties
 
 import bzn.job.until.EnterpriseUntil
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.hive.HiveContext
 import org.apache.spark.{SparkConf, SparkContext}
+
+import scala.io.Source
 
 object EntBaseinfo extends BaseinfoUntil with EnterpriseUntil {
   //12
@@ -50,7 +53,7 @@ object EntBaseinfo extends BaseinfoUntil with EnterpriseUntil {
     end
   }
 
-  def BaseInfo(sqlContext: HiveContext) {
+  def BaseInfo(sqlContext: HiveContext,ods_ent_guzhu_salesman_temp: RDD[(String, String)] ) {
     //    val ods_policy_detail_table: DataFrame = sqlContext.sql("select policy_id,ent_id,user_id,policy_status from odsdb_prd.ods_policy_detail").cache()
     //现在使用的是ent_id，与ent_enterprise_info表的id关联，以前是user_id相关联的
    //保单明细表
@@ -107,9 +110,16 @@ object EntBaseinfo extends BaseinfoUntil with EnterpriseUntil {
     val en = ent_enterprise_info
       .select("id", "ent_name")
       .filter("length(ent_name)>0")
-      .map(x => (x.getString(0), x.getString(1), "ent_name"))
+      .map(x => (x.getString(0), x.getString(1)))
       .distinct()
-    saveToHbase(en, columnFamily1, "ent_name", conf_fs, tableName, conf)
+    //      .map(x => (x.getString(0), x.getString(1), "ent_name"))
+    val ods_ent_guzhu_salesman =  ods_ent_guzhu_salesman_temp.map(x => {
+      (x._2,x._1)
+    })
+    val res = en.union(ods_ent_guzhu_salesman).map(x => {
+      (x._1,x._2,"ent_name")
+    }).distinct()
+    saveToHbase(res, columnFamily1, "ent_name", conf_fs, tableName, conf)
 
     //企业所在省份：ent_province [69d42cd85a59444895210bb781919228,湖南省]
     val ep = ent_enterprise_info
@@ -177,7 +187,22 @@ object EntBaseinfo extends BaseinfoUntil with EnterpriseUntil {
     val sc = new SparkContext(conf_spark)
     val sqlContext: HiveContext = new HiveContext(sc)
 
-    BaseInfo(sqlContext)
+    //读取渠道表
+    val lines_source = Source.fromURL(getClass.getResource("/config_scala.properties")).getLines.toSeq
+    val location_mysql_url: String = lines_source(2).toString.split("==")(1)
+    val prop: Properties = new Properties
+
+    //渠道表
+    val ods_ent_guzhu_salesman_temp: RDD[(String, String)] = sqlContext.read.jdbc(location_mysql_url, "ods_ent_guzhu_salesman", prop)
+      .map(x => {
+        val ent_name = x.getAs[String]("ent_name").trim
+        val channel_name = x.getAs[String]("channel_name").trim
+        val new_channel_name = if (channel_name == "直客") ent_name else channel_name
+        val channel_id = x.getAs[String]("channel_id")
+        (new_channel_name, channel_id)
+      })
+
+    BaseInfo(sqlContext,ods_ent_guzhu_salesman_temp)
     sc.stop()
   }
 }

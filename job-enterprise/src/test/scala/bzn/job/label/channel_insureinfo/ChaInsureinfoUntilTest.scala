@@ -60,7 +60,7 @@ trait ChaInsureinfoUntilTest extends Until with EnterpriseUntil {
       .map(x => (x.getAs[String]("channel_name"), x.getAs[String]("value").toDouble))
       .reduceByKey((x1, x2) => x1 + x2)
       .map(x => (en_before.getOrElse(x._1, "null"), x._2.toInt.toString, str))
-
+    end.foreach(println)
     end
   }
 

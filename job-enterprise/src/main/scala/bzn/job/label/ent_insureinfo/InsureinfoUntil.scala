@@ -431,41 +431,103 @@ trait InsureinfoUntil extends Until with EnterpriseUntil {
   //新的当前在保人数
   def read_people_product(sqlContext: HiveContext, location_mysql_url: String, prop: Properties,
                           location_mysql_url_dwdb: String): RDD[(String, (Int, Int))] = {
-    import sqlContext.implicits._
-
-    val now: Date = new Date
+//    import sqlContext.implicits._
+//
+//    val now: Date = new Date
+//    val dateFormatOne: SimpleDateFormat = new SimpleDateFormat("yyyyMMdd")
+//    val now_Date = dateFormatOne.format(now)
+//
+//    val dim_1 = sqlContext.read.jdbc(location_mysql_url_dwdb, "dim_product", prop)
+//      .select("product_code", "dim_1")
+//      .where("dim_1 in ('外包雇主','骑士保','大货车')")
+//      .map(x => x.getAs[String]("product_code"))
+//      .collect
+//
+//    val ods_policy_detail: DataFrame = sqlContext.read.jdbc(location_mysql_url, "ods_policy_detail", prop)
+//      .where("policy_status in ('1','0')")
+//      .select("ent_id", "policy_id", "insure_code")
+//
+//    val tep_ods_one = ods_policy_detail
+//      .map(x => (x.getAs[String]("insure_code"), x))
+//      .filter(x => if (dim_1.contains(x._1)) true else false)
+//      .map(x => (x._2.getAs[String]("ent_id"), x._2.getAs[String]("policy_id"), x._2.getAs[String]("insure_code")))
+//      .toDF("ent_id", "policy_id", "insure_code").cache
+//
+//    val end = sqlContext.read.jdbc(location_mysql_url, "ods_policy_curr_insured", prop)
+//      .join(tep_ods_one, "policy_id")
+//      .map(x => ((x.getAs[String]("ent_id"), x.getAs[String]("day_id")), x.getAs[Long]("curr_insured").toInt))
+//      .filter(_._1._2.toDouble <= now_Date.toDouble)
+//
+//    val end_all = end
+//      .reduceByKey(_ + _)
+//      .map(x => ((x._1._1, x._1._2.substring(0, 6)), x._2))
+//      .reduceByKey((x1, x2) => if (x1 >= x2) x1 else x2)
+//      .map(x => (x._1._1, (x._1._2.toInt, x._2)))
+//      .reduceByKey((x1, x2) => if (x1._1 >= x2._1) x1 else x2)
+//
+//    end_all
+    val now: Date = new Date()
     val dateFormatOne: SimpleDateFormat = new SimpleDateFormat("yyyyMMdd")
     val now_Date = dateFormatOne.format(now)
 
+    import sqlContext.implicits._
     val dim_1 = sqlContext.read.jdbc(location_mysql_url_dwdb, "dim_product", prop)
       .select("product_code", "dim_1")
-      .where("dim_1 in ('外包雇主','骑士保','大货车')")
+//      .where("dim_1 in ('外包雇主','骑士保','大货车')")
       .map(x => x.getAs[String]("product_code"))
-      .collect
+      .toDF("product_code")
+    //雇主销售人员表
+    val ods_ent_guzhu_salesman = sqlContext.read.jdbc(location_mysql_url, "ods_ent_guzhu_salesman", prop).map(x => {
+      val ent_id = x.getAs[String]("ent_id")
+      val ent_name = x.getAs[String]("ent_name").trim
+      val channel_name = x.getAs[String]("channel_name")
+      val new_channel_name = if (channel_name == "直客") ent_name else channel_name
+      (ent_id,ent_name, new_channel_name)
+    }).toDF("ent_id","ent_name","channel_name")
+    //保单详细临时表
+    val ods_policy_detail_temp =  sqlContext.read.jdbc(location_mysql_url, "ods_policy_detail", prop)
 
-    val ods_policy_detail: DataFrame = sqlContext.read.jdbc(location_mysql_url, "ods_policy_detail", prop)
-      .where("policy_status in ('1','0')")
-      .select("ent_id", "policy_id", "insure_code")
-
-    val tep_ods_one = ods_policy_detail
-      .map(x => (x.getAs[String]("insure_code"), x))
-      .filter(x => if (dim_1.contains(x._1)) true else false)
-      .map(x => (x._2.getAs[String]("ent_id"), x._2.getAs[String]("policy_id"), x._2.getAs[String]("insure_code")))
-      .toDF("ent_id", "policy_id", "insure_code").cache
-
-    val end = sqlContext.read.jdbc(location_mysql_url, "ods_policy_curr_insured", prop)
-      .join(tep_ods_one, "policy_id")
-      .map(x => ((x.getAs[String]("ent_id"), x.getAs[String]("day_id")), x.getAs[Long]("curr_insured").toInt))
-      .filter(_._1._2.toDouble <= now_Date.toDouble)
-
-    val end_all = end
+    //保单详情表
+    val ods_policy_detail = ods_policy_detail_temp.join(dim_1,ods_policy_detail_temp("insure_code") ===  dim_1("product_code"))
+      .where("policy_status in ('0', '1','7', '9', '10')")
+      .map(x => {
+        var  holder_company = ""
+        if(x.getAs[String]("holder_company") == null){
+          holder_company = x.getAs[String]("holder_company")
+        }else{
+          holder_company = x.getAs[String]("holder_company").trim
+        }
+        val policy_code = x.getAs[String]("policy_code")
+        val policy_id = x.getAs[String]("policy_id").trim
+        (holder_company,policy_code,policy_id)
+      }).toDF("holder_company","policy_code","policy_id")
+    val res_temp = ods_ent_guzhu_salesman.join(ods_policy_detail,ods_ent_guzhu_salesman("ent_name") === ods_policy_detail("holder_company"),"left")
+      .select("ent_id","policy_id")
+//      .filter("ent_id = '6b7fa2cbe8d4a2fca52d46f1a1d9732d'")
+    val ods_policy_curr_insured_temp = sqlContext.read.jdbc(location_mysql_url, "ods_policy_curr_insured", prop)
+      .map(x => {
+        val policy_id = x.getAs[String]("policy_id").trim
+        val day_id = x.getAs[String]("day_id").trim
+        val curr_insured = x.getAs[Long]("curr_insured")
+        (policy_id,day_id,curr_insured)
+      }).filter(x => x._2.toDouble == now_Date.toDouble)
+      .toDF("policy_id","day_id","curr_insured")
+    val res = res_temp.join(ods_policy_curr_insured_temp,res_temp("policy_id") === ods_policy_curr_insured_temp("policy_id"),"left")
+      .select("ent_id","day_id","curr_insured")
+      .map(x => {
+        val ent_id = x.getAs[String]("ent_id")
+        var day_id = x.getAs[String]("day_id")
+        if(x.getAs[String]("day_id") == null){
+          day_id = now_Date
+        }
+        val curr_insured = x.getAs[Long]("curr_insured")
+        ((ent_id,day_id),curr_insured)
+      }).filter(x => x._1._2.toDouble == now_Date.toDouble)
       .reduceByKey(_ + _)
-      .map(x => ((x._1._1, x._1._2.substring(0, 6)), x._2))
-      .reduceByKey((x1, x2) => if (x1 >= x2) x1 else x2)
-      .map(x => (x._1._1, (x._1._2.toInt, x._2)))
-      .reduceByKey((x1, x2) => if (x1._1 >= x2._1) x1 else x2)
-
-    end_all
+      .map(x => {
+        (x._1._1,(x._1._2.substring(0,6).toInt,x._2.toInt))
+      })
+    res
   }
 
   //累计保费

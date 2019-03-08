@@ -100,7 +100,7 @@ object MembershipLevelTest {
       val new_channel_name = if (channel_name == "直客") ent_name else channel_name
       (ent_id,ent_name, new_channel_name)
     }).toDF("ent_id","ent_name","channel_name")
-        .filter("channel_name = '长沙安博企业管理咨询有限公司'")
+        .filter("channel_name = '重庆翔耀保险咨询服务有限公司'")
     //保单详细临时表
     val ods_policy_detail_temp =  sqlContext.read.jdbc(location_mysql_url, "ods_policy_detail", prop)
 
@@ -140,7 +140,7 @@ object MembershipLevelTest {
       })
 
     res.map(x => ("1",x._2._2)).reduceByKey(_+_).foreach(println)
-//    res.foreach(println)
+    res.foreach(println)
     res
   }
 

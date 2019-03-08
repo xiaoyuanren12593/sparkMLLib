@@ -86,9 +86,10 @@ object ChaBaseinfoTest extends ChaBaseinfoUntilTest {
   def BaseInfo(users_RDD: RDD[String], channel_ent_name: Array[String],
                ods_ent_guzhu_salesman_channel_RDD: RDD[(String, String)],
                sql_context: HiveContext, get_hbase_key_name: collection.Map[String, String],
-               en_before: collection.Map[String, String]): Unit = {
+               en_before: collection.Map[String, String],ods_ent_guzhu_salesman_temp: RDD[(String, String)]): Unit = {
 
     val ods_policy_insured_detail = sql_context.sql("select * from odsdb_prd.ods_policy_insured_detail")
+
     val ods_policy_detail_table: DataFrame = sql_context.sql("select policy_id,ent_id from odsdb_prd.ods_policy_detail").cache()
 
     //HBaseConf
@@ -102,33 +103,35 @@ object ChaBaseinfoTest extends ChaBaseinfoUntilTest {
 
     //过滤出标签中的渠道
     val channel_before = before.filter(x => channel_ent_name.contains(x._1))
-
-    //渠道类型
-    val et = channel_before
-      .map(x => (x._1, x._2.split(";").filter(_.contains("ent_type")).take(1).mkString("")))
-      .filter(_._2.length > 1)
-      .map(end => {
-        val before = JSON.parseObject(end._2)
-        (s"${en_before.getOrElse(end._1, "null")}", before.getString("value"), before.getString("qual"))
-      })
-      .filter(_._1.length > 5)
-    println(1)
-    et.foreach(println)
-//    saveToHbase(et, columnFamily, "ent_type", conf_fs, tableName, conf)
-
-    //渠道的注册时间
-    val rt = channel_before
-      .map(x => (x._1, x._2.split(";").filter(_.contains("register_time")).take(1).mkString("")))
-      .filter(_._2.length > 1)
-      .map(end => {
-        val before = JSON.parseObject(end._2)
-        (s"${en_before.getOrElse(end._1, "null")}", before.getString("value"), before.getString("qual"))
-      })
-      .filter(_._1.length > 5)
-    println(2)
-    rt.foreach(println)
-//    saveToHbase(rt, columnFamily, "register_time", conf_fs, tableName, conf)
-
+//    ods_ent_guzhu_salesman_temp.leftOuterJoin(channel_before)
+//    channel_before.take(10).foreach(println)
+//    channel_before.filter(x => x._1 == "重庆翔耀保险咨询服务有限公司").take(10).foreach(println)
+//    //渠道类型
+//    val et = channel_before
+//      .map(x => (x._1, x._2.split(";").filter(_.contains("ent_type")).take(1).mkString("")))
+//      .filter(_._2.length > 1)
+//      .map(end => {
+//        val before = JSON.parseObject(end._2)
+//        (s"${en_before.getOrElse(end._1, "null")}", before.getString("value"), before.getString("qual"))
+//      })
+//      .filter(_._1.length > 5)
+//    println(1)
+//    et.foreach(println)
+////    saveToHbase(et, columnFamily, "ent_type", conf_fs, tableName, conf)
+//
+//    //渠道的注册时间
+//    val rt = channel_before
+//      .map(x => (x._1, x._2.split(";").filter(_.contains("register_time")).take(1).mkString("")))
+//      .filter(_._2.length > 1)
+//      .map(end => {
+//        val before = JSON.parseObject(end._2)
+//        (s"${en_before.getOrElse(end._1, "null")}", before.getString("value"), before.getString("qual"))
+//      })
+//      .filter(_._1.length > 5)
+//    println(2)
+//    rt.foreach(println)
+////    saveToHbase(rt, columnFamily, "register_time", conf_fs, tableName, conf)
+//
     //渠道名称
     val en = channel_before
       .map(x => (x._1, x._2.split(";").filter(_.contains("ent_name")).take(1).mkString("")))
@@ -138,11 +141,13 @@ object ChaBaseinfoTest extends ChaBaseinfoUntilTest {
         (s"${en_before.getOrElse(end._1, "null")}", before.getString("value"), before.getString("qual"))
       })
       .filter(_._1.length > 5)
-    println(3)
-    en.foreach(println)
+        .filter(x => x._1 == "b5b8863be155c557c84d4addcd9b6b14")
+    en.take(10).foreach(println)
 //    saveToHbase(en, columnFamily, "ent_name", conf_fs, tableName, conf)
 
-
+    //渠道名称ods_ent_guzhu_salesman_temp
+//
+//
     //渠道所在省份
     val ep = channel_before.map(x => (x._1, x._2.split(";").filter(_.contains("ent_province")).take(1).mkString("")))
       .filter(_._2.length > 1)
@@ -151,71 +156,71 @@ object ChaBaseinfoTest extends ChaBaseinfoUntilTest {
         (s"${en_before.getOrElse(end._1, "null")}", before.getString("value"), before.getString("qual"))
       })
       .filter(_._1.length > 5)
-    println(4)
+  .filter(x => x._1 == "b5b8863be155c557c84d4addcd9b6b14")
     ep.foreach(println)
-//    saveToHbase(ep, columnFamily, "ent_province", conf_fs, tableName, conf)
-
-    //渠道所在城市
-    val ec = channel_before.map(x => (x._1, x._2.split(";").filter(_.contains("ent_city")).take(1).mkString("")))
-      .filter(_._2.length > 1)
-      .map(end => {
-        val before = JSON.parseObject(end._2)
-        (s"${en_before.getOrElse(end._1, "null")}", before.getString("value"), before.getString("qual"))
-      })
-      .filter(_._1.length > 5)
-    println(5)
-    ec.foreach(println)
-//    saveToHbase(ec, columnFamily, "ent_city", conf_fs, tableName, conf)
-
-    //渠道所在的城市类型：ent_city_type
-    val ect = channel_before
-      .map(x => (x._1, x._2.split(";").filter(_.contains("ent_city_type")).take(1).mkString("")))
-      .filter(_._2.length > 1)
-      .map(end => {
-        val before = JSON.parseObject(end._2)
-        (s"${en_before.getOrElse(end._1, "null")}", before.getString("value"), before.getString("qual"))
-      })
-      .filter(_._1.length > 5)
-    println(6)
-    ect.foreach(println)
-//    saveToHbase(ect, columnFamily, "ent_city_type", conf_fs, tableName, conf)
-
-    //渠道产品ID
-    val qCp = getqCp(en_before, before, users_RDD, channel_ent_name, ods_ent_guzhu_salesman_channel_RDD, sql_context)
-      .filter(_._1.length > 5)
-    println(7)
-    qCp.foreach(println)
-//    saveToHbase(qCp, columnFamily, "ent_insure_code", conf_fs, tableName, conf)
-
-    //渠道的男女比例
-    val qy_sex_r = qy_sex(ods_policy_insured_detail, ods_policy_detail_table, get_hbase_key_name, sql_context,
-      ods_ent_guzhu_salesman_channel_RDD, en_before)
-      .filter(_._1.length > 5)
-    println(8)
-    qy_sex_r.foreach(println)
-//    saveToHbase(qy_sex_r, columnFamily, "ent_man_woman_proportion", conf_fs, tableName, conf)
-
-    //渠道平均投保年龄
-    val qy_avg_r = qy_avg(ods_policy_insured_detail, ods_policy_detail_table, get_hbase_key_name, sql_context,
-      ods_ent_guzhu_salesman_channel_RDD, en_before)
-      .filter(_._1.length > 5)
-    println(9)
-    qy_avg_r.foreach(println)
-//    saveToHbase(qy_avg_r, columnFamily, "ent_employee_age", conf_fs, tableName, conf)
-
-    //渠道的人员规模
-    val qy_gm_r = qy_gm(en_before, before, users_RDD, channel_ent_name, ods_ent_guzhu_salesman_channel_RDD, sql_context)
-      .filter(_._1.length > 5)
-    println(10)
-    qy_gm_r.foreach(println)
-//    saveToHbase(qy_gm_r, columnFamily, "ent_scale", conf_fs, tableName, conf)
-
-    //渠道潜在人员规模
-    val qy_qz_r = qy_qz(en_before, before, users_RDD, channel_ent_name, ods_ent_guzhu_salesman_channel_RDD, sql_context)
-      .filter(_._1.length > 5)
-    println(11)
-    qy_qz_r.foreach(println)
-//    saveToHbase(qy_qz_r, columnFamily, "ent_potential_scale", conf_fs, tableName, conf)
+////    saveToHbase(ep, columnFamily, "ent_province", conf_fs, tableName, conf)
+//
+//    //渠道所在城市
+//    val ec = channel_before.map(x => (x._1, x._2.split(";").filter(_.contains("ent_city")).take(1).mkString("")))
+//      .filter(_._2.length > 1)
+//      .map(end => {
+//        val before = JSON.parseObject(end._2)
+//        (s"${en_before.getOrElse(end._1, "null")}", before.getString("value"), before.getString("qual"))
+//      })
+//      .filter(_._1.length > 5)
+//    println(5)
+//    ec.foreach(println)
+////    saveToHbase(ec, columnFamily, "ent_city", conf_fs, tableName, conf)
+//
+//    //渠道所在的城市类型：ent_city_type
+//    val ect = channel_before
+//      .map(x => (x._1, x._2.split(";").filter(_.contains("ent_city_type")).take(1).mkString("")))
+//      .filter(_._2.length > 1)
+//      .map(end => {
+//        val before = JSON.parseObject(end._2)
+//        (s"${en_before.getOrElse(end._1, "null")}", before.getString("value"), before.getString("qual"))
+//      })
+//      .filter(_._1.length > 5)
+//    println(6)
+//    ect.foreach(println)
+////    saveToHbase(ect, columnFamily, "ent_city_type", conf_fs, tableName, conf)
+//
+//    //渠道产品ID
+//    val qCp = getqCp(en_before, before, users_RDD, channel_ent_name, ods_ent_guzhu_salesman_channel_RDD, sql_context)
+//      .filter(_._1.length > 5)
+//    println(7)
+//    qCp.foreach(println)
+////    saveToHbase(qCp, columnFamily, "ent_insure_code", conf_fs, tableName, conf)
+//
+//    //渠道的男女比例
+//    val qy_sex_r = qy_sex(ods_policy_insured_detail, ods_policy_detail_table, get_hbase_key_name, sql_context,
+//      ods_ent_guzhu_salesman_channel_RDD, en_before)
+//      .filter(_._1.length > 5)
+//    println(8)
+//    qy_sex_r.foreach(println)
+////    saveToHbase(qy_sex_r, columnFamily, "ent_man_woman_proportion", conf_fs, tableName, conf)
+//
+//    //渠道平均投保年龄
+//    val qy_avg_r = qy_avg(ods_policy_insured_detail, ods_policy_detail_table, get_hbase_key_name, sql_context,
+//      ods_ent_guzhu_salesman_channel_RDD, en_before)
+//      .filter(_._1.length > 5)
+//    println(9)
+//    qy_avg_r.foreach(println)
+////    saveToHbase(qy_avg_r, columnFamily, "ent_employee_age", conf_fs, tableName, conf)
+//
+//    //渠道的人员规模
+//    val qy_gm_r = qy_gm(en_before, before, users_RDD, channel_ent_name, ods_ent_guzhu_salesman_channel_RDD, sql_context)
+//      .filter(_._1.length > 5)
+//    println(10)
+//    qy_gm_r.foreach(println)
+////    saveToHbase(qy_gm_r, columnFamily, "ent_scale", conf_fs, tableName, conf)
+//
+//    //渠道潜在人员规模
+//    val qy_qz_r = qy_qz(en_before, before, users_RDD, channel_ent_name, ods_ent_guzhu_salesman_channel_RDD, sql_context)
+//      .filter(_._1.length > 5)
+//    println(11)
+//    qy_qz_r.foreach(println)
+////    saveToHbase(qy_qz_r, columnFamily, "ent_potential_scale", conf_fs, tableName, conf)
   }
 
   def main(args: Array[String]): Unit = {
@@ -242,7 +247,6 @@ object ChaBaseinfoTest extends ChaBaseinfoUntilTest {
         val new_channel_name = if (channel_name == "直客") ent_name else channel_name
         (new_channel_name, ent_name)
       })
-
     //以渠道分组后的渠道表
     val ods_ent_guzhu_salesman_channel_only_channel = ods_ent_guzhu_salesman_channel
       .groupByKey
@@ -281,11 +285,22 @@ object ChaBaseinfoTest extends ChaBaseinfoUntilTest {
         val channel_id = x.getAs[String]("channel_id")
         (new_channel_name, channel_id)
       })
-      .filter(x => if (x._1.length > 5 && x._2 != "null") true else false).collectAsMap()
+      .filter(x => if (x._1.length > 5 && x._2 != "null") true else false).collectAsMap
+
+    val ods_ent_guzhu_salesman_temp: RDD[(String, String)] = sqlContext.read.jdbc(location_mysql_url, "ods_ent_guzhu_salesman", prop)
+      .map(x => {
+        val ent_name = x.getAs[String]("ent_name").trim
+        val channel_name = x.getAs[String]("channel_name").trim
+        val new_channel_name = if (channel_name == "直客") ent_name else channel_name
+        val channel_id = x.getAs[String]("channel_id")
+        (new_channel_name, channel_id)
+      })
+
+//      .filter(x => x._1 == "重庆翔耀保险咨询服务有限公司").foreach(println)
     //得到渠道名称和对应的rowkey
     //val en_before: collection.Map[String, String] = en.map(x => (x._2, x._1)).collectAsMap
 
-    BaseInfo(usersRDD, channel_ent_name, ods_ent_guzhu_salesman_channel, sqlContext, get_hbase_key_name, en_before)
+    BaseInfo(usersRDD, channel_ent_name, ods_ent_guzhu_salesman_channel, sqlContext, get_hbase_key_name, en_before,ods_ent_guzhu_salesman_temp)
     sc.stop()
   }
 }

@@ -36,196 +36,197 @@ object ChaInsureinfoTest extends ChaInsureinfoUntilTest {
     //过滤处字符串中存在上述渠道企业的数据
     val before: RDD[(String, String)] = usersRDD.map(x => (x.split("mk6")(0), x.split("mk6")(1)))
     //渠道累计增减员次数
-    val ent_add_regulation_times_data = channel_add(before, ods_ent_guzhu_salesman_channel, sql_context, en_before, "ent_add_regulation_times")
-      .filter(_._1.length > 5)
-//    saveToHbase(ent_add_regulation_times_data, columnFamily, "ent_add_regulation_times", conf_fs, tableName, conf)
-    ent_add_regulation_times_data.take(5).foreach(println)
-
-    //渠道月均增减员次数
-    val ent_month_regulation_times_r_before = before
-      .map(x => (x._1, x._2.split(";").filter(_.contains("ent_add_regulation_times")).take(1).mkString("")))
-      .filter(_._2.length > 1)
-      .map(end => {
-        val before = JSON.parseObject(end._2)
-        (before.getString("row"), before.getString("value"), before.getString("qual"))
-      })
-      .cache
-    val ent_month_regulation_times_r = ent_month_regulation_times(ent_month_regulation_times_r_before,
-      ent_summary_month_1, get_hbase_key_name, sql_context, ods_ent_guzhu_salesman_channel, en_before).filter(_._1.length > 5)
-//    saveToHbase(ent_month_regulation_times_r, columnFamily, "ent_month_regulation_times", conf_fs, tableName, conf)
-    ent_month_regulation_times_r.take(10).foreach(println)
-
-    //渠道累计增员人数
-    val ent_add_sum_persons_r = channel_add(before, ods_ent_guzhu_salesman_channel, sql_context, en_before,
-      "ent_add_sum_persons").filter(_._1.length > 5)
-//    saveToHbase(ent_add_sum_persons_r, columnFamily, "ent_add_sum_persons", conf_fs, tableName, conf)
-    ent_add_sum_persons_r.take(10).foreach(println)
-
-    //渠道累计减员人数
-    val ent_del_sum_persons_r = channel_add(before, ods_ent_guzhu_salesman_channel, sql_context, en_before,
-      "ent_del_sum_persons").filter(_._1.length > 5)
-//    saveToHbase(ent_del_sum_persons_r, columnFamily, "ent_del_sum_persons", conf_fs, tableName, conf)
-    ent_del_sum_persons_r.take(10).foreach(println)
-
-    //渠道月均在保人数
-    val ent_month_plc_persons_r = ent_month_plc_persons(ent_summary_month_1, get_hbase_key_name, sql_context,
-      ods_ent_guzhu_salesman_channel, en_before).filter(_._1.length > 5)
-//    saveToHbase(ent_month_plc_persons_r, columnFamily, "ent_month_plc_persons", conf_fs, tableName, conf)
-    ent_month_plc_persons_r.take(10).foreach(println)
-
-    //渠道续投人数
-    val ent_continuous_plc_persons_r = channel_add(before, ods_ent_guzhu_salesman_channel, sql_context,
-      en_before, "ent_continuous_plc_persons").filter(_._1.length > 5)
-//    saveToHbase(ent_continuous_plc_persons_r, columnFamily, "ent_continuous_plc_persons", conf_fs, tableName, conf)
-    ent_continuous_plc_persons_r.take(10).foreach(println)
-
-    //渠道投保工种数
-    val ent_insure_craft_r = channel_add(before, ods_ent_guzhu_salesman_channel, sql_context,
-      en_before, "ent_insure_craft").filter(_._1.length > 5)
-//    saveToHbase(ent_insure_craft_r, columnFamily, "ent_insure_craft", conf_fs, tableName, conf)
-    ent_insure_craft_r.take(10).foreach(println)
-
-    //求出该渠道中第一工种出现的类型哪个最多
-    val ent_first_craft_r = channel_add_type(before, ods_ent_guzhu_salesman_channel, sql_context,
-      en_before, "ent_first_craft").filter(_._1.length > 5)
-//    saveToHbase(ent_first_craft_r, columnFamily, "ent_first_craft", conf_fs, tableName, conf)
-    ent_first_craft_r.take(10).foreach(println)
-
-    //求出该渠道中第二工种出现的类型哪个最多
-    val ent_second_craft_r = channel_add_type(before, ods_ent_guzhu_salesman_channel, sql_context,
-      en_before, "ent_second_craft").filter(_._1.length > 5)
-//    saveToHbase(ent_second_craft_r, columnFamily, "ent_second_craft", conf_fs, tableName, conf)
-    ent_second_craft_r.take(10).foreach(println)
-
-    //求出该渠道中第三工种出现的类型哪个最多
-    val ent_third_craft_r = channel_add_type(before, ods_ent_guzhu_salesman_channel, sql_context,
-      en_before, "ent_third_craft").filter(_._1.length > 5)
-//    saveToHbase(ent_third_craft_r, columnFamily, "ent_third_craft", conf_fs, tableName, conf)
-    ent_third_craft_r.take(10).foreach(println)
-
-    //该渠道中哪个工种类型的赔额额度最高
-    val ent_most_money_craft_r = channel_add_type(before, ods_ent_guzhu_salesman_channel, sql_context,
-      en_before, "ent_most_money_craft").filter(_._1.length > 5)
-//    saveToHbase(ent_most_money_craft_r, columnFamily, "ent_most_money_craft", conf_fs, tableName, conf)
-    ent_most_money_craft_r.take(10).foreach(println)
-
-    //该渠道中哪个工种类型出险最多
-    val ent_most_count_craft_r = channel_add_type(before, ods_ent_guzhu_salesman_channel, sql_context,
-      en_before, "ent_most_count_craft").filter(_._1.length > 5)
-//    saveToHbase(ent_most_count_craft_r, columnFamily, "ent_most_count_craft", conf_fs, tableName, conf)
-    ent_most_count_craft_r.take(10).foreach(println)
-    //渠道投保人员占总人数比
-    val insured_rate_r = insured_rate(ods_policy_detail, ods_policy_insured_detail, ent_sum_level,
-      get_hbase_key_name, sql_context, ods_ent_guzhu_salesman_channel, en_before).filter(_._1.length > 5)
-//    saveToHbase(insured_rate_r, columnFamily, "insured_rate", conf_fs, tableName, conf)
-    insured_rate_r.take(10).foreach(println)
-    //渠道有效保单数
-    val effective_policy_r = channel_add(before, ods_ent_guzhu_salesman_channel, sql_context, en_before,
-      "effective_policy").filter(_._1.length > 5)
-//    saveToHbase(effective_policy_r, columnFamily, "effective_policy", conf_fs, tableName, conf)
-    effective_policy_r.take(10).foreach(println)
-    //渠道累计投保人次(不对身份证去重)
-    val total_insured_count_r = channel_add(before, ods_ent_guzhu_salesman_channel, sql_context, en_before,
-      "total_insured_count").filter(_._1.length > 5)
-//    saveToHbase(total_insured_count_r, columnFamily, "total_insured_count", conf_fs, tableName, conf)
-    total_insured_count_r.take(10).foreach(println)
-    //渠道累计投保人数 totalInsuredPersons（去重）对身份证号去重
-    val total_insured_persons_r = channel_add(before, ods_ent_guzhu_salesman_channel, sql_context, en_before,
-      "total_insured_persons").filter(_._1.length > 5)
-//    saveToHbase(total_insured_persons_r, columnFamily, "total_insured_persons", conf_fs, tableName, conf)
-    total_insured_persons_r.take(10).foreach(println)
-    //当前渠道在保人数
+//    val ent_add_regulation_times_data = channel_add(before, ods_ent_guzhu_salesman_channel, sql_context, en_before, "ent_add_regulation_times")
+//      .filter(_._1.length > 5)
+////    saveToHbase(ent_add_regulation_times_data, columnFamily, "ent_add_regulation_times", conf_fs, tableName, conf)
+//    ent_add_regulation_times_data.take(5).foreach(println)
+//
+//    //渠道月均增减员次数
+//    val ent_month_regulation_times_r_before = before
+//      .map(x => (x._1, x._2.split(";").filter(_.contains("ent_add_regulation_times")).take(1).mkString("")))
+//      .filter(_._2.length > 1)
+//      .map(end => {
+//        val before = JSON.parseObject(end._2)
+//        (before.getString("row"), before.getString("value"), before.getString("qual"))
+//      })
+//      .cache
+//    val ent_month_regulation_times_r = ent_month_regulation_times(ent_month_regulation_times_r_before,
+//      ent_summary_month_1, get_hbase_key_name, sql_context, ods_ent_guzhu_salesman_channel, en_before).filter(_._1.length > 5)
+////    saveToHbase(ent_month_regulation_times_r, columnFamily, "ent_month_regulation_times", conf_fs, tableName, conf)
+//    ent_month_regulation_times_r.take(10).foreach(println)
+//
+//    //渠道累计增员人数
+//    val ent_add_sum_persons_r = channel_add(before, ods_ent_guzhu_salesman_channel, sql_context, en_before,
+//      "ent_add_sum_persons").filter(_._1.length > 5)
+////    saveToHbase(ent_add_sum_persons_r, columnFamily, "ent_add_sum_persons", conf_fs, tableName, conf)
+//    ent_add_sum_persons_r.take(10).foreach(println)
+//
+//    //渠道累计减员人数
+//    val ent_del_sum_persons_r = channel_add(before, ods_ent_guzhu_salesman_channel, sql_context, en_before,
+//      "ent_del_sum_persons").filter(_._1.length > 5)
+////    saveToHbase(ent_del_sum_persons_r, columnFamily, "ent_del_sum_persons", conf_fs, tableName, conf)
+//    ent_del_sum_persons_r.take(10).foreach(println)
+//
+//    //渠道月均在保人数
+//    val ent_month_plc_persons_r = ent_month_plc_persons(ent_summary_month_1, get_hbase_key_name, sql_context,
+//      ods_ent_guzhu_salesman_channel, en_before).filter(_._1.length > 5)
+////    saveToHbase(ent_month_plc_persons_r, columnFamily, "ent_month_plc_persons", conf_fs, tableName, conf)
+//    ent_month_plc_persons_r.take(10).foreach(println)
+//
+//    //渠道续投人数
+//    val ent_continuous_plc_persons_r = channel_add(before, ods_ent_guzhu_salesman_channel, sql_context,
+//      en_before, "ent_continuous_plc_persons").filter(_._1.length > 5)
+////    saveToHbase(ent_continuous_plc_persons_r, columnFamily, "ent_continuous_plc_persons", conf_fs, tableName, conf)
+//    ent_continuous_plc_persons_r.take(10).foreach(println)
+//
+//    //渠道投保工种数
+//    val ent_insure_craft_r = channel_add(before, ods_ent_guzhu_salesman_channel, sql_context,
+//      en_before, "ent_insure_craft").filter(_._1.length > 5)
+////    saveToHbase(ent_insure_craft_r, columnFamily, "ent_insure_craft", conf_fs, tableName, conf)
+//    ent_insure_craft_r.take(10).foreach(println)
+//
+//    //求出该渠道中第一工种出现的类型哪个最多
+//    val ent_first_craft_r = channel_add_type(before, ods_ent_guzhu_salesman_channel, sql_context,
+//      en_before, "ent_first_craft").filter(_._1.length > 5)
+////    saveToHbase(ent_first_craft_r, columnFamily, "ent_first_craft", conf_fs, tableName, conf)
+//    ent_first_craft_r.take(10).foreach(println)
+//
+//    //求出该渠道中第二工种出现的类型哪个最多
+//    val ent_second_craft_r = channel_add_type(before, ods_ent_guzhu_salesman_channel, sql_context,
+//      en_before, "ent_second_craft").filter(_._1.length > 5)
+////    saveToHbase(ent_second_craft_r, columnFamily, "ent_second_craft", conf_fs, tableName, conf)
+//    ent_second_craft_r.take(10).foreach(println)
+//
+//    //求出该渠道中第三工种出现的类型哪个最多
+//    val ent_third_craft_r = channel_add_type(before, ods_ent_guzhu_salesman_channel, sql_context,
+//      en_before, "ent_third_craft").filter(_._1.length > 5)
+////    saveToHbase(ent_third_craft_r, columnFamily, "ent_third_craft", conf_fs, tableName, conf)
+//    ent_third_craft_r.take(10).foreach(println)
+//
+//    //该渠道中哪个工种类型的赔额额度最高
+//    val ent_most_money_craft_r = channel_add_type(before, ods_ent_guzhu_salesman_channel, sql_context,
+//      en_before, "ent_most_money_craft").filter(_._1.length > 5)
+////    saveToHbase(ent_most_money_craft_r, columnFamily, "ent_most_money_craft", conf_fs, tableName, conf)
+//    ent_most_money_craft_r.take(10).foreach(println)
+//
+//    //该渠道中哪个工种类型出险最多
+//    val ent_most_count_craft_r = channel_add_type(before, ods_ent_guzhu_salesman_channel, sql_context,
+//      en_before, "ent_most_count_craft").filter(_._1.length > 5)
+////    saveToHbase(ent_most_count_craft_r, columnFamily, "ent_most_count_craft", conf_fs, tableName, conf)
+//    ent_most_count_craft_r.take(10).foreach(println)
+//    //渠道投保人员占总人数比
+//    val insured_rate_r = insured_rate(ods_policy_detail, ods_policy_insured_detail, ent_sum_level,
+//      get_hbase_key_name, sql_context, ods_ent_guzhu_salesman_channel, en_before).filter(_._1.length > 5)
+////    saveToHbase(insured_rate_r, columnFamily, "insured_rate", conf_fs, tableName, conf)
+//    insured_rate_r.take(10).foreach(println)
+//    //渠道有效保单数
+//    val effective_policy_r = channel_add(before, ods_ent_guzhu_salesman_channel, sql_context, en_before,
+//      "effective_policy").filter(_._1.length > 5)
+////    saveToHbase(effective_policy_r, columnFamily, "effective_policy", conf_fs, tableName, conf)
+//    effective_policy_r.take(10).foreach(println)
+//    //渠道累计投保人次(不对身份证去重)
+//    val total_insured_count_r = channel_add(before, ods_ent_guzhu_salesman_channel, sql_context, en_before,
+//      "total_insured_count").filter(_._1.length > 5)
+////    saveToHbase(total_insured_count_r, columnFamily, "total_insured_count", conf_fs, tableName, conf)
+//    total_insured_count_r.take(10).foreach(println)
+//    //渠道累计投保人数 totalInsuredPersons（去重）对身份证号去重
+//    val total_insured_persons_r = channel_add(before, ods_ent_guzhu_salesman_channel, sql_context, en_before,
+//      "total_insured_persons").filter(_._1.length > 5)
+////    saveToHbase(total_insured_persons_r, columnFamily, "total_insured_persons", conf_fs, tableName, conf)
+//    total_insured_persons_r.take(10).foreach(println)
+//    //当前渠道在保人数
     val cur_insured_persons_r = channel_add(before, ods_ent_guzhu_salesman_channel, sql_context, en_before,
       "cur_insured_persons").filter(_._1.length > 5)
-//    saveToHbase(cur_insured_persons_r, columnFamily, "cur_insured_persons", conf_fs, tableName, conf)
     cur_insured_persons_r.take(10).foreach(println)
-    //渠道累计保费
-    val total_premium_data = channel_add(before, ods_ent_guzhu_salesman_channel, sql_context, en_before,
-      "total_premium").filter(_._1.length > 5)
-//    saveToHbase(total_premium_data, columnFamily, "total_premium", conf_fs, tableName, conf)
-    total_premium_data.take(10).foreach(println)
-    //渠道月均保费
-    val avg_month_premium_r = avg_month_premium(ent_summary_month_1, get_hbase_key_name, sql_context,
-      ods_ent_guzhu_salesman_channel, en_before, before, "avg_month_premium").filter(_._1.length > 5)
-//    saveToHbase(avg_month_premium_r, columnFamily, "avg_month_premium", conf_fs, tableName, conf)
-    avg_month_premium_r.take(10).foreach(println)
-    //渠道连续在保月份，都有哪个月
-    val month_number = channel_add_month(before, ods_ent_guzhu_salesman_channel, sql_context, en_before,
-      "month_number").filter(_._1.length > 5)
-//    saveToHbase(month_number, columnFamily, "month_number", conf_fs, tableName, conf)
-    month_number.take(10).foreach(println)
-    //渠道连续在保月数 ,月份的增加和减少
-    def month_add_jian(number: Int, filter_date: String): String = {
-      //当前月份+1
-      val sdf = new SimpleDateFormat("yyyyMM")
-      val dt = sdf.parse(filter_date)
-      val rightNow = Calendar.getInstance()
-      rightNow.setTime(dt)
-      rightNow.add(Calendar.MONTH, number)
-      val dt1 = rightNow.getTime()
-      val reStr = sdf.format(dt1)
-      reStr
-    }
-
-    val ent_continuous_plc_month_r = channel_add_month(before, ods_ent_guzhu_salesman_channel, sql_context, en_before, "month_number")
-      .filter(_._1.length > 5)
-      .map(x => (x._1, x._2, "ent_continuous_plc_month"))
-      .map(x => {
-        val tep_three = if (!x._2.contains("-") && x._2.length > 0) 1 else if (x._2.contains("-")) {
-          //最近的一次断开的月份，得到连续在保月份
-          val res = x._2.split("-").sorted
-          val first_data = res(0)
-          val final_data = res(res.length - 1)
-          //2个日期相隔多少个月，包括开始日期和结束日期
-          val get_res_day = getBeg_End_one_two_month(first_data, final_data)
-
-          //找出最近的一次的连续日期
-          val filter_date = if (res.length == get_res_day.length) month_add_jian(0, res(0))
-          else {
-            val res_end = get_res_day.filter(!res.contains(_)).reverse(0)
-            month_add_jian(1, res_end)
-          }
-          //得到2个日期之间相隔多少个月
-          val end_final: Int = getBeg_End_one_two_month(filter_date, final_data).length
-          end_final
-        } else 0
-
-        (x._1, tep_three.toString, x._3)
-      })
-      .filter(_._1.length > 5)
-    ent_continuous_plc_month_r.take(10).foreach(println)
-//    saveToHbase(ent_continuous_plc_month_r, columnFamily, "ent_continuous_plc_month", conf_fs, tableName, conf)
-
-    //渠道首次投保至今月数
-    val ent_fist_plc_month_r = ent_fist_plc_month(before, ods_ent_guzhu_salesman_channel, sql_context, en_before, "ent_fist_plc_month").filter(_._1.length > 5)
-    ent_fist_plc_month_r.take(10).foreach(println)
-//    saveToHbase(ent_fist_plc_month_r, columnFamily, "ent_fist_plc_month", conf_fs, tableName, conf)
-
-    //渠道人均保费:渠道累计保费/渠道累计投保人数
-    val before_premium: RDD[(String, String)] = total_premium_data.map(x => (x._1, x._2)).cache
-    val after_premium: RDD[(String, String)] = total_insured_persons_r.map(x => (x._1, x._2))
-    val avg_person_premium: RDD[(String, String, String)] = before_premium
-      .join(after_premium)
-      .map(x => {
-        val avg_premium = x._2._1.toDouble / x._2._2.toDouble
-        (x._1, avg_premium.toString, "avg_person_premium")
-      })
-      .filter(_._1.length > 5)
-    avg_person_premium.take(10).take(10).foreach(println)
-//    saveToHbase(avg_person_premium, columnFamily, "avg_person_premium", conf_fs, tableName, conf)
-
-    //渠道年均保费(渠道月均保费*12)
-    val avg_year_premium = avg_month_premium_r.map(x => {
-      val year_premium = x._2.toDouble * 12
-      (x._1, year_premium.toString, "avg_year_premium")
-    })
-    avg_year_premium.take(10).foreach(println)
-//    saveToHbase(avg_year_premium, columnFamily, "avg_year_premium", conf_fs, tableName, conf)
-
-    //渠道当前生效保单数
-    val cureffected_policy = channel_add(before, ods_ent_guzhu_salesman_channel, sql_context, en_before, "cureffected_policy").filter(_._1.length > 5)
-//    saveToHbase(cureffected_policy, columnFamily, "cureffected_policy", conf_fs, tableName, conf)
-    cureffected_policy.take(10).foreach(println)
+//    saveToHbase(cur_insured_persons_r, columnFamily, "cur_insured_persons", conf_fs, tableName, conf)
+//    cur_insured_persons_r.take(10).foreach(println)
+//    //渠道累计保费
+//    val total_premium_data = channel_add(before, ods_ent_guzhu_salesman_channel, sql_context, en_before,
+//      "total_premium").filter(_._1.length > 5)
+////    saveToHbase(total_premium_data, columnFamily, "total_premium", conf_fs, tableName, conf)
+//    total_premium_data.take(10).foreach(println)
+//    //渠道月均保费
+//    val avg_month_premium_r = avg_month_premium(ent_summary_month_1, get_hbase_key_name, sql_context,
+//      ods_ent_guzhu_salesman_channel, en_before, before, "avg_month_premium").filter(_._1.length > 5)
+////    saveToHbase(avg_month_premium_r, columnFamily, "avg_month_premium", conf_fs, tableName, conf)
+//    avg_month_premium_r.take(10).foreach(println)
+//    //渠道连续在保月份，都有哪个月
+//    val month_number = channel_add_month(before, ods_ent_guzhu_salesman_channel, sql_context, en_before,
+//      "month_number").filter(_._1.length > 5)
+////    saveToHbase(month_number, columnFamily, "month_number", conf_fs, tableName, conf)
+//    month_number.take(10).foreach(println)
+//    //渠道连续在保月数 ,月份的增加和减少
+//    def month_add_jian(number: Int, filter_date: String): String = {
+//      //当前月份+1
+//      val sdf = new SimpleDateFormat("yyyyMM")
+//      val dt = sdf.parse(filter_date)
+//      val rightNow = Calendar.getInstance()
+//      rightNow.setTime(dt)
+//      rightNow.add(Calendar.MONTH, number)
+//      val dt1 = rightNow.getTime()
+//      val reStr = sdf.format(dt1)
+//      reStr
+//    }
+//
+//    val ent_continuous_plc_month_r = channel_add_month(before, ods_ent_guzhu_salesman_channel, sql_context, en_before, "month_number")
+//      .filter(_._1.length > 5)
+//      .map(x => (x._1, x._2, "ent_continuous_plc_month"))
+//      .map(x => {
+//        val tep_three = if (!x._2.contains("-") && x._2.length > 0) 1 else if (x._2.contains("-")) {
+//          //最近的一次断开的月份，得到连续在保月份
+//          val res = x._2.split("-").sorted
+//          val first_data = res(0)
+//          val final_data = res(res.length - 1)
+//          //2个日期相隔多少个月，包括开始日期和结束日期
+//          val get_res_day = getBeg_End_one_two_month(first_data, final_data)
+//
+//          //找出最近的一次的连续日期
+//          val filter_date = if (res.length == get_res_day.length) month_add_jian(0, res(0))
+//          else {
+//            val res_end = get_res_day.filter(!res.contains(_)).reverse(0)
+//            month_add_jian(1, res_end)
+//          }
+//          //得到2个日期之间相隔多少个月
+//          val end_final: Int = getBeg_End_one_two_month(filter_date, final_data).length
+//          end_final
+//        } else 0
+//
+//        (x._1, tep_three.toString, x._3)
+//      })
+//      .filter(_._1.length > 5)
+//    ent_continuous_plc_month_r.take(10).foreach(println)
+////    saveToHbase(ent_continuous_plc_month_r, columnFamily, "ent_continuous_plc_month", conf_fs, tableName, conf)
+//
+//    //渠道首次投保至今月数
+//    val ent_fist_plc_month_r = ent_fist_plc_month(before, ods_ent_guzhu_salesman_channel, sql_context, en_before, "ent_fist_plc_month").filter(_._1.length > 5)
+//    ent_fist_plc_month_r.take(10).foreach(println)
+////    saveToHbase(ent_fist_plc_month_r, columnFamily, "ent_fist_plc_month", conf_fs, tableName, conf)
+//
+//    //渠道人均保费:渠道累计保费/渠道累计投保人数
+//    val before_premium: RDD[(String, String)] = total_premium_data.map(x => (x._1, x._2)).cache
+//    val after_premium: RDD[(String, String)] = total_insured_persons_r.map(x => (x._1, x._2))
+//    val avg_person_premium: RDD[(String, String, String)] = before_premium
+//      .join(after_premium)
+//      .map(x => {
+//        val avg_premium = x._2._1.toDouble / x._2._2.toDouble
+//        (x._1, avg_premium.toString, "avg_person_premium")
+//      })
+//      .filter(_._1.length > 5)
+//    avg_person_premium.take(10).take(10).foreach(println)
+////    saveToHbase(avg_person_premium, columnFamily, "avg_person_premium", conf_fs, tableName, conf)
+//
+//    //渠道年均保费(渠道月均保费*12)
+//    val avg_year_premium = avg_month_premium_r.map(x => {
+//      val year_premium = x._2.toDouble * 12
+//      (x._1, year_premium.toString, "avg_year_premium")
+//    })
+//    avg_year_premium.take(10).foreach(println)
+////    saveToHbase(avg_year_premium, columnFamily, "avg_year_premium", conf_fs, tableName, conf)
+//
+//    //渠道当前生效保单数
+//    val cureffected_policy = channel_add(before, ods_ent_guzhu_salesman_channel, sql_context, en_before, "cureffected_policy").filter(_._1.length > 5)
+////    saveToHbase(cureffected_policy, columnFamily, "cureffected_policy", conf_fs, tableName, conf)
+//    cureffected_policy.take(10).foreach(println)
   }
 
   def main(args: Array[String]): Unit = {
@@ -250,7 +251,7 @@ object ChaInsureinfoTest extends ChaInsureinfoUntilTest {
         val channel_name = x.getAs[String]("channel_name").trim
         val new_channel_name = if (channel_name == "直客") ent_name else channel_name
         (new_channel_name, ent_name)
-      })
+      }).filter(x => x._1 == "重庆翔耀保险咨询服务有限公司")
 
     //以渠道分组后的渠道表
     val ods_ent_guzhu_salesman_channel_only_channel = ods_ent_guzhu_salesman_channel
@@ -273,6 +274,7 @@ object ChaInsureinfoTest extends ChaInsureinfoUntilTest {
         rdd.map(f => KeyValueToString(f._2, json, f._1)) //.flatMap(_.split(";"))
       })
       .cache
+
 
     //得到标签数据企业ID，与企业名称
     val get_hbase_key_name: collection.Map[String, String] = getHbaseValue(sc)
