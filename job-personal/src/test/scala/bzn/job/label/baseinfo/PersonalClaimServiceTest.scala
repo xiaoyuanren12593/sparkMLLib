@@ -313,6 +313,7 @@ object PersonalClaimServiceTest extends Until with PersonalUntil {
     val end = employer_liability_claims
       .filter("length(cert_no) >2 ")
       .select("cert_no", "time_effect")
+      .filter("time_effect != '(43304)'")
       .map(x => {
         val res = if (x.get(1) == "" || x.get(1) == null) 0.0 else x.get(1).toString.toDouble
         (x.getString(0), (res, 1))

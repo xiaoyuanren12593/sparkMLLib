@@ -108,6 +108,8 @@ object YearMonthPremiumTest extends Until with BiUntil {
 
         //        res.foreach(println)
         res
+
+
       })
     }).filter(x => !x.equals("")).filter(x => if (bp_bro.value.contains(x._1)) true else false)
     val to_hive = bzn_year.map(x => (x._2, x._3, x._4, x._5, x._6, x._7, x._8, x._9, x._10, x._11))
@@ -178,8 +180,7 @@ object YearMonthPremiumTest extends Until with BiUntil {
   }
 
   def main(args: Array[String]): Unit = {
-
-
+    System.setProperty("HADOOP_USER_NAME", "hdfs")
     val conf_s = new SparkConf().setAppName("wuYu")
       .set("spark.sql.broadcastTimeout", "36000")
       .set("spark.network.timeout", "36000")
@@ -228,12 +229,12 @@ object YearMonthPremiumTest extends Until with BiUntil {
       val p = Runtime.getRuntime.exec(cmd)
       p.waitFor()
       if (p != null) {
-        bzn_year.foreach(x => println(x))
-        //        toMsql(bzn_year, path_hdfs, path)
+//        bzn_year.foreach(x => println(x))
+        toMsql(bzn_year, path_hdfs, path)
       }
     } else {
-      bzn_year.foreach(x => println(x))
-      //      toMsql(bzn_year, path_hdfs, path)
+//      bzn_year.foreach(x => println(x))
+      toMsql(bzn_year, path_hdfs, path)
     }
   }
 }
