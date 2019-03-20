@@ -1,3 +1,5 @@
+package com.bzn.getHbase
+
 import java.io.FileInputStream
 import java.sql.{Connection, DriverManager}
 import java.util.Properties
@@ -13,28 +15,28 @@ import org.apache.spark.sql.hive.HiveContext
 import org.apache.spark.sql.{DataFrame, SQLContext, SaveMode}
 import org.apache.spark.{SparkConf, SparkContext}
 
+import scala.io.Source
+
 /**
   * @author 邢万成
   * 2019/13/9
   *
   */
-object SaveDataFrameASMysqlTest {
-  var hdfsPath: String = ""
-  var proPath: String = ""
-  var DATE: String = ""
-
-  val sparkConf: SparkConf = new SparkConf().setAppName(getClass.getSimpleName)
-    .setMaster("local[*]")
-  val sc: SparkContext = new SparkContext(sparkConf)
-  val sqlContext: SQLContext = new HiveContext(sc)
-
+object SaveDataFrameASMysqlSecondTest {
   def main(args: Array[String]): Unit = {
-    hdfsPath = "config_scala.properties"
-    proPath = "config_scala.properties"
+    var hdfsPath: String = ""
+    var proPath: String = ""
+    var DATE: String = ""
+
+    val sparkConf: SparkConf = new SparkConf().setAppName(getClass.getSimpleName)
+      .setMaster("local[*]")
+    val sc: SparkContext = new SparkContext(sparkConf)
+    val sqlContext: SQLContext = new HiveContext(sc)
+
     import sqlContext.implicits._
 
     //不过滤读取
-    val crmCustomFieldsOptions: DataFrame = readMysqlTable(sqlContext, "t_crm_customfields_options", proPath)
+    val crmCustomFieldsOptions: DataFrame = readMysqlTable(sqlContext, "t_crm_customfields_options")
       .toDF("id","type","sys_field_name","field_id","one_key","one_value")
       .map(x => {
         val id = x.getAs[Long]("id")
@@ -65,7 +67,7 @@ object SaveDataFrameASMysqlTest {
       (key, name,lastMasterUserId,getCumChannel,CusLevelCount,CusSpecificFrom,CusFrom)
     })
       .toDF("key", "name","lastMasterUserId","getCumChannel","CusLevelCount","CusSpecificFrom","CusFrom")
-    getHbaseKeyValue.map(x=> x.toString()).take(10).foreach(println)
+//    getHbaseKeyValue.map(x=> x.toString()).take(10).foreach(println)
 //    println(getHbaseKeyValue.count())
     val getCumChannelTmp = getHbaseKeyValue.join(crmCustomFieldsOptions,getHbaseKeyValue("getCumChannel")===crmCustomFieldsOptions("fieldAndKey"),"left")
         .map(x => {
@@ -142,7 +144,7 @@ object SaveDataFrameASMysqlTest {
     */
   def saveASMysqlTable(dataFrame: DataFrame, tableName: String, saveMode: SaveMode, proPath: String) = {
     var table = tableName
-    val properties: Properties = getProPerties(proPath)
+    val properties: Properties = getProPerties()
     val prop = new Properties //配置文件中的key 与 spark 中的 key 不同 所以 创建prop 按照spark 的格式 进行配置数据库
     prop.setProperty("user", properties.getProperty("mysql.username"))
     prop.setProperty("password", properties.getProperty("mysql.password"))
@@ -175,11 +177,10 @@ object SaveDataFrameASMysqlTest {
     *
     * @param sqlContext
     * @param tableName 读取Mysql表的名字
-    * @param proPath   配置文件的路径
     * @return 返回 Mysql 表的 DataFrame
     */
-  def readMysqlTable(sqlContext: SQLContext, tableName: String, proPath: String) = {
-    val properties: Properties = getProPerties(proPath)
+  def readMysqlTable(sqlContext: SQLContext, tableName: String) = {
+    val properties: Properties = getProPerties()
     sqlContext
       .read
       .format("jdbc")
@@ -194,39 +195,24 @@ object SaveDataFrameASMysqlTest {
   }
 
   /**
-    * 获取 Mysql 表的数据 添加过滤条件
-    *
-    * @param sqlContext
-    * @param table           读取Mysql表的名字
-    * @param filterCondition 过滤条件
-    * @param proPath         配置文件的路径
-    * @return 返回 Mysql 表的 DataFrame
-    */
-  def readMysqlTable(sqlContext: SQLContext, table: String, filterCondition: String, proPath: String) = {
-    val properties: Properties = getProPerties(proPath)
-    var tableName = ""
-    tableName = "(select * from " + table + " where " + filterCondition + " ) as t1"
-    sqlContext
-      .read
-      .format("jdbc")
-      .option("url", properties.getProperty("mysql.url"))
-      .option("driver", properties.getProperty("mysql.driver"))
-      .option("user", properties.getProperty("mysql.username"))
-      .option("password", properties.getProperty("mysql.password"))
-      .option("dbtable", tableName)
-      .load()
-  }
-
-  /**
     * 获取配置文件
     *
-    * @param proPath
     * @return
     */
-  def getProPerties(proPath: String) = {
-    val properties: Properties = new Properties()
-    val loader = getClass.getClassLoader
-    properties.load(new FileInputStream(loader.getResource(proPath).getFile()))
+  def getProPerties() = {
+    //第一种放在集群上找不到config_scala.properties文件，使用第二种。
+//    val properties: Properties = new Properties()
+//    val loader = getClass.getClassLoader
+//    properties.load(new FileInputStream(loader.getResource(proPath).getFile()))
+//    properties
+    val lines_source = Source.fromURL(getClass.getResource("/config_scala.properties")).getLines.toSeq
+    var properties: Properties = new Properties()
+    for (elem <- lines_source) {
+      val split = elem.split("==")
+      val key = split(0)
+      val value = split(1)
+      properties.setProperty(key,value)
+    }
     properties
   }
 }
