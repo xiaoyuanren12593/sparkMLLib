@@ -93,4 +93,8 @@ object Dependencies {
   //---------------------------------------------个人模块标签------------------------------------------------------------
   val personalDepsProvided = Seq(fastjson, sparkHiveProvided, hbaseClientProvided, hbaseServerProvided, hbaseCommonProvided)
 
+  //---------------------------------------------crm模块标签------------------------------------------------------------
+  val crmDepsProvided = Seq(sparkStreamingProvided,sparkStreamingKafkaProvided,mysqlConnectorJava,fastjson,
+    sparkHiveProvided, hbaseClientProvided, hbaseServerProvided, hbaseCommonProvided)
+
 }

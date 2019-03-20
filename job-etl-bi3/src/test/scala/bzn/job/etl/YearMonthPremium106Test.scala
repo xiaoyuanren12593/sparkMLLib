@@ -5,6 +5,7 @@ import java.sql.DriverManager
 import java.text.NumberFormat
 
 import bzn.job.common.Until
+import bzn.job.until.BiUntil
 import org.apache.spark.broadcast.Broadcast
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.DataFrame
@@ -15,7 +16,7 @@ import org.apache.spark.{SparkConf, SparkContext}
   * Created by MK on 2018/4/26.
   * 保费，精确到天，有年单的也有月单的
   */
-object YearMonthPremium extends Until {
+object YearMonthPremium106Test extends Until with BiUntil {
 
   //遍历某目录下所有的文件和子文件
   def subDir(dir: File): Iterator[File] = {
@@ -27,7 +28,7 @@ object YearMonthPremium extends Until {
   def getC3p0DateSource(path: String): Boolean = {
     Class.forName("com.mysql.jdbc.Driver")
     //获取连接//http://baidu.com
-    val connection = DriverManager.getConnection("jdbc:mysql://172.16.11.105:3306/odsdb?user=root&password=bzn@cdh123!")
+    val connection = DriverManager.getConnection("jdbc:mysql://172.16.11.106:3306/odsdb?user=root&password=bzn@cdh123!")
     //通过连接创建statement
     var statement = connection.createStatement()
     //    val sql1 = "load data infile '/home/m.txt'  into table odsdb.ods_policy_insured_charged_vt"
@@ -107,6 +108,8 @@ object YearMonthPremium extends Until {
 
         //        res.foreach(println)
         res
+
+
       })
     }).filter(x => !x.equals("")).filter(x => if (bp_bro.value.contains(x._1)) true else false)
     val to_hive = bzn_year.map(x => (x._2, x._3, x._4, x._5, x._6, x._7, x._8, x._9, x._10, x._11))
@@ -177,15 +180,12 @@ object YearMonthPremium extends Until {
   }
 
   def main(args: Array[String]): Unit = {
-
     System.setProperty("HADOOP_USER_NAME", "hdfs")
-    //    Logger.getLogger("org.apache.spark").setLevel(Level.WARN)
-
     val conf_s = new SparkConf().setAppName("wuYu")
       .set("spark.sql.broadcastTimeout", "36000")
       .set("spark.network.timeout", "36000")
       .set("spark.executor.heartbeatInterval", "20000")
-    //          .setMaster("local[2]")
+//      .setMaster("local[2]")
     val sc = new SparkContext(conf_s)
     val sqlContext: HiveContext = new HiveContext(sc)
     val ods_policy_detail = sqlContext.sql("select * from odsdb_prd.ods_policy_detail").filter("policy_status in ('0','1')").cache()
@@ -213,28 +213,26 @@ object YearMonthPremium extends Until {
       * 存入mysql
       **/
 
-//    //得到时间戳
-//    val timeMillions = System.currentTimeMillis()
-//    //HDFS需要传的路径
-//    val path_hdfs = s"file:///share/ods_policy_insured_charged_vt_$timeMillions"
-//    //本地需要传的路径
-//    val path = s"/share/ods_policy_insured_charged_vt_$timeMillions"
-//
-//    //判断目录是否存在 ,存在的话则删除这个目录及其子目录
-//    val exis = new File(path)
-//    //每天新创建一个目录，将数据写入到新目录中
-//    if (exis.exists()) {
-//
-//      val cmd = "sh /share/deleteFile.sh " + path + "/"
-//      val p = Runtime.getRuntime.exec(cmd)
-//      p.waitFor()
-//      if (p != null) {
-//        toMsql(bzn_year, path_hdfs, path)
-//      }
-//    } else {
-//      toMsql(bzn_year, path_hdfs, path)
-//    }
-    sc.stop()
+    //得到时间戳
+    val timeMillions = System.currentTimeMillis()
+    //HDFS需要传的路径
+    val path_hdfs = s"file:///share/ods_policy_insured_charged_vt_$timeMillions"
+    //本地需要传的路径
+    val path = s"/share/ods_policy_insured_charged_vt_$timeMillions"
+
+    //判断目录是否存在 ,存在的话则删除这个目录及其子目录
+    val exis = new File(path)
+    //每天新创建一个目录，将数据写入到新目录中
+    if (exis.exists()) {
+
+      val cmd = "sh /share/deleteFile.sh " + path + "/"
+      val p = Runtime.getRuntime.exec(cmd)
+      p.waitFor()
+      if (p != null) {
+        toMsql(bzn_year, path_hdfs, path)
+      }
+    } else {
+      toMsql(bzn_year, path_hdfs, path)
+    }
   }
 }
-

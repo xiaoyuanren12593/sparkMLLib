@@ -179,3 +179,19 @@ lazy val jobCountErrorAndWarn = (project in file("job-count-error"))
     //定义jar包的名字
     assemblyJarName in assembly := "bzn-count-error.jar"
   )
+
+// error and warn
+lazy val jobCrm = (project in file("job-crm"))
+  .dependsOn(jobUtil)
+  .settings(
+    libraryDependencies ++= crmDepsProvided.map(
+      _.excludeAll(ExclusionRule(organization = "org.mortbay.jetty"))
+    ).map(
+      _.excludeAll(ExclusionRule(organization = "javax.servlet"))
+    ))
+  .settings(commonSettings)
+  .settings(commonAssemblySettings)
+  .settings(
+    //定义jar包的名字
+    assemblyJarName in assembly := "bzn-crm.jar"
+  )
