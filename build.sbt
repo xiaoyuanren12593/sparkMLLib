@@ -180,7 +180,7 @@ lazy val jobCountErrorAndWarn = (project in file("job-count-error"))
     assemblyJarName in assembly := "bzn-count-error.jar"
   )
 
-// error and warn
+// crm
 lazy val jobCrm = (project in file("job-crm"))
   .dependsOn(jobUtil)
   .settings(
@@ -195,3 +195,20 @@ lazy val jobCrm = (project in file("job-crm"))
     //定义jar包的名字
     assemblyJarName in assembly := "bzn-crm.jar"
   )
+
+// c 端标签
+lazy val jobCLabel = (project in file("job-c-label"))
+  .dependsOn(jobUtil)
+  .settings(
+    libraryDependencies ++= cLabelDepsProvided.map(
+      _.excludeAll(ExclusionRule(organization = "org.mortbay.jetty"))
+    ).map(
+      _.excludeAll(ExclusionRule(organization = "javax.servlet"))
+    ))
+  .settings(commonSettings)
+  .settings(commonAssemblySettings)
+  .settings(
+    //定义jar包的名字
+    assemblyJarName in assembly := "bzn-jobCLabel.jar"
+  )
+

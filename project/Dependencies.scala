@@ -97,4 +97,7 @@ object Dependencies {
   val crmDepsProvided = Seq(sparkStreamingProvided,sparkStreamingKafkaProvided,mysqlConnectorJava,fastjson,
     sparkHiveProvided, hbaseClientProvided, hbaseServerProvided, hbaseCommonProvided)
 
+  //---------------------------------------------c端标签------------------------------------------------------------
+  val cLabelDepsProvided = Seq(sparkStreamingProvided,mysqlConnectorJava,fastjson, sparkHiveProvided)
+
 }
