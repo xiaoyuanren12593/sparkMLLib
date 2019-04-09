@@ -212,3 +212,19 @@ lazy val jobCLabel = (project in file("job-c-label"))
     assemblyJarName in assembly := "bzn-jobCLabel.jar"
   )
 
+// 和赔模型
+lazy val jobPredictModel = (project in file("job-predict-model"))
+  .dependsOn(jobUtil)
+  .settings(
+    libraryDependencies ++= predictModelDepsProvided.map(
+      _.excludeAll(ExclusionRule(organization = "org.mortbay.jetty"))
+    ).map(
+      _.excludeAll(ExclusionRule(organization = "javax.servlet"))
+    ))
+  .settings(commonSettings)
+  .settings(commonAssemblySettings)
+  .settings(
+    //定义jar包的名字
+    assemblyJarName in assembly := "bzn-jobPredictModel.jar"
+  )
+

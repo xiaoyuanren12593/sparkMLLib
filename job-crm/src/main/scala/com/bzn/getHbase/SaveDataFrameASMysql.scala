@@ -55,6 +55,14 @@ object SaveDataFrameASMysql {
       val key = Bytes.toString(result.getRow)
       //客户名称
       val name = Bytes.toString(result.getValue("baseInfo".getBytes, "name".getBytes))
+      //客户类型
+      val businessCategoryId = Bytes.toString(result.getValue("baseInfo".getBytes, "businessCategoryId".getBytes))
+      //创建人
+      val createUser = Bytes.toString(result.getValue("baseInfo".getBytes, "createUser".getBytes))
+      //客户所有人
+      val master = Bytes.toString(result.getValue("baseInfo".getBytes, "master".getBytes))
+      //客户所属部门
+      val masterOffice = Bytes.toString(result.getValue("baseInfo".getBytes, "masterOffice".getBytes))
       //最后所有人
       val lastMasterUserId = Bytes.toString(result.getValue("baseInfo".getBytes, "lastMasterUserId".getBytes))
       //获客渠道
@@ -66,59 +74,89 @@ object SaveDataFrameASMysql {
       //客户来源
       val CusFrom = "CustomField_4824_"+Bytes.toString(result.getValue("customField".getBytes, "CustomField_4824".getBytes))
 
-      (key, name,lastMasterUserId,getCumChannel,CusLevelCount,CusSpecificFrom,CusFrom)
+      (key, name,businessCategoryId,createUser,master,masterOffice,lastMasterUserId,getCumChannel,CusLevelCount,CusSpecificFrom,CusFrom)
     })
-      .toDF("key", "name","lastMasterUserId","getCumChannel","CusLevelCount","CusSpecificFrom","CusFrom")
-//    getHbaseKeyValue.map(x=> x.toString()).take(10).foreach(println)
-//    println(getHbaseKeyValue.count())
+      .toDF("key","name","businessCategoryId","createUser","master","masterOffice", "lastMasterUserId","getCumChannel","CusLevelCount","CusSpecificFrom","CusFrom")
+    //    getHbaseKeyValue.map(x=> x.toString()).take(10).foreach(println)
+    //    println(getHbaseKeyValue.count())
     val getCumChannelTmp = getHbaseKeyValue.join(crmCustomFieldsOptions,getHbaseKeyValue("getCumChannel")===crmCustomFieldsOptions("fieldAndKey"),"left")
-        .map(x => {
-          val key = x.getAs[String]("key")
-          val name = x.getAs[String]("name")
-          val lastMasterUserId = x.getAs[String]("lastMasterUserId")
-          val getCumChannel = x.getAs[String]("one_value")
-          val CusLevelCount = x.getAs[String]("CusLevelCount")
-          val CusSpecificFrom = x.getAs[String]("CusSpecificFrom")
-          val CusFrom = x.getAs[String]("CusFrom")
-          (key, name,lastMasterUserId,getCumChannel,CusLevelCount,CusSpecificFrom,CusFrom)
-        })
-      .toDF("key", "name","lastMasterUserId","getCumChannel","CusLevelCount","CusSpecificFrom","CusFrom")
-//    getCumChannelTmp.map(x=> x.toString()).take(10).foreach(println)
+      .map(x => {
+        val key = x.getAs[String]("key")
+        val name = x.getAs[String]("name")
+        val businessCategoryId = x.getAs[String]("businessCategoryId")
+        val createUser = x.getAs[String]("createUser")
+        val master = x.getAs[String]("master")
+        val masterOffice = x.getAs[String]("masterOffice")
+        val lastMasterUserId = x.getAs[String]("lastMasterUserId")
+        val getCumChannel = x.getAs[String]("one_value")
+        val CusLevelCount = x.getAs[String]("CusLevelCount")
+        val CusSpecificFrom = x.getAs[String]("CusSpecificFrom")
+        val CusFrom = x.getAs[String]("CusFrom")
+        (key, name,businessCategoryId,createUser,master,masterOffice,lastMasterUserId,getCumChannel,CusLevelCount,CusSpecificFrom,CusFrom)
+      })
+      .toDF("key", "name","businessCategoryId","createUser","master","masterOffice", "lastMasterUserId","getCumChannel","CusLevelCount","CusSpecificFrom","CusFrom")
+    //    getCumChannelTmp.map(x=> x.toString()).take(10).foreach(println)
 
     val CusSpecificFromTmp = getCumChannelTmp.join(crmCustomFieldsOptions,getCumChannelTmp("CusSpecificFrom")===crmCustomFieldsOptions("fieldAndKey"),"left")
       .map(x => {
         val key = x.getAs[String]("key")
         val name = x.getAs[String]("name")
+        val businessCategoryId = x.getAs[String]("businessCategoryId")
+        val createUser = x.getAs[String]("createUser")
+        val master = x.getAs[String]("master")
+        val masterOffice = x.getAs[String]("masterOffice")
         val lastMasterUserId = x.getAs[String]("lastMasterUserId")
         val getCumChannel = x.getAs[String]("getCumChannel")
         val CusLevelCount = x.getAs[String]("CusLevelCount")
         val CusSpecificFrom = x.getAs[String]("one_value")
         val CusFrom = x.getAs[String]("CusFrom")
-        (key, name,lastMasterUserId,getCumChannel,CusLevelCount,CusSpecificFrom,CusFrom)
+        (key, name,businessCategoryId,createUser,master,masterOffice,lastMasterUserId,getCumChannel,CusLevelCount,CusSpecificFrom,CusFrom)
       })
-      .toDF("key", "name","lastMasterUserId","getCumChannel","CusLevelCount","CusSpecificFrom","CusFrom")
+      .toDF("key", "name","businessCategoryId","createUser","master","masterOffice", "lastMasterUserId","getCumChannel","CusLevelCount","CusSpecificFrom","CusFrom")
 
     val CusFromTmp = CusSpecificFromTmp.join(crmCustomFieldsOptions,CusSpecificFromTmp("CusFrom")===crmCustomFieldsOptions("fieldAndKey"),"left")
       .map(x => {
         val key = x.getAs[String]("key").toInt
         val name = x.getAs[String]("name")
+        val businessCategoryId = x.getAs[String]("businessCategoryId")
+        val createUser = x.getAs[String]("createUser")
+        val master = x.getAs[String]("master")
+        val masterOffice = x.getAs[String]("masterOffice")
         val lastMasterUserId = x.getAs[String]("lastMasterUserId")
         val getCumChannel = x.getAs[String]("getCumChannel")
         val CusLevelCount = x.getAs[String]("CusLevelCount")
         val CusSpecificFrom = x.getAs[String]("CusSpecificFrom")
         val CusFrom = x.getAs[String]("one_value")
-        (key, name,lastMasterUserId,getCumChannel,CusLevelCount,CusSpecificFrom,CusFrom)
+        (key, name,businessCategoryId,createUser,master,masterOffice,lastMasterUserId,getCumChannel,CusLevelCount,CusSpecificFrom,CusFrom)
       })
-      .toDF("id", "name","lastMasterUserId","getCumChannel","CusLevelCount","CusSpecificFrom","CusFrom")
+      .toDF("id", "name","businessCategoryId","createUser","master","masterOffice","lastMasterUserId","getCumChannel","CusLevelCount","CusSpecificFrom","CusFrom")
 
-//    CusFromTmp.take(1000).foreach(println)
+    //    CusFromTmp.take(1000).foreach(println)
+    //得到商机的数据
+    val bussValue = getHbaseBussValue(sc)
 
+    val bussValueTemp = bussValue.map(x => x._2).map(x => {
+      //rowkey
+      val key = Bytes.toString(x.getRow)
+
+      //客户id
+      val customerId = Bytes.toString(x.getValue("baseInfo".getBytes, "customerId".getBytes))
+      //销售阶段
+      val saleProcess = Bytes.toString(x.getValue("baseInfo".getBytes, "saleProcess".getBytes))
+      //投保企业全称
+      val entName = Bytes.toString(x.getValue("customField".getBytes, "CustomField_12066".getBytes))
+      (key,customerId, saleProcess, entName)
+    })
+      .toDF("key","customerId","saleProcess","entName")
+    val res = CusFromTmp.join(bussValueTemp,CusFromTmp("id") === bussValueTemp("customerId"),"leftouter")
+      .select("id", "name","businessCategoryId","createUser","master","masterOffice","lastMasterUserId","getCumChannel","CusLevelCount","CusSpecificFrom","CusFrom","saleProcess","entName")
+      .distinct()
     //写入mysql
-    saveASMysqlTable(CusFromTmp, "crm_field_value", SaveMode.Overwrite)
+    saveASMysqlTable(res, "crm_field_value", SaveMode.Overwrite)
     sc.stop()
   }
 
-  //得到企业标签数据
+  //得到客户数据
   def getHbaseValue(sc: SparkContext): RDD[(ImmutableBytesWritable, Result)] = {
     //定义HBase的配置
     val conf: Configuration = HBaseConfiguration.create()
@@ -127,6 +165,25 @@ object SaveDataFrameASMysql {
 
     //设置查询的表名
     conf.set(TableInputFormat.INPUT_TABLE, "crm_customer")
+
+    val usersRDD: RDD[(ImmutableBytesWritable, Result)] = sc.newAPIHadoopRDD(
+      conf,
+      classOf[TableInputFormat],
+      classOf[org.apache.hadoop.hbase.io.ImmutableBytesWritable],
+      classOf[org.apache.hadoop.hbase.client.Result]
+    )
+    usersRDD
+  }
+
+  //得到商机数据
+  def getHbaseBussValue(sc: SparkContext): RDD[(ImmutableBytesWritable, Result)] = {
+    //定义HBase的配置
+    val conf: Configuration = HBaseConfiguration.create()
+    conf.set("hbase.zookeeper.property.clientPort", "2181")
+    conf.set("hbase.zookeeper.quorum", "172.16.11.106")
+
+    //设置查询的表名
+    conf.set(TableInputFormat.INPUT_TABLE, "crm_niche")
 
     val usersRDD: RDD[(ImmutableBytesWritable, Result)] = sc.newAPIHadoopRDD(
       conf,

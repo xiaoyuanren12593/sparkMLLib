@@ -100,4 +100,9 @@ object Dependencies {
   //---------------------------------------------c端标签------------------------------------------------------------
   val cLabelDepsProvided = Seq(sparkStreamingProvided,mysqlConnectorJava,fastjson, sparkHiveProvided)
 
+  //---------------------------------------------核赔模型------------------------------------------------------------
+  val predictModelDepsProvided = Seq(mysqlConnectorJava, neo4jJavaDriver, fastjson, jedis, ansjSeg,
+    sparkStreamingKafkaProvided, sparkHiveProvided, sparkMllibProvided, hbaseClientProvided,
+    hbaseServerProvided, hbaseCommonProvided)
+
 }

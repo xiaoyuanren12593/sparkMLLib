@@ -426,7 +426,8 @@ trait ClaiminfoUntilTest extends Until with EnterpriseUntil {
       var final_payment = x.getAs[String]("final_payment")
       var pre_com = x.getAs[String]("pre_com")
       (policy_no,final_payment,pre_com)
-    }).toDF("policy_no","final_payment","pre_com").filter("pre_com <> '#N/A'").map(x => x).filter(x => {
+    }).toDF("policy_no","final_payment","pre_com").filter("pre_com <> '#N/A'").map(x => x)
+      .filter(x => {
       var str = ""
       if( x.getAs[String]("pre_com") != null){
         str =x.getAs[String]("pre_com")

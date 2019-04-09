@@ -48,7 +48,8 @@ object EmpInterOfoMobile {
         (insured_cert_no,product_type)
       })
       .reduceByKey((x1,x2) => {
-        x1+"\u0001"+x2   //产品拼接
+        val product = x1+"\u0001"+x2   //产品拼接
+        product
       })
       .map(x => {
         val products = x._2.split("\u0001").distinct.mkString("\u0001")   //产品去重
