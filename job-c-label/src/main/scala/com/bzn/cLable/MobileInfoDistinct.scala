@@ -1,4 +1,4 @@
-package com.bzn.cLabel
+package com.bzn.cLable
 
 import java.util.Properties
 
@@ -8,7 +8,7 @@ import org.apache.spark.{SparkConf, SparkContext}
 
 import scala.io.Source
 
-object MobileInfoDistinctTest {
+object MobileInfoDistinct {
 
   def main(args: Array[String]): Unit = {
     //得到标签数据
@@ -16,18 +16,20 @@ object MobileInfoDistinctTest {
     val conf_spark = new SparkConf().setAppName(getClass.getName)
     conf_spark.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
     conf_spark.set("spark.sql.broadcastTimeout", "36000")
-              .setMaster("local[4]")
+//              .setMaster("local[4]")
 
     val sc: SparkContext = new SparkContext(conf_spark)
     val sqlContext: HiveContext = new HiveContext(sc)
     //读取渠道表
 
     //从测试库中读取手机号信息表
-    val tableName = "dim_product"
+    val tableName = "t_mobile_location"
     val mobilelocation = readMysqlTable(sqlContext,tableName)
-    val mobileNotData = mobilelocation.show(10)
-//    val path = s"/share/emp_inter_ofo_info_not_pipei"
-//    mobileNotData.map(x => x.mkString("")).repartition(5).saveAsTextFile(path)
+
+    val mobileNotData = mobilelocation.where("province is null").select("mobile")
+      .distinct()
+    val path = s"/share/emp_inter_ofo_info_not_pipei"
+    mobileNotData.map(x => x.mkString("")).repartition(5).saveAsTextFile(path)
 //    mobilelocation.show(100)
 //    //写入hive
 //    //    res.insertInto("odsdb_prd.employer_interface_ofo_c",overwrite = true)
@@ -59,8 +61,13 @@ object MobileInfoDistinctTest {
       .option("driver", properties.getProperty("mysql.driver"))
       .option("user", properties.getProperty("mysql.username"))
       .option("password", properties.getProperty("mysql_test.password"))
+      .option("numPartitions","30")
+      .option("partitionColumn","id")
+      .option("lowerBound", "0")
+      .option("upperBound","20000")
       //        .option("dbtable", tableName.toUpperCase)
       .option("dbtable", tableName)
+
       .load()
 
   }
@@ -84,7 +91,6 @@ object MobileInfoDistinctTest {
       val value = split(1)
       properties.setProperty(key,value)
     }
-
     properties
   }
 
