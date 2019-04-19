@@ -8,12 +8,13 @@ import scala.collection.mutable.ArrayBuffer
 object test {
   def main(args: Array[String]): Unit = {
     println(getDay.split(" ")(0).replace("-", ""))
-//    val str = "2017-10-09 08:07:34"
+    val str = "2017-10-09 08:07:34.0"
 //    val insured_start_date = "2017-11-12 07:24:06".toString.split(" ")(0).replaceAll("-", "").replaceAll("/", "")
 //    val insured_end_date = "2017-11-12 23:59:59".toString.split(" ")(0).replaceAll("-", "").replaceAll("/", "")
 //    println(getBeg_End_one_two(insured_start_date, insured_end_date).size)
-    val test =""+"\u0001"+"123"
-    println(eight_date_only_hour("04/12/19"))
+//    val test =""+"\u0001"+"123"
+//    println(eight_date_only_hour("04/12/19"))
+    println(str.substring(0,str.length-2))
 //    val rs = "0".toInt
 //    println(1 / 365.toDouble*246)
 //    val re = "12.2633".toDouble

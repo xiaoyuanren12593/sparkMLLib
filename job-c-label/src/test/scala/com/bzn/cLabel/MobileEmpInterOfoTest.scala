@@ -4,6 +4,11 @@ import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.hive.HiveContext
 import org.apache.spark.{SparkConf, SparkContext}
 
+/**
+  * 联系人详细信息和手机归属地进行关联得到联系人的详细信息
+  * create user xingyuan
+  * date 2019-4-5
+  */
 object MobileEmpInterOfoTest {
 
   def main(args: Array[String]): Unit = {

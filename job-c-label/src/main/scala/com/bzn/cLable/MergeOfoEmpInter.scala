@@ -8,6 +8,11 @@ import org.apache.spark.{SparkConf, SparkContext}
 
 import scala.io.Source
 
+/***
+  * 合并雇主、接口、ofo、58速运的数据
+  * create user xingyuan
+  * date 2019-4-4
+  */
 object MergeOfoEmpInter {
 
   def main(args: Array[String]): Unit = {

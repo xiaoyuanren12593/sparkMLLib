@@ -72,7 +72,6 @@ object MembershipLevel {
 
   /**
     * 读取每个月的在保人数
-    *
     * @param sqlContext
     * @param location_mysql_url      odsdb数据库
     * @param prop                    访问mysql数据库
@@ -284,7 +283,7 @@ object MembershipLevel {
       })
         .filter(_._2._6 <= now_Date.toDouble)
     }).cache.join(ods_ent_guzhu_salesman_channel).map(x => {
-      val total = x._2._1 //企业ID，金额，保费，连续在保月份,连续在保月份(每月显示) ,当前月份，当前月份的在保人数
+        val total = x._2._1 //企业ID，金额，保费，连续在保月份,连续在保月份(每月显示) ,当前月份，当前月份的在保人数
       val quDao = x._2._2 //渠道
       val ent_name = x._1 //企业名称
       (quDao, (total, ent_name))
@@ -314,7 +313,9 @@ object MembershipLevel {
         val get_res_day = getBeg_End_one_two_month(first_data, final_data)
 
         //找出最近的一次的连续日期
-        val filter_date = if (res.length == get_res_day.length) month_add_jian(0, res(0))
+        val filter_date =
+        if (res.length == get_res_day.length)
+          month_add_jian(0, res(0))
         else {
           val res_end = get_res_day.filter(!res.contains(_)).reverse(0)
           month_add_jian(1, res_end)
@@ -328,14 +329,16 @@ object MembershipLevel {
       //得到我渠道的连续在保月数--每月显示
       val tep_one_before = if (month_sum_tep_one.length > 0) show_months(month_sum_tep_one).mkString("-").split("-") else Array("")
 
-      //得到最近渠道的在保月份，显示每月
+      //合伙人
       val partner_people_last = if (ent_continuous_plc_month >= 9.0) {
         val partner_people = month_ent.filter(x => tep_one_before.sorted.reverse.take(9).contains(x._1.toInt.toString)).map(x => {
-          val end = if (x._2.toDouble >= 30000.0) "yes" else "no"
+            val end = if (x._2.toDouble >= 30000.0) "yes" else "no"
           end
         }).toArray
         partner_people
       } else Array("")
+
+      //钻石会员
       val diamonds_people_last = if (ent_continuous_plc_month >= 6.0) {
         val diamonds_people = month_ent.filter(x => tep_one_before.sorted.reverse.take(6).contains(x._1.toInt.toString)).map(x => {
           val end = if (x._2.toDouble >= 8000.0 && x._2.toDouble < 30000.0) "yes" else "no"
@@ -377,9 +380,9 @@ object MembershipLevel {
       else if (max_month_people > 0 && max_month_people < 1000) (reimbursement_rate + "", "ordinary", "0")
       else ("", "null", "")
       //渠道,赔付率,金额,已赚保费,会员等级，降级级别，该渠道下面所有企业的当前在保人数,该渠到企业的连续在保月数(所有企业累计)
-      //      (x._1, (gold_yin_pu._1, jiner, yizhauan, gold_yin_pu._2, gold_yin_pu._3, max_month_people, ent_continuous_plc_month))
+      //      (x._1, (gold_yin_pu._1, jiner, yizhuan, gold_yin_pu._2, gold_yin_pu._3, max_month_people, ent_continuous_plc_month))
 
-      //降级
+      //根据降级，得到真正的企业状态
       val real_member: String = if (gold_yin_pu._2 == "partner") {
         val real_member_partner = if (gold_yin_pu._3 == "0") "partner" else if (gold_yin_pu._3 == "1") "diamonds" else if (gold_yin_pu._3 == "2") "gold" else if (gold_yin_pu._3 == "3") "silver" else ""
         real_member_partner
