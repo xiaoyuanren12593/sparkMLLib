@@ -92,15 +92,16 @@ object read_dataTo_hive {
 
     //hdfs中的原始数据可以删除企业的品牌影响力
     //工种1	工种2	工种3	工种4	工种5	当前在保	男生占比	女生占比	员工平均年龄	死亡案件数	伤残案件数	工作期间案件数	非工作案件数	报案数	平均出险周期	重大案件率	企业品牌影响力	企业的潜在人员规模     城市名称  	实际赔付额度	预估赔付额度	已赚保费	实际/已赚比	预估/已赚比	 ，风险等级（1-3级）
-    val rdd = sc.textFile("C:\\Users\\xingyuan\\Desktop\\未完成\\7.机器学习-和赔模型\\data\\enterprise_Risk.txt")
+    val rdd = sc.textFile("C:\\Users\\xingyuan\\Desktop\\未完成\\7.机器学习-和赔模型\\data\\模型的xlsx数据\\predict_data.csv")
 
     import sqlContext.implicits._
-    rdd.map(x => {
-      val all = x.split("\t")
+    val res = rdd.map(x => {
+      val all = x.split(",")
       val work_level_array = Array(all(0), all(1), all(2), all(3), all(4))
       val work_type_number = work_level_array.zipWithIndex
       //哪个工种的占比最多，就找出对应的工种
       val work_type = work_type_number.map(x => {
+        if(x._1.split(":").length == 1){println(x)}
         (x._1.split(":")(1).replaceAll("%", "").toDouble, x._2 + 1)
       }).reduce((x1, x2) => {
         if (x1._1 >= x2._1) x1 else x2
@@ -110,9 +111,15 @@ object read_dataTo_hive {
       val protect_number = all(5).split(":")(1).toInt + ""
 
       //男生占比(%)
-      val man_number = all(6).split(":")(1).replaceAll("%", "").toDouble + ""
+      var man_number = "0"
+
       //女生占比(%)
-      val woman_number = all(7).split(":")(1).replaceAll("%", "").toDouble + ""
+      var woman_number = "0"
+
+      if (protect_number != "0"){
+        man_number = all(6).split(":")(1).replaceAll("%", "").toDouble + ""
+        woman_number = all(7).split(":")(1).replaceAll("%", "").toDouble + ""
+      }
 
       //员工平均年龄
       val work_avg_age = all(8).split(":")(1) + ""
@@ -134,15 +141,15 @@ object read_dataTo_hive {
       val city_node = d_city_grade_map.getOrElse(city_name, "0")
 
       //实际赔付
-      val actual_payment = all(19).split(":")(1) + ""
+      val actual_payment = all(20).split(":")(1) + ""
       //预估赔付
-      val estimated_payment = all(20).split(":")(1) + ""
+      val estimated_payment = all(21).split(":")(1) + ""
       //已赚保费
-      val transfer_premium = all(21).split(":")(1) + ""
+      val transfer_premium = all(22).split(":")(1) + ""
 
 
       //风险等级
-      val risk_level = all(24) + ""
+      val risk_level = all(25) + ""
       (
         work_type, protect_number, man_number, woman_number, work_avg_age, death_number,
         disable_number, number, avg_risk_cycle, potential_people, city_node, actual_payment,
@@ -155,7 +162,7 @@ object read_dataTo_hive {
         "estimated_payment", "transfer_premium", "risk_level"
       )
 //      .insertInto("enter_model_data", overwrite = true)
-.take(10).foreach(println)
+    res.foreach( println)
     sc.stop()
   }
 }

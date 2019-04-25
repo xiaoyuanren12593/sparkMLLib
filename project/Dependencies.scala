@@ -105,4 +105,9 @@ object Dependencies {
     sparkStreamingKafkaProvided, sparkHiveProvided, sparkMllibProvided, hbaseClientProvided,
     hbaseServerProvided, hbaseCommonProvided)
 
+  //---------------------------------------------其他模块------------------------------------------------------------
+  val otherProvided = Seq(mysqlConnectorJava, neo4jJavaDriver, fastjson, jedis, ansjSeg,
+    sparkStreamingKafkaProvided, sparkHiveProvided, sparkMllibProvided, hbaseClientProvided,
+    hbaseServerProvided, hbaseCommonProvided)
+
 }
