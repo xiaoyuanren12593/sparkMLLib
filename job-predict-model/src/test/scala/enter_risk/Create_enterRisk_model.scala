@@ -69,7 +69,7 @@ object Create_enterRisk_model {
   //得到labelPoint并进行标准化,建立模型
   def get_label_point(enter_model_data: DataFrame, sqlContext: HiveContext): DecisionTreeModel
   = {
-    val file_tree = enter_model_data.map(x => {
+    val file_tree: RDD[LabeledPoint] = enter_model_data.map(x => {
       //对hive中的row直接进行操作
       val s = x.mkString(",").split(",").map(_.toDouble).toBuffer
       //以下标删除数组中的风险等级
@@ -87,6 +87,7 @@ object Create_enterRisk_model {
       .setWithStd(true)
       .setWithMean(true)
     val scalerModel = scaler.fit(vectors)
+
     val train_data = scalerModel.transform(vectors).map(x => LabeledPoint(x.getAs("label"), x.getAs("scaledFeatures")))
 
 
@@ -96,15 +97,15 @@ object Create_enterRisk_model {
     val maxDepth = 4 //设定树的高度
     val maxBins = 16 //每个特征分裂时，最大的属性数目,离散化"连续特征"的最大划分数
 
-//    Deep_Results()
-
     val model_DT: DecisionTreeModel = DecisionTree.trainClassifier(train_data
       , numClasses
       , categoricalFeaturesInfo
       , impurity
       , maxDepth, maxBins) //建立模型
-
+    Deep_Results(train_data: RDD[LabeledPoint], categoricalFeaturesInfo: Map[Int, Int], train_data: RDD[LabeledPoint])
+    ClassNum_Results(train_data: RDD[LabeledPoint], categoricalFeaturesInfo: Map[Int, Int], train_data: RDD[LabeledPoint])
     model_DT
+
   }
 
   //模型保存与加载
@@ -122,7 +123,7 @@ object Create_enterRisk_model {
   def main(args: Array[String]): Unit = {
     System.setProperty("HADOOP_USER_NAME", "hdfs")
 
-    val conf_spark = new SparkConf().setAppName("wuYu").setMaster("local")
+    val conf_spark = new SparkConf().setAppName("wuYu").setMaster("local[*]")
     val sc: SparkContext = new SparkContext(conf_spark)
     //城市编码
     val sqlContext: HiveContext = new HiveContext(sc)
@@ -130,17 +131,18 @@ object Create_enterRisk_model {
 
     //得到labelPoint并进行标准化,建立模型 ，注意的是，如果要预测的话需要对其进行标准化
     val model_DT = get_label_point(enter_model_data: DataFrame, sqlContext: HiveContext)
+    println("Learned classification tree model:\n" + model_DT.toDebugString)
     //模型保存
 //    model_DT.save(sc, "hdfs://namenode1.cdh:8020/model/enter_risk")
 
 
     //模型参数调优:调节树的深度参数
-    //        Deep_Results(train_data: RDD[LabeledPoint], categoricalFeaturesInfo: Map[Int, Int], test_data: RDD[LabeledPoint])
+    //Deep_Results(train_data: RDD[LabeledPoint], categoricalFeaturesInfo: Map[Int, Int], test_data: RDD[LabeledPoint])
     //调节树的min（划分数）
     //        ClassNum_Results(train_data: RDD[LabeledPoint], categoricalFeaturesInfo: Map[Int, Int], test_data: RDD[LabeledPoint])
 
     //模型保存与加载
-    model_save_load(model_DT: DecisionTreeModel, sc: SparkContext)
+//    model_save_load(model_DT: DecisionTreeModel, sc: SparkContext)
     sc.stop()
   }
 }

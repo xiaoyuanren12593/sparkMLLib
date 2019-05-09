@@ -182,10 +182,16 @@ object OneAndTwoDataTest extends Until {
       .withColumnRenamed("create_time", "a_create_time")
       .withColumnRenamed("update_time", "a_update_time")
       .withColumnRenamed("inc_dec_order_no", "a_inc_dec_order_no")
+      .withColumnRenamed("effective_date", "a_effective_date")
 
     val b_policy_preservation = b_policy_preservation_before
       .withColumn("mk_pol", b_policy_preservation_before("a_policy_no")) //新增mk_pol列
       .withColumn("mk_inc", b_policy_preservation_before("a_inc_dec_order_no"))
+      .persist(StorageLevel.MEMORY_ONLY)
+
+    val b_policy_preservation_temp = b_policy_preservation_before
+      .withColumn("mk_inc", b_policy_preservation_before("a_inc_dec_order_no"))
+       .select("mk_inc","a_effective_date","inc_revise_sum","dec_revise_sum")
       .persist(StorageLevel.MEMORY_ONLY)
 
     val b_policy = sqlContext.read.jdbc(url, "b_policy", prop)
@@ -211,6 +217,7 @@ object OneAndTwoDataTest extends Until {
       .withColumnRenamed("inc_dec_order_no", "c_inc_dec_order_no")
       .withColumnRenamed("company_name", "c_company_name")
       .withColumnRenamed("occu_category", "c_occu_category")
+
 
     val b_policy_preservation_subject_person_master_after = b_policy_preservation_subject_person_master_before
       .withColumn("mk_pol", b_policy_preservation_subject_person_master_before("c_policy_no"))
@@ -260,7 +267,7 @@ object OneAndTwoDataTest extends Until {
     tep_three.registerTempTable("end_one")
 
     //业务数据一条都不能少，因此将过滤掉的与非过滤掉的进行整合
-    val tep_four = sqlContext.sql("select mk_inc,c_start_date,c_end_date from end_one")
+    val tep_four = sqlContext.sql("select mk_inc,c_start_date,c_end_date,a_effective_date from end_one")
       .map(x => {
         val c_start_date = x.getAs[String]("c_start_date")
         val c_end_date = x.getAs[String]("c_end_date")
@@ -280,8 +287,24 @@ object OneAndTwoDataTest extends Until {
       })
       .toDF("mk_inc", "c_final_start_date", "c_final_end_date")
 
-    val end_final = tep_three.join(tep_four, "mk_inc")
-    end_final.selectExpr("" +
+    val tep_five = tep_four.join(b_policy_preservation_temp,"mk_inc").map(x => {
+      val mk_inc = x.getAs[String]("mk_inc")
+      var c_final_start_date = x.getAs[String]("c_final_start_date")
+      val c_final_end_date = x.getAs[String]("c_final_end_date")
+      val a_effective_date = x.getAs[String]("a_effective_date")
+      val inc_revise_sum = x.getAs[Int]("inc_revise_sum")
+      val dec_revise_sum = x.getAs[Int]("dec_revise_sum")
+     if(a_effective_date.compareTo("2019-05-05") > 0){
+       if(inc_revise_sum == 0 && dec_revise_sum > 0){
+         c_final_start_date = null
+       }
+     }
+      (mk_inc,c_final_start_date,c_final_end_date,inc_revise_sum,dec_revise_sum)
+    })
+      .toDF("mk_inc", "c_final_start_date", "c_final_end_date","d_inc_revise_sum","d_dec_revise_sum")
+    val end_final = tep_three.join(tep_five, "mk_inc")
+
+    val end = end_final.selectExpr("" +
       "getUUID() as id",
       "a_id as preserve_id",
       "b_id as policy_id",
@@ -290,10 +313,10 @@ object OneAndTwoDataTest extends Until {
       "'4' as preserve_status",
       "inc_revise_no as add_batch_code",
       "inc_revise_premium as add_premium",
-      "inc_revise_sum as add_person_count",
+      "d_inc_revise_sum as add_person_count",
       "dec_revise_no as del_batch_code",
       "dec_revise_premium as del_premium",
-      "dec_revise_sum as del_person_count",
+      "d_dec_revise_sum as del_person_count",
       "c_final_start_date as pre_start_date",
       "c_final_end_date as pre_end_date",
       "a_create_time as pre_create_time",
@@ -333,6 +356,8 @@ object OneAndTwoDataTest extends Until {
       "c_create_time as child_create_time",
       "c_update_time as child_update_time"
     )
+
+    end
   }
 
   //删除hdfs的文件，后输出
@@ -353,8 +378,9 @@ object OneAndTwoDataTest extends Until {
     val url: String = lines.filter(_.contains("location_mysql_url")).map(_.split("==")(1)).mkString("")
     val hdfs_url: String = lines.filter(_.contains("hdfs_url")).map(_.split("==")(1)).mkString("")
 
+    System.setProperty("HADOOP_USER_NAME", "hdfs")
     val conf_s = new SparkConf().setAppName("wuYu")
-      .setMaster("local[4]")
+          .setMaster("local[4]")
     val sc = new SparkContext(conf_s)
     val sqlContext: HiveContext = new HiveContext(sc)
     sqlContext.udf.register("getUUID", () => (java.util.UUID.randomUUID() + "").replace("-", ""))
@@ -397,10 +423,8 @@ object OneAndTwoDataTest extends Until {
         val arrArray = x.split("mk6").map(x => if (x == "null" || x == null) "" else x)
         arrArray.mkString("mk6")
       })
-
-    tep_end.take(10).foreach(x => println(x))
-
+    tep_end.take(10).foreach(println)
     //存入mysql
-//    delete(hdfs_url, "/oozie/mysqlData/ods_policy_preserve_detail", tep_end) //删除后，输出到文件中
+    //delete(hdfs_url, "/oozie/mysqlData/ods_policy_preserve_detail", tep_end) //删除后，输出到文件中
   }
 }

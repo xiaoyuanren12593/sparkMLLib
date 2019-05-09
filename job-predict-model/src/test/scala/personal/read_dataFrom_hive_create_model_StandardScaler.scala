@@ -22,7 +22,7 @@ object read_dataFrom_hive_create_model_StandardScaler {
       * K-均值在交叉验证的情况，WCSS随着K的增大持续减小，但是达到某个值后，下降的速率突然会变得很平缓。这时的K通常为最优的K值（这称为拐点）。k最佳为10左右，
       * 尽管较大的K值从数学的角度可以得到更优的解，但是类簇太多就会变得难以理解和解释
       **/
-    val userCosts = Seq(1, 3, 5, 7, 9).map {
+    val userCosts: Seq[(Int, Double)] = Seq(1, 3, 5, 7, 9,11,13,15,17).map {
       param =>
         (param, KMeans.train(train_date, param, 50).computeCost(test_date))
     }
@@ -89,19 +89,19 @@ object read_dataFrom_hive_create_model_StandardScaler {
     val res = sqlContext.sql("select * from personal_model_data")
     //    |finalpay_total|early_res|user_craft_level|claim_count|prepay_total|age|city_level|           cert_no|
     //    |             0|        0|               0|          0|           0| 29|         1|110000198908265175|
-    val res_k_means = res.map(x => {
+    val res_k_means: RDD[linalg.Vector] = res.map(x => {
       //去掉表中的最后一列
       val all_arr = x.mkString("\t").split("\t").toBuffer
-      all_arr.remove(7)
+      all_arr.remove(7,2)
       val res = all_arr.map(_.toDouble).toArray
       //得到表中的最后一列
       val label = x.getAs("cert_no").toString
       Vectors.dense(res)
-    }).cache()
-
+  }).cache()
 
     /*特征标准化优化*/
-    val vectors = res_k_means.map(x => x)
+
+    val vectors: RDD[linalg.Vector] = res_k_means
 
     //withMean：默认为假。此种方法将产出一个稠密输出，所以不适用于稀疏输入。
     //withStd：默认值为真，使用统一标准差方式。
@@ -113,8 +113,8 @@ object read_dataFrom_hive_create_model_StandardScaler {
     //标准化,可以对RDD进行标准化，也可以单独对向量进行标准化
     val scaler = new StandardScaler(withMean = true, withStd = true).fit(vectors).transform(vectors)
     val date = scaler.randomSplit(Array(0.8, 0.2), 11L)
-    val train_date = date(0)
-    val test_date = date(1)
+    val train_date = date(0).cache()
+    val test_date = date(1).cache()
 
 
     val numCluster = 7
@@ -130,12 +130,15 @@ object read_dataFrom_hive_create_model_StandardScaler {
       //分类是从0开始的
       s"${clusters.predict(scaler_company.transform(x)) + 1}\t${x.toArray.mkString("\t")}"
       //      (clusters.predict(scaler_company.transform(x)) + 1, x, scaler_company.transform(x))
-    }).foreach(println(_))
+    }).take(100).foreach(println(_))
     //      .repartition(1).saveAsTextFile("F:\\tmp\\company\\ccA")
 
     //找到最优的分类
-    //        Optimal_classification(train_date: RDD[linalg.Vector], test_date: RDD[linalg.Vector])
 
+    Optimal_classification(train_date: RDD[linalg.Vector], test_date: RDD[linalg.Vector])
+
+    //记录中心簇的索引，打印中心坐标
+    Central_cluster(clusters)
     sc.stop()
   }
 }

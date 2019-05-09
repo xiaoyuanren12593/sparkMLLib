@@ -398,6 +398,7 @@ object one_and_two_data extends year_until {
       val arrArray = x.split("mk6").map(x => if (x == "null" || x == null) "" else x)
       arrArray.mkString("mk6")
     }) //存入mysql
+
     delete(hdfs_url, "/oozie/mysqlData/ods_policy_preserve_detail", tep_end) //删除后，输出到文件中
 
   }
