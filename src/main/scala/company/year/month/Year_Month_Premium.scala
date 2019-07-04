@@ -13,6 +13,8 @@ import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.hive.HiveContext
 import org.apache.spark.{SparkConf, SparkContext}
 
+import scala.collection.mutable
+
 /**
   * Created by MK on 2018/4/26.
   * 保费，精确到天，有年单的也有月单的
@@ -102,7 +104,7 @@ object Year_Month_Premium extends year_until {
         //每月人当月的天数如果为 1
         val month_number = getBeg_End_one_two(insured_start_date, insured_end_date).size
 
-        val res = getBeg_End_one_two(insured_start_date, insured_end_date).map(day_id => {
+        val res: mutable.Seq[(String, String, String, String, String, String, String, String, String, Double, String)] = getBeg_End_one_two(insured_start_date, insured_end_date).map(day_id => {
           val sku_day_price = numberFormat.format(sku_price / month_number)
           (insure_code, policy_id, sku_day_price, insured_id, insured_cert_no, insured_start_date, insured_end_date, insure_policy_status, day_id, sku_price, ent_id)
         })
@@ -189,7 +191,8 @@ object Year_Month_Premium extends year_until {
     val sc = new SparkContext(conf_s)
     val sqlContext: HiveContext = new HiveContext(sc)
     val ods_policy_detail = sqlContext.sql("select * from odsdb_prd.ods_policy_detail").filter("policy_status in ('0','1')").cache()
-    val ods_policy_insured_detail = sqlContext.sql("select * from odsdb_prd.ods_policy_insured_detail").filter("length(insured_start_date)>0 and length(insured_end_date)>0")
+    val ods_policy_insured_detail = sqlContext.sql("select * from odsdb_prd.ods_policy_insured_detail")
+      .filter("length(insured_start_date)>0 and length(insured_end_date)>0")
     val blue_package = sqlContext.sql("select * from odsdb_prd.dim_product").filter("product_type_2='蓝领外包'")
     val bp = blue_package.map(x => x.getAs("product_code").toString).collect()
     val bp_bro: Broadcast[Array[String]] = sc.broadcast(bp)

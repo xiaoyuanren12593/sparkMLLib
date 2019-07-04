@@ -138,7 +138,7 @@ object ChaInsureinfoTest extends ChaInsureinfoUntilTest {
     val cur_insured_persons_r = channel_add(before, ods_ent_guzhu_salesman_channel, sql_context, en_before,
       "cur_insured_persons").filter(_._1.length > 5)
     cur_insured_persons_r.take(10).foreach(println)
-//    saveToHbase(cur_insured_persons_r, columnFamily, "cur_insured_persons", conf_fs, tableName, conf)
+    saveToHbase(cur_insured_persons_r, columnFamily, "cur_insured_persons", conf_fs, tableName, conf)
 //    cur_insured_persons_r.take(10).foreach(println)
 //    //渠道累计保费
 //    val total_premium_data = channel_add(before, ods_ent_guzhu_salesman_channel, sql_context, en_before,

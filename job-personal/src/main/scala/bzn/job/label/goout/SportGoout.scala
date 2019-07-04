@@ -111,7 +111,7 @@ object SportGoout extends Until with PersonalUntil {
     val end = tepSix
       .join(tY)
       .map(x => {
-        val data = x._2._1.split("\t")(1)
+        val data = x._2._1.split("\t")(1).substring(1,1)
         (x._2._1.split("\t")(0), (x._2._2._1, x._2._2._2, currentTimeL(data)))
       })
 

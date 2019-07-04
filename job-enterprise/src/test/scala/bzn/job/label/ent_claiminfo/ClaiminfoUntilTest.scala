@@ -721,8 +721,72 @@ trait ClaiminfoUntilTest extends Until with EnterpriseUntil {
   }
 
   //已赚保费新
-  def charged_premium_new(ods_ent_guzhu_salesman:RDD[(String, String)],sqlContext:HiveContext,bro_dim: Broadcast[Array[String]], location_mysql_url: String, prop: Properties,
+  def charged_premium_new(ods_ent_guzhu_salesman:RDD[(String, String)],sqlContext:HiveContext,bro_dim: Broadcast[Array[String]], location_mysql_url: String,location_mysql_dwdb_url:String ,prop: Properties,
                           ods_policy_detail: DataFrame): RDD[(String, String, String)] = {
+
+
+    import sqlContext.implicits._
+    val numberFormat = NumberFormat.getInstance
+    numberFormat.setMaximumFractionDigits(2)
+    var ods_ent_guzhu_salesman_temp = ods_ent_guzhu_salesman.toDF("ent_name","channel_name")
+    val tep_temp = ods_policy_detail
+      .map(x => {
+        (x.getAs[String]("ent_id"), x.getAs[String]("policy_code"),x.getAs[String]("holder_company"),x.getAs[String]("policy_id"),x.getAs[String]("insure_code"),x.getAs[String]("effect_date"),x.getAs[java.math.BigDecimal]("premium"))
+      }).toDF("ent_id", "policy_code","holder_company","policy_id","insure_code","effect_date","premium").filter("ent_id is not null").cache
+    val tepOne = ods_ent_guzhu_salesman_temp.join(tep_temp, tep_temp("holder_company") === ods_ent_guzhu_salesman_temp("ent_name"))
+      .filter("ent_id is not null")
+      .map(x => {
+        var policy_id = x.getAs[String]("policy_id").trim
+        (x.getAs[String]("ent_id"),policy_id)
+      }).toDF("ent_id","policy_id")
+
+    val ods_policy_charged_month = sqlContext.read.jdbc(location_mysql_url, "ods_policy_charged_month", prop)
+      .mapPartitions(par => {
+        val now: Date = new Date()
+        val dateFormatOne: SimpleDateFormat = new SimpleDateFormat("yyyyMMdd")
+        val now_Date = dateFormatOne.format(now)
+        par.map(x => {
+          var policy_id = x.getAs[String]("policy_id").trim
+          (policy_id, x.getAs[java.math.BigDecimal]("charged_premium"), x.getAs[String]("day_id"))
+        }).filter(_._3.toDouble <= now_Date.toDouble)
+      })
+      .toDF("policy_id", "charged_premium", "day_id")
+
+    val ods_policy_charged_month_temp = sqlContext.read.jdbc(location_mysql_dwdb_url, "dim_product", prop)
+      .select("product_code","dim_1").where("dim_1 = '零工保'")
+
+    val ods_policy_charged_month_zero = tep_temp.join(ods_policy_charged_month_temp,tep_temp("insure_code") === ods_policy_charged_month_temp("product_code"))
+      .mapPartitions(par => {
+        val now: Date = new Date()
+        val dateFormatOne: SimpleDateFormat = new SimpleDateFormat("yyyyMMdd")
+        val now_Date = dateFormatOne.format(now)
+        par.map(x => {
+          val policy_id = x.getAs[String]("policy_id")
+          val premium = x.getAs[java.math.BigDecimal]("premium")
+          val effect_date = x.getAs[String]("effect_date").toString.split(" ")(0).replaceAll("-", "").replaceAll("/", "")
+          (policy_id,premium,effect_date)
+        }).filter(_._3.toDouble <= now_Date.toDouble)
+      }).toDF("policy_id", "charged_premium", "day_id")
+
+    val ods_policy_charged_month_res = ods_policy_charged_month.unionAll(ods_policy_charged_month_zero)
+
+    val end: RDD[(String, String, String)] = ods_policy_detail
+      .join(ods_policy_charged_month_res, "policy_id").filter("ent_id is not null")
+      .map(x => {
+        val ent_id = x.getAs[String]("ent_id")
+        val charged_premium = x.getAs[java.math.BigDecimal]("charged_premium").toString.toDouble
+        (ent_id, charged_premium)
+      })
+      .reduceByKey((x1, x2) => x1 + x2).map(x => (x._1, x._2 + "", "charged_premium"))
+    end.foreach(println)
+    end
+  }
+
+  //已赚保费新
+  def charged_premium_new_bak(ods_ent_guzhu_salesman:RDD[(String, String)],sqlContext:HiveContext,bro_dim: Broadcast[Array[String]], location_mysql_url: String ,prop: Properties,
+                          ods_policy_detail: DataFrame): RDD[(String, String, String)] = {
+
+
     import sqlContext.implicits._
     val numberFormat = NumberFormat.getInstance
     numberFormat.setMaximumFractionDigits(2)
@@ -749,6 +813,7 @@ trait ClaiminfoUntilTest extends Until with EnterpriseUntil {
         }).filter(_._3.toDouble <= now_Date.toDouble)
       })
       .toDF("policy_id", "charged_premium", "day_id")
+
 
     val end: RDD[(String, String, String)] = ods_policy_detail
       .join(ods_policy_charged_month, "policy_id").filter("ent_id is not null")

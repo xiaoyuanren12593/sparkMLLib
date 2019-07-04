@@ -31,8 +31,8 @@ object SimilyWords {
     sc.stop()
   }
 
-  def writeDataToLocal(data:RDD[(String, Double, Double, Double, String)]) = {
-    data.repartition(1).saveAsTextFile("C:\\Users\\xingyuan\\Desktop\\Similarity")
+  def writeDataToLocal(data: RDD[(String, String, Double, Double, Double, String)]) = {
+    data.repartition(1).saveAsTextFile("C:\\Users\\xingyuan\\Desktop\\Similarity1")
   }
   /**
     * 比较识别的保险公司和正确保险公司的相似度
@@ -40,27 +40,37 @@ object SimilyWords {
     * @param table
     * @return
     */
-  def similarityMatch(sQLContext:SQLContext,table:String): RDD[(String, Double, Double, Double, String)] ={
+  def similarityMatch(sQLContext:SQLContext,table:String): RDD[(String, String, Double, Double, Double, String)] ={
     import sQLContext.implicits._
-    val  tOcrVatinvoiceData: RDD[(String, Double, Double, Double, String)] = readMysqlTable(sQLContext,table)
-      .select("seller_name")
+
+    readMysqlTable(sQLContext,table)
+
+    val  tOcrVatinvoiceData: RDD[(String, String, Double, Double, Double, String)] = readMysqlTable(sQLContext,table)
+      .select("req_id","seller_name").where("seller_name is not null")
+
       .map(x => {
+        val req_id = x.getAs[String]("req_id")
         val seller_name = x.getAs[String]("seller_name")
-        val d = textCosine(seller_name,"中国人寿财产保险股份有限公司浙江省分公司")
-        val d1 = textCosine(seller_name,"众安在线财产保险股份有限公司")
-        val d2 = textCosine(seller_name,"中华联合财产保险股份有限公司北京分公司")
-        val dMax = getMax(d,d1,d2)
-        var resName = ""
-        if(dMax == -1.0){
-          (seller_name,d,d1,d2,"相似度有误")
-        }else if(dMax == d){
-          (seller_name,d,d1,d2,"中国人寿财产保险股份有限公司浙江省分公司")
-        }else if(dMax == d1){
-          (seller_name,d,d1,d2,"众安在线财产保险股份有限公司")
-        }else {
-          (seller_name,d,d1,d2,"中华联合财产保险股份有限公司北京分公司")
+        println(seller_name)
+        if(seller_name != null){
+          val d = textCosine(seller_name,"中国人寿财产保险股份有限公司浙江省分公司")
+          val d1 = textCosine(seller_name,"众安在线财产保险股份有限公司")
+          val d2 = textCosine(seller_name,"中华联合财产保险股份有限公司北京分公司")
+          val dMax = getMax(d,d1,d2)
+          var resName = ""
+          if(dMax == -1.0){
+            (req_id,seller_name,d,d1,d2,"相似度有误")
+          }else if(dMax == d){
+            (req_id,seller_name,d,d1,d2,"中国人寿财产保险股份有限公司浙江省分公司")
+          }else if(dMax == d1){
+            (req_id,seller_name,d,d1,d2,"众安在线财产保险股份有限公司")
+          }else {
+            (req_id,seller_name,d,d1,d2,"中华联合财产保险股份有限公司北京分公司")
+          }
+        }else{
+          (req_id,seller_name,1.0,1.0,1.0,"中华联合财产保险股份有限公司北京分公司")
         }
-      })
+      }).map(x => x).filter(x => x._2.toString != "")
     tOcrVatinvoiceData
   }
 
@@ -103,10 +113,10 @@ object SimilyWords {
     sqlContext
       .read
       .format("jdbc")
-      .option("url", properties.getProperty("mysql_test.url"))
+      .option("url", properties.getProperty("mysql.url"))
       .option("driver", properties.getProperty("mysql.driver"))
       .option("user", properties.getProperty("mysql.username"))
-      .option("password", properties.getProperty("mysql_test.password"))
+      .option("password", properties.getProperty("mysql.password"))
       .option("numPartitions","10")
       .option("partitionColumn","id")
       .option("lowerBound", "0")

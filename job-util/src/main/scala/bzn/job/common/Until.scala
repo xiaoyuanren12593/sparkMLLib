@@ -26,6 +26,19 @@ trait Until {
     sim.format(newDate)
   }
 
+  //当前日期+1天
+  def dateAddOneDay(date_time: String): String = {
+    //val date_time = "2017-06-06 03:39:09.0"
+    val sim = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+    val date = sim.parse(date_time)
+    val c = Calendar.getInstance
+    c.setTime(date)
+    c.add(Calendar.DATE, 1)
+    val newDate = c.getTime
+    sim.format(newDate)
+  }
+
+
   //将日期+8小时(24小时制)只有时间
   def eight_date_only_hour(date_time: String): String = {
     val sim = new SimpleDateFormat("HH:mm:ss")

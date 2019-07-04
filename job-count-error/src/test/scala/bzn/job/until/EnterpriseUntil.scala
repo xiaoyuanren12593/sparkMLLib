@@ -41,7 +41,7 @@ trait EnterpriseUntil {
     //定义HBase的配置
     val conf: Configuration = HBaseConfiguration.create()
     conf.set("hbase.zookeeper.property.clientPort", "2181")
-    conf.set("hbase.zookeeper.quorum", "172.16.11.106,172.16.11.104,172.16.11.105,172.16.11.103,172.16.11.102")
+    conf.set("hbase.zookeeper.quorum", "172.16.11.106")
     conf.set("mapreduce.task.timeout", "1200000")
     conf.set("hbase.client.scanner.timeout.period", "600000")
     conf.set("hbase.rpc.timeout", "600000")

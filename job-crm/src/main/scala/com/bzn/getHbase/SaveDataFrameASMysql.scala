@@ -2,6 +2,7 @@ package com.bzn.getHbase
 
 import java.io.FileInputStream
 import java.sql.{Connection, DriverManager}
+import java.text.SimpleDateFormat
 import java.util.Properties
 
 import com.bzn.util.Spark_Util
@@ -15,6 +16,8 @@ import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.hive.HiveContext
 import org.apache.spark.sql.{DataFrame, SQLContext, SaveMode}
 import org.apache.spark.{SparkConf, SparkContext}
+import org.joda.time.DateTime
+import org.joda.time.format.DateTimeFormat
 
 import scala.io.Source
 
@@ -48,7 +51,7 @@ object SaveDataFrameASMysql {
         val fieldAndKey =sys_field_name +"_"+ one_key
         (id,fieldAndKey,one_value)
       }).toDF("id","fieldAndKey","one_value").cache()
-//    crmCustomFieldsOptions.take(10).foreach(println)
+
     //读取hbase数据
     val hbaseCrmCum: RDD[(ImmutableBytesWritable, Result)] = getHbaseValue(sc)
     val getHbaseKeyValue = hbaseCrmCum.map(tuple => tuple._2).map(result => {
@@ -65,6 +68,8 @@ object SaveDataFrameASMysql {
       val masterOffice = Bytes.toString(result.getValue("baseInfo".getBytes, "masterOffice".getBytes))
       //最后所有人
       val lastMasterUserId = Bytes.toString(result.getValue("baseInfo".getBytes, "lastMasterUserId".getBytes))
+      //最近修改时间
+      val updateTime = Bytes.toString(result.getValue("baseInfo".getBytes, "updateTime".getBytes))
       //获客渠道
       val getCumChannel = "CustomField_4795_"+Bytes.toString(result.getValue("customField".getBytes, "CustomField_4795".getBytes))
       //客户规模人数
@@ -74,11 +79,11 @@ object SaveDataFrameASMysql {
       //客户来源
       val CusFrom = "CustomField_4824_"+Bytes.toString(result.getValue("customField".getBytes, "CustomField_4824".getBytes))
 
-      (key, name,businessCategoryId,createUser,master,masterOffice,lastMasterUserId,getCumChannel,CusLevelCount,CusSpecificFrom,CusFrom)
+      (key, name,businessCategoryId,createUser,master,masterOffice,lastMasterUserId,updateTime,getCumChannel,CusLevelCount,CusSpecificFrom,CusFrom)
     })
-      .toDF("key","name","businessCategoryId","createUser","master","masterOffice", "lastMasterUserId","getCumChannel","CusLevelCount","CusSpecificFrom","CusFrom")
-    //    getHbaseKeyValue.map(x=> x.toString()).take(10).foreach(println)
-    //    println(getHbaseKeyValue.count())
+      .toDF("key","name","businessCategoryId","createUser","master","masterOffice","lastMasterUserId","updateTime","getCumChannel","CusLevelCount",
+        "CusSpecificFrom","CusFrom")
+
     val getCumChannelTmp = getHbaseKeyValue.join(crmCustomFieldsOptions,getHbaseKeyValue("getCumChannel")===crmCustomFieldsOptions("fieldAndKey"),"left")
       .map(x => {
         val key = x.getAs[String]("key")
@@ -88,14 +93,14 @@ object SaveDataFrameASMysql {
         val master = x.getAs[String]("master")
         val masterOffice = x.getAs[String]("masterOffice")
         val lastMasterUserId = x.getAs[String]("lastMasterUserId")
+        val updateTime = x.getAs[String]("updateTime")
         val getCumChannel = x.getAs[String]("one_value")
         val CusLevelCount = x.getAs[String]("CusLevelCount")
         val CusSpecificFrom = x.getAs[String]("CusSpecificFrom")
         val CusFrom = x.getAs[String]("CusFrom")
-        (key, name,businessCategoryId,createUser,master,masterOffice,lastMasterUserId,getCumChannel,CusLevelCount,CusSpecificFrom,CusFrom)
+        (key, name,businessCategoryId,createUser,master,masterOffice,lastMasterUserId,updateTime,getCumChannel,CusLevelCount,CusSpecificFrom,CusFrom)
       })
-      .toDF("key", "name","businessCategoryId","createUser","master","masterOffice", "lastMasterUserId","getCumChannel","CusLevelCount","CusSpecificFrom","CusFrom")
-    //    getCumChannelTmp.map(x=> x.toString()).take(10).foreach(println)
+      .toDF("key", "name","businessCategoryId","createUser","master","masterOffice", "lastMasterUserId","updateTime","getCumChannel","CusLevelCount","CusSpecificFrom","CusFrom")
 
     val CusSpecificFromTmp = getCumChannelTmp.join(crmCustomFieldsOptions,getCumChannelTmp("CusSpecificFrom")===crmCustomFieldsOptions("fieldAndKey"),"left")
       .map(x => {
@@ -106,13 +111,14 @@ object SaveDataFrameASMysql {
         val master = x.getAs[String]("master")
         val masterOffice = x.getAs[String]("masterOffice")
         val lastMasterUserId = x.getAs[String]("lastMasterUserId")
+        val updateTime = x.getAs[String]("updateTime")
         val getCumChannel = x.getAs[String]("getCumChannel")
         val CusLevelCount = x.getAs[String]("CusLevelCount")
         val CusSpecificFrom = x.getAs[String]("one_value")
         val CusFrom = x.getAs[String]("CusFrom")
-        (key, name,businessCategoryId,createUser,master,masterOffice,lastMasterUserId,getCumChannel,CusLevelCount,CusSpecificFrom,CusFrom)
+        (key, name,businessCategoryId,createUser,master,masterOffice,lastMasterUserId,updateTime,getCumChannel,CusLevelCount,CusSpecificFrom,CusFrom)
       })
-      .toDF("key", "name","businessCategoryId","createUser","master","masterOffice", "lastMasterUserId","getCumChannel","CusLevelCount","CusSpecificFrom","CusFrom")
+      .toDF("key", "name","businessCategoryId","createUser","master","masterOffice", "lastMasterUserId","updateTime","getCumChannel","CusLevelCount","CusSpecificFrom","CusFrom")
 
     val CusFromTmp = CusSpecificFromTmp.join(crmCustomFieldsOptions,CusSpecificFromTmp("CusFrom")===crmCustomFieldsOptions("fieldAndKey"),"left")
       .map(x => {
@@ -123,15 +129,15 @@ object SaveDataFrameASMysql {
         val master = x.getAs[String]("master")
         val masterOffice = x.getAs[String]("masterOffice")
         val lastMasterUserId = x.getAs[String]("lastMasterUserId")
+        val updateTime = x.getAs[String]("updateTime")
         val getCumChannel = x.getAs[String]("getCumChannel")
         val CusLevelCount = x.getAs[String]("CusLevelCount")
         val CusSpecificFrom = x.getAs[String]("CusSpecificFrom")
         val CusFrom = x.getAs[String]("one_value")
-        (key, name,businessCategoryId,createUser,master,masterOffice,lastMasterUserId,getCumChannel,CusLevelCount,CusSpecificFrom,CusFrom)
+        (key, name,businessCategoryId,createUser,master,masterOffice,lastMasterUserId,updateTime,getCumChannel,CusLevelCount,CusSpecificFrom,CusFrom)
       })
-      .toDF("id", "name","businessCategoryId","createUser","master","masterOffice","lastMasterUserId","getCumChannel","CusLevelCount","CusSpecificFrom","CusFrom")
+      .toDF("id", "name","businessCategoryId","createUser","master","masterOffice","lastMasterUserId","updateTime","getCumChannel","CusLevelCount","CusSpecificFrom","CusFrom")
 
-    //    CusFromTmp.take(1000).foreach(println)
     //得到商机的数据
     val bussValue = getHbaseBussValue(sc)
 
@@ -149,10 +155,48 @@ object SaveDataFrameASMysql {
     })
       .toDF("key","customerId","saleProcess","entName")
     val res = CusFromTmp.join(bussValueTemp,CusFromTmp("id") === bussValueTemp("customerId"),"leftouter")
-      .select("id", "name","businessCategoryId","createUser","master","masterOffice","lastMasterUserId","getCumChannel","CusLevelCount","CusSpecificFrom","CusFrom","saleProcess","entName")
+      .select("id", "name","businessCategoryId","createUser","master","masterOffice","lastMasterUserId","updateTime","getCumChannel",
+        "CusLevelCount","CusSpecificFrom","CusFrom","saleProcess","entName")
       .distinct()
-    //写入mysql
-    saveASMysqlTable(res, "crm_field_value", SaveMode.Overwrite)
+      .cache()
+    //crm_field_value  的 name， entName， getCumChannel
+    val resAll = res.selectExpr("id", "name","businessCategoryId","createUser","master","masterOffice","lastMasterUserId","getCumChannel",
+      "CusLevelCount","CusSpecificFrom","CusFrom","saleProcess","entName")
+
+    /**
+      * "name","entName","getCumChannel"  保留唯一一条
+      */
+    val resTwo = res.selectExpr("name","entName","getCumChannel","updateTime")
+      .map(x => {
+        val name = x.getAs[String]("name")
+        val entName = x.getAs[String]("entName")
+        val getCumChannel = x.getAs[String]("getCumChannel")
+        var updateTime = x.getAs[String]("updateTime")
+        var updateTimeRes: Long = 0L
+        if(updateTime != null){
+          updateTimeRes = currentTimeL(updateTime)
+        }
+        var nameRes = ""
+        if(name == null){
+          if(entName != null){
+            nameRes = entName.trim
+          }else{
+            nameRes = null
+          }
+        }else{
+          nameRes = name.trim
+        }
+        (nameRes,(getCumChannel,updateTimeRes))
+      })
+      .reduceByKey((x1,x2)=>{
+        val res = if(x1._2>x2._2) x1 else x2
+        res
+      })
+      .map(x => (x._1,x._2._1))
+      .toDF("ent_name","cum_channel")
+
+    saveASMysqlTable(resAll, "crm_field_value", SaveMode.Overwrite)
+    saveASMysqlTable(resTwo, "crm_cum_channel", SaveMode.Overwrite)
     sc.stop()
   }
 
@@ -251,6 +295,16 @@ object SaveDataFrameASMysql {
       .option("dbtable", tableName)
       .load()
 
+  }
+
+  //将时间转换为时间戳
+  def currentTimeL(str: String): Long = {
+    val format = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss")
+
+    val insured_create_time_curr_one: DateTime = DateTime.parse(str, format)
+    val insured_create_time_curr_Long: Long = insured_create_time_curr_one.getMillis
+
+    insured_create_time_curr_Long
   }
 
   /**

@@ -160,10 +160,10 @@ object EntInsureinfoTest extends InsureinfoUntilTest {
 //    //新的当前在保人数
     val cur_insured_persons_r = read_people_product(sqlContext: HiveContext, location_mysql_url: String, prop: Properties, location_mysql_url_dwdb: String).map(x => (x._1, x._2._2 + "", "cur_insured_persons"))
     cur_insured_persons_r.take(10).foreach(println)
-////    saveToHbase(cur_insured_persons_r, columnFamily1, "cur_insured_persons", conf_fs, tableName, conf)
+    saveToHbase(cur_insured_persons_r, columnFamily1, "cur_insured_persons", conf_fs, tableName, conf)
 //
 //    //累计保费
-//    val total_premium_data = total_premium(ods_policy_detail).distinct()
+    val total_premium_data = total_premium(ods_policy_detail).distinct()
 ////    saveToHbase(total_premium_data, columnFamily1, "total_premium", conf_fs, tableName, conf)
 //    total_premium_data.take(10).foreach(println)
 //    //月均保费

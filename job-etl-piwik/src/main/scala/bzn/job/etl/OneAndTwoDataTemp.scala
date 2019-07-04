@@ -1,7 +1,7 @@
 package bzn.job.etl
 
 import java.io.File
-import java.sql.{DriverManager, Timestamp}
+import java.sql.DriverManager
 import java.util.Properties
 
 import bzn.job.common.Until
@@ -17,7 +17,7 @@ import scala.io.Source
 /**
   * Created by MK on 2018/7/5.
   */
-object OneAndTwoDataTest extends Until {
+object OneAndTwoDataTemp extends Until {
 
   //遍历某目录下所有的文件和子文件
   def subDir(dir: File): Iterator[File] = {
@@ -69,85 +69,46 @@ object OneAndTwoDataTest extends Until {
       persist(StorageLevel.MEMORY_ONLY)
 
     val plcPolicyPreserveTemp = sqlContext.read.jdbc(url, "plc_policy_preserve", prop)
-      .selectExpr("id as preserve_id_temp","add_person_count","del_person_count")
-      .cache()
-
-    /**
-      * 读取被保人计算开始时间和结束时间
-      */
-    val plcPolicyPreserveInsured = sqlContext.read.jdbc(url, "plc_policy_preserve_insured", prop)
-      .where("remark != 'obsolete' or remark is null")
-      .selectExpr("preserve_id as preserve_id_insured","join_date","left_date")
+      .selectExpr("id","start_date","end_date","add_person_count","del_person_count")
       .map(x => {
-        val preserveIdInsured = x.getAs[String]("preserve_id_insured")
-        var joinDate = x.getAs[Timestamp]("join_date")
-        var leftDate = x.getAs[Timestamp]("left_date")
-        var joinDateRes = "0"
-        if(joinDate != null){
-          joinDateRes = currentTimeL(joinDate.toString.substring(0,19)).toString
+        val id = x.getAs[String]("id")
+        var start_date = x.getAs[java.sql.Timestamp]("start_date")
+        var start_date_res = ""
+        var end_date = x.getAs[java.sql.Timestamp]("end_date")
+        var end_date_res = ""
+        var add_person_count = x.getAs[Int]("add_person_count")
+        var del_person_count = x.getAs[Int]("del_person_count")
+
+        if(add_person_count ==0 && del_person_count>0){
+          start_date_res = null
+          if(end_date != null){
+            end_date_res = dateAddOneDay(end_date.toString.substring(0, 19))
+          }else{
+            end_date_res = null
+          }
         }else{
-          if(leftDate != null){
-            joinDateRes = currentTimeL(leftDate.toString.substring(0,19)).toString
+          if(start_date != null){
+            start_date_res = start_date.toString
+            if(end_date != null){
+              end_date_res = end_date.toString
+            }else{
+              end_date_res = null
+            }
+          }else{
+            start_date_res = null
+            if(end_date != null){
+              end_date_res = end_date.toString
+            }else{
+              end_date_res = null
+            }
           }
         }
-        var leftDateRes = "0"
-        if(leftDate != null){
-          leftDateRes = currentTimeL(leftDate.toString.substring(0,19)).toString
-        }else{
-          if(joinDate != null){
-            leftDateRes = currentTimeL(joinDate.toString.substring(0,19)).toString
-          }
-        }
-        (preserveIdInsured,(joinDateRes,leftDateRes))
+        (id,start_date_res,end_date_res)
       })
-      .reduceByKey((x1,x2) => {
-        val joinDateRes = x1._1+"\u0001"+x2._1
-        val leftDateRes = x1._2+"\u0001"+x2._2
-        (joinDateRes,leftDateRes)
-      })
-      .map(x => {
-//        get_current_date
-        val joinDate: List[String] = x._2._1.split("\u0001").distinct.toList.sorted.reverse//降序
-        var joinDateRes = ""
-        if(joinDate.size > 0 && joinDate(0) !="0"){
-          joinDateRes = get_current_date(joinDate(0).toLong)
-        }else if (joinDate.size == 0){
-          joinDateRes = null
-        }else{
-          joinDateRes = null
-        }
+      .toDF("id_slave","start_date_res","end_date_res")
 
-        val leftDate: List[String] = x._2._2.split("\u0001").distinct.toList.sorted//降序
-        var leftDateRes = ""
-        if(leftDate.size > 0 && leftDate(0) !="0"){
-          leftDateRes = get_current_date(leftDate(0).toLong)
-        }else if (leftDate.size == 0){
-          leftDateRes = null
-        }else{
-          leftDateRes = null
-        }
-        (x._1,joinDateRes,leftDateRes)
-      })
-      .toDF("preserve_id_insured","joinDateRes","leftDateRes")
 
-    val plcPolicyPreserveTempRes = plcPolicyPreserveTemp.join(plcPolicyPreserveInsured,plcPolicyPreserveTemp("preserve_id_temp")===plcPolicyPreserveInsured("preserve_id_insured"),"leftouter")
-      .map(x => {
-        val preserveIdTemp = x.getAs[String]("preserve_id_temp")
-        var joinDateRes = x.getAs[String]("joinDateRes")
-        var leftDateRes = x.getAs[String]("leftDateRes")
-        val add_person_count = x.getAs[Int]("add_person_count")
-        val del_person_count = x.getAs[Int]("del_person_count")
-        if(add_person_count == 0 && del_person_count > 0){
-          joinDateRes = null
-          if(leftDateRes != null){
-            leftDateRes = dateAddOneDay(leftDateRes)
-          }
-        }
-        (preserveIdTemp,joinDateRes,leftDateRes)
-      })
-      .toDF("preserve_id_insured","joinDateRes","leftDateRes")
-
-    val plc_policy_preserve = plc_policy_preserve_one.join(plcPolicyPreserveTempRes,plc_policy_preserve_one("a_id")===plcPolicyPreserveTempRes("preserve_id_insured"),"leftouter")
+    val plc_policy_preserve = plc_policy_preserve_one.join(plcPolicyPreserveTemp,plc_policy_preserve_one("a_id")===plcPolicyPreserveTemp("id_slave"),"leftouter")
 
     sqlContext.read.jdbc(url, "plc_policy_preserve_insured", prop)
       .where("remark != 'obsolete' or remark is null")
@@ -213,8 +174,8 @@ object OneAndTwoDataTest extends Until {
       "del_batch_code",
       "del_premium",
       "del_person_count",
-      "joinDateRes as pre_start_date",
-      "leftDateRes as pre_end_date",
+      "start_date_res as pre_start_date",
+      "end_date_res as pre_end_date",
       "a_create_time as pre_create_time",
       "a_update_time as pre_update_time",
       "type as pre_type",
@@ -252,7 +213,6 @@ object OneAndTwoDataTest extends Until {
       "c_create_time as child_create_time",
       "c_update_time as child_update_time"
     ).where("insured_cert_no is not null or length(insured_cert_no) > 0")
-    end.printSchema()
     end
   }
 
@@ -403,18 +363,10 @@ object OneAndTwoDataTest extends Until {
       val a_effective_date = x.getAs[Long]("a_effective_date").toString
       val inc_revise_sum = x.getAs[Int]("inc_revise_sum")
       val dec_revise_sum = x.getAs[Int]("dec_revise_sum")
-      if(inc_revise_sum == 0 && dec_revise_sum > 0){
-        c_final_start_date = null
-        if(c_final_end_date != null){
+        if(inc_revise_sum == 0 && dec_revise_sum > 0) {
+          c_final_start_date = null
           c_final_end_date = dateAddOneDay(c_final_end_date)
         }
-      }
-      //      if(a_effective_date.compareTo("2019-05-05") > 0){
-      //        if(inc_revise_sum == 0 && dec_revise_sum > 0){
-      //          c_final_start_date = null
-      //          c_final_end_date = dateAddOneDay(c_final_end_date)
-      //        }
-      //      }
       (mk_inc,c_final_start_date,c_final_end_date,inc_revise_sum,dec_revise_sum)
     })
       .toDF("mk_inc", "c_final_start_date", "c_final_end_date","d_inc_revise_sum","d_dec_revise_sum")
@@ -496,7 +448,7 @@ object OneAndTwoDataTest extends Until {
 
     System.setProperty("HADOOP_USER_NAME", "hdfs")
     val conf_s = new SparkConf().setAppName("wuYu")
-          .setMaster("local[4]")
+    //      .setMaster("local[*]")
     //      .setMaster("hdfs://192.168.1.101:7077")
     val sc = new SparkContext(conf_s)
     val sqlContext: HiveContext = new HiveContext(sc)
@@ -532,23 +484,24 @@ object OneAndTwoDataTest extends Until {
     val big = big_before
       .join(odr_id, big_before("policy_id") === odr_id("odr_id"), "left")
       .drop("odr_id")
+      .where("insured_name is not null").where("insured_name != 'null'")
 
-//    val table_name = "ods_policy_preserve_detail"
-//    big.insertInto(s"odsdb_prd.$table_name", overwrite = true) //存入哪张表中
-//    val tep_end: RDD[String] = big.map(_.mkString("mk6"))
-//      .map(x => {
-//        val arrArray = x.split("mk6").map(x => if (x == "null" || x == null) "" else x)
-//        arrArray.mkString("mk6")
-//      })
-//    //    存入mysql
-//    //    //得到时间戳
-//    //    val timeMillions = System.currentTimeMillis()
-//    //    //HDFS需要传的路径
-//    //    val path_hdfs = s"file:///share/ods_policy_preserve_detail_xing_$timeMillions"
-//    //    //本地需要传的路径
-//    //    val path = s"/share/ods_policy_preserve_detail_xing_$timeMillions"
-//    //
-//    //    toMsql(tep_end, path_hdfs, path,table_name,hdfs_url)
-//    delete(hdfs_url, "/oozie/mysqlData/ods_policy_preserve_detail", tep_end) //删除后，输出到文件中
+    val table_name = "ods_policy_preserve_detail_xing"
+    big.insertInto(s"odsdb_prd.$table_name", overwrite = true) //存入哪张表中
+    val tep_end: RDD[String] = big.map(_.mkString("mk6"))
+      .map(x => {
+        val arrArray = x.split("mk6").map(x => if (x == "null" || x == null) "" else x)
+        arrArray.mkString("mk6")
+      })
+    //    存入mysql
+    //    //得到时间戳
+    //    val timeMillions = System.currentTimeMillis()
+    //    //HDFS需要传的路径
+    //    val path_hdfs = s"file:///share/ods_policy_preserve_detail_xing_$timeMillions"
+    //    //本地需要传的路径
+    //    val path = s"/share/ods_policy_preserve_detail_xing_$timeMillions"
+    //
+    //    toMsql(tep_end, path_hdfs, path,table_name,hdfs_url)
+    delete(hdfs_url, "/oozie/mysqlData/ods_policy_preserve_detail_xing", tep_end) //删除后，输出到文件中
   }
 }

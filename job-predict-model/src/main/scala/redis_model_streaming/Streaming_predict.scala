@@ -30,7 +30,7 @@ object Streaming_predict {
       //client提交到spark master
     val conf = new SparkConf().setAppName("MLlib_predict")
 //      .setMaster("spark://namenode2.cdh:7077")
-      .setMaster("local[2]")
+//      .setMaster("local[2]")
     val sc = new SparkContext(conf)
     val ssc: StreamingContext = new StreamingContext(sc, Seconds(1))
 
@@ -44,14 +44,14 @@ object Streaming_predict {
       //-----------kafka低级api配置-----------
       "zookeeper.connect" -> "namenode2.cdh:2181,datanode3.cdh:2181,namenode1.cdh:2181", //----------配置zookeeper-----------
       "metadata.broker.list" -> "namenode1.cdh:9092",
-      "group.id" -> "spark_MLlib_test", //设置一下group id
+      "group.id" -> "spark_MLlib", //设置一下group id
       //      "auto.offset.reset" -> kafka.api.OffsetRequest.LargestTimeString, //----------从该topic最新的位置开始读数------------
-      "client.id" -> "spark_MLlib_test",
+      "client.id" -> "spark_MLlib",
       "zookeeper.connection.timeout.ms" -> "10000"
     )
     //加载报案时效的模型："hdfs://namenode1.cdh:8020/model/risk_level"
     //                val risk_level_model = KMeansModel.load(sc, "hdfs://namenode1.cdh:8020/model/risk_level")
-    val risk_level_model = KMeansModel.load(sc, "hdfs://namenode1.cdh:8020/model/risk_level")
+    val risk_level_model = KMeansModel.load(sc, "/model/risk_level")
     val topicSet: Set[String] = Set("enter_model")
     val directKafka: InputDStream[(String, String)] = KafkaUtils.createDirectStream[String, String, StringDecoder, StringDecoder](ssc, kafkaParam, topicSet)
     val lines: DStream[(String, String)] = directKafka.map((x: (String, String)) => (x._1, x._2))
@@ -159,9 +159,8 @@ object Streaming_predict {
             redis_json_value.put("conclusion", conclusion)
             redis_json_value.put("million", System.currentTimeMillis)
             redisClient.setex(key, 600, redis_json_value.toString)
-            println(redis_json_value.toString)
-//            val res = redisClient.get(key)
-//            println("redis 保存结果"+res)
+            //            println(redis_json_value.toString)
+
           })
           redisClient.close()
         })

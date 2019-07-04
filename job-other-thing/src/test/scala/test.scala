@@ -1,12 +1,22 @@
+import scala.collection.immutable.ListMap
 import scala.collection.mutable
 import scala.collection.mutable.{ArrayBuffer, ListBuffer}
 
 object test {
   def main(args: Array[String]): Unit = {
-    println(textCosine("众安在线财产保险股份有限公司", ""))
-    println(textCosine("众安在线财产保险投粉有限公司", "众安在线财产保险股份有限公司浙江省公司"))
-    println(textCosine("众安在线财产保险投粉有限公司", "中国人寿财产保险股份有限公司浙江省分公司"))
-    println(textCosine("众安在线财产保险投粉有限公司", "中华联合财产保险股份有限公司北京分公司"))
+    println(textCosine("青岛锦峰源机械设备安装有限公司", "青岛海航机械设备有限公司"))
+    println(textCosine("青岛锦峰源机械设备安装有限公司", "青岛锦峰源机械设备安装有限公司"))
+    println(" ".length)
+    ListMap(List(("zhejiang", 0.95), ("123", 0.94), ("zee", 0.98)).toMap.toSeq.sortWith(_._2<_._2):_*).foreach(println)
+    List(("zhejiang", 0.95), ("123", 0.94), ("zee", 0.98)).toMap.toSeq.foreach(println)
+    val grades = Map("Kim" -> 90,
+         "Al" -> 85,
+       "Melissa" -> 90,
+       "Emily" -> 91,
+       "Hannah" -> 92
+    )
+    println(ListMap(grades.toSeq.sortBy(_._2): _*).last)
+
   }
   // 返回三个数中的最大值
   def getMax(a:Double, b:Double, c:Double): Double = {

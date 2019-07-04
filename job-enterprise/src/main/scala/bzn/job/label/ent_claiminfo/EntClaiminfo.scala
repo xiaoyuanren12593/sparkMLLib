@@ -287,9 +287,10 @@ object EntClaiminfo extends ClaiminfoUntil {
     //已赚保费
     val lines_source = Source.fromURL(getClass.getResource("/config_scala.properties")).getLines.toSeq
     val location_mysql_url: String = lines_source(2).toString.split("==")(1)
+    val location_mysql_dwdb_url: String = lines_source(10).toString.split("==")(1)
     val prop: Properties = new Properties
 
-    val charged_premium_r = charged_premium_new(ods_ent_guzhu_salesman_channel,sqlContext,bro_dim, location_mysql_url: String, prop: Properties, ods_policy_detail: DataFrame).distinct()
+    val charged_premium_r = charged_premium_new(ods_ent_guzhu_salesman_channel,sqlContext,bro_dim, location_mysql_url: String,location_mysql_dwdb_url:String, prop: Properties, ods_policy_detail: DataFrame).distinct()
     saveToHbase(charged_premium_r, columnFamily1, "charged_premium", conf_fs, tableName, conf)
 
 
