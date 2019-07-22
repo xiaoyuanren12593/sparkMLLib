@@ -30,11 +30,11 @@ object EntClaiminfo extends ClaiminfoUntil {
     var format = new SimpleDateFormat("yyyy/MM/dd")
     // 设置lenient为false. 否则SimpleDateFormat会比较宽松地验证日期，比如2007/02/29会被接受，并转换成2007/03/01
     try {
-      format.setLenient(false);
+      format.setLenient(false)
       format.parse(str)
     } catch {
       case e => convertSuccess = false
-    };
+    }
     convertSuccess
   }
 
@@ -173,7 +173,6 @@ object EntClaiminfo extends ClaiminfoUntil {
     //
     //    val schema = StructType(employer_liability_claims_fields.map(field => StructField(field._1, field._2, nullable = true)))
     //    val employer_liability_claims = sqlContext.createDataFrame(value, schema) //.show()
-
 
 
     val ods_policy_detail: DataFrame = sqlContext.sql("select * from odsdb_prd.ods_policy_detail")

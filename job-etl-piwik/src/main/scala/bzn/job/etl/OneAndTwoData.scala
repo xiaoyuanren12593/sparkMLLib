@@ -250,7 +250,9 @@ object OneAndTwoData extends Until {
       "change_type as child_change_type",
       "change_cause",
       "c_create_time as child_create_time",
-      "c_update_time as child_update_time"
+      "c_update_time as child_update_time",
+      "NULL as pay_status",
+      "NULL as effective_date"
     ).where("insured_cert_no is not null or length(insured_cert_no) > 0")
     end
   }
@@ -265,6 +267,7 @@ object OneAndTwoData extends Until {
       .withColumnRenamed("update_time", "a_update_time")
       .withColumnRenamed("inc_dec_order_no", "a_inc_dec_order_no")
       .withColumnRenamed("effective_date", "a_effective_date")
+      .withColumnRenamed("pay_status", "a_pay_status")
 
     val b_policy_preservation = b_policy_preservation_before
       .withColumn("mk_pol", b_policy_preservation_before("a_policy_no")) //新增mk_pol列
@@ -469,7 +472,9 @@ object OneAndTwoData extends Until {
       "NULL AS child_changeType",
       "'' AS change_cause",
       "c_create_time as child_create_time",
-      "c_update_time as child_update_time"
+      "c_update_time as child_update_time",
+      "a_pay_status as pay_status",
+      "a_effective_date as effective_date"
     )
 
     end

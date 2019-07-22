@@ -93,13 +93,13 @@ object EntBaseinfoTest extends BaseinfoUntilTest {
 //    val et = ent_type(ent_enterprise_info, d_id_certificate, ods_policy_detail_table).distinct()
 //    saveToHbase(et, columnFamily1, "ent_type", conf_fs, tableName, conf)
 //
-//    //企业的注册时间:register_time [001eb1b2458940659345dd543245b86a,2017-07-13]
-//    val rt = ent_enterprise_info
-//      .select("id", "create_time")
-//      .map(x => (x.getString(0), x.getString(1).split(" ")(0), "register_time"))
-//      .distinct()
-//    saveToHbase(rt, columnFamily1, "register_time", conf_fs, tableName, conf)
-//
+    //企业的初次投保时间:register_time [001eb1b2458940659345dd543245b86a,2017-07-13]
+    val rt = ent_enterprise_info
+      .select("id", "create_time")
+      .map(x => (x.getString(0), x.getString(1).split(" ")(0), "first_insure_time"))
+      .distinct()
+    saveToHbase(rt, columnFamily1, "first_insure_time", conf_fs, tableName, conf)
+
     //企业名称：ent_name [001eb1b2458940659345dd543245b86a,青岛中企联人力资源开发有限公司]
     val en = ent_enterprise_info
       .select("id", "ent_name")

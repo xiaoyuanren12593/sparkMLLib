@@ -116,14 +116,14 @@ object ChaBaseinfo extends ChaBaseinfoUntil {
 
     //渠道的注册时间
     val rt = channel_before
-      .map(x => (x._1, x._2.split(";").filter(_.contains("register_time")).take(1).mkString("")))
+      .map(x => (x._1, x._2.split(";").filter(_.contains("first_insure_time")).take(1).mkString("")))
       .filter(_._2.length > 1)
       .map(end => {
         val before = JSON.parseObject(end._2)
         (s"${en_before.getOrElse(end._1, "null")}", before.getString("value"), before.getString("qual"))
       })
       .filter(_._1.length > 5)
-    saveToHbase(rt, columnFamily, "register_time", conf_fs, tableName, conf)
+    saveToHbase(rt, columnFamily, "first_insure_time", conf_fs, tableName, conf)
 
     //渠道名称
     val en = channel_before

@@ -33,7 +33,7 @@ object OdsPolicyDetail  extends Until {
     val oneRes = oneOdsPolicyDetail(hiveContext)
     val twores = twoOdsPolicyDetail(hiveContext)
     val res = oneRes.unionAll(twores)
-    saveASMysqlTable(res,"ods_policy_detail_2",SaveMode.Overwrite)
+    saveASMysqlTable(res,"ods_policy_detail",SaveMode.Overwrite)
 //      .rdd.map(_.mkString("`"))
 //      .map(x => {
 //        val arrArray = x.split("`").map(x => if (x == "null" || x == null) "" else x)
@@ -169,7 +169,7 @@ object OdsPolicyDetail  extends Until {
         "sell_channel_code as channel_id","sell_channel_name as channel_name", "continued_policy_no", "insurance_name as insure_company_name",
         "insurance_name as manage_org_name","premium_price", "create_time as policy_create_time", "update_time as policy_update_time",
         "trim(holder_name) as holder_name", "premium_price as pdt_original_price","premium_price as pdt_current_price",
-        "'' as minimum_premium","'' as sku_code","'' as sku_str","premium_price as sku_price","first_insure_master_num as number_of_pople")
+        "'' as minimum_premium","'' as sku_code","'' as sku_str","premium_price as sku_price","first_insure_master_num as number_of_pople","invoice_type")
       .cache()
 
     /**
@@ -270,7 +270,7 @@ object OdsPolicyDetail  extends Until {
         "effect_date","order_date","policy_status",
         "channel_id","channel_name", "continued_policy_no",
         "insure_company_name","manage_org_name","premium_price", "policy_create_time", "policy_update_time","holder_name",
-        "pdt_original_price","pdt_current_price","minimum_premium","sku_code","sku_str","sku_price","number_of_pople")
+        "pdt_original_price","pdt_current_price","minimum_premium","sku_code","sku_str","sku_price","number_of_pople","invoice_type")
 
     /**
       * 保单表和投保人表进行关联
@@ -290,7 +290,7 @@ object OdsPolicyDetail  extends Until {
         "holder_province","holder_city","holder_district","holder_street",
         "holder_zipno","holder_company","holder_company_addr","holder_contact_name",
         "holder_contact_mobile","holder_contact_email","holder_org_code",
-        "holder_create_time","holder_update_time","number_of_pople")
+        "holder_create_time","holder_update_time","number_of_pople","invoice_type")
     /**
       * 上结果与产品表进行关联
       */
@@ -309,7 +309,7 @@ object OdsPolicyDetail  extends Until {
         "holder_province","holder_city","holder_district","holder_street",
         "holder_zipno","holder_company","holder_company_addr","holder_contact_name",
         "holder_contact_mobile","holder_contact_email","holder_org_code",
-        "holder_create_time","holder_update_time","product_id","product_name","product_short_name","product_type_code","type_name","number_of_pople")
+        "holder_create_time","holder_update_time","product_id","product_name","product_short_name","product_type_code","type_name","number_of_pople","invoice_type")
     /**
       * 上述结果与产品方案表进行关联
       */
@@ -329,7 +329,7 @@ object OdsPolicyDetail  extends Until {
         "holder_zipno","holder_company","holder_company_addr","holder_contact_name",
         "holder_contact_mobile","holder_contact_email","holder_org_code",
         "holder_create_time","holder_update_time","product_id","product_name","product_short_name","product_type_code","type_name",
-        "sku_coverage", "sku_append", "sku_ratio", "sku_charge_type","sku_price_id","number_of_pople")
+        "sku_coverage", "sku_append", "sku_ratio", "sku_charge_type","sku_price_id","number_of_pople","invoice_type")
 
     /**
       * 与被保人信息表关联
@@ -354,7 +354,7 @@ object OdsPolicyDetail  extends Until {
         "holder_relation","insurant_cert_type",
         "insurant_cert_no","insurant_province","insurant_city","insurant_company_name",
         "insurant_company_address","insurant_contact_name","insurant_contact_mobile",
-        "insurant_contact_email","insurant_create_time","insurant_update_time","number_of_pople")
+        "insurant_contact_email","insurant_create_time","insurant_update_time","number_of_pople","invoice_type")
 
     val bPolicyHolderCompanyProductNew =  bPolicyHolderCompanyProductInsured.join(entRes,bPolicyHolderCompanyProductInsured("policy_code")===entRes("policy_code_ent_map"),"leftouter")
       .selectExpr("order_id","order_code","user_id", "original_price","price",
@@ -380,7 +380,7 @@ object OdsPolicyDetail  extends Until {
         "sku_coverage", "sku_append", "sku_ratio", "sku_charge_type","sku_price_id",
         "ent_id","ent_code","ent_name","license_code","org_code","tax_code","join_social","office_address","office_province",
         "office_city","ent_contact_name","ent_contact_duty","ent_contact_email","ent_contact_mobile","ent_contact_telephone","ent_type",
-        "ent_biz_address","ent_status","tax_address","ent_telephone","ent_bank_name","ent_bank_account","number_of_pople")
+        "ent_biz_address","ent_status","tax_address","ent_telephone","ent_bank_name","ent_bank_account","number_of_pople","invoice_type","invoice_type")
 
     /**
       * 读取产品明细表,将蓝领外包以外的数据进行处理，用总保费替换初投保费
@@ -419,7 +419,7 @@ object OdsPolicyDetail  extends Until {
           "office_address","office_province",
           "office_city","ent_contact_name","ent_contact_duty","ent_contact_email","ent_contact_mobile","ent_contact_telephone","ent_type",
           "ent_biz_address","case when ent_status = '' then null else ent_status end as ent_status","tax_address","ent_telephone",
-          "ent_bank_name","ent_bank_account","number_of_pople","continued_policy_no as renewal_policy_code","'2.0' as system_source")
+          "ent_bank_name","ent_bank_account","number_of_pople","continued_policy_no as renewal_policy_code","'2.0' as system_source","invoice_type")
 
     /**
       * 读取初投保费表
@@ -457,7 +457,7 @@ object OdsPolicyDetail  extends Until {
         "office_address","office_province",
         "office_city","ent_contact_name","ent_contact_duty","ent_contact_email","ent_contact_mobile","ent_contact_telephone","ent_type",
         "ent_biz_address","ent_status","tax_address","ent_telephone",
-        "ent_bank_name","ent_bank_account","number_of_pople","renewal_policy_code","system_source")
+        "ent_bank_name","ent_bank_account","number_of_pople","renewal_policy_code","system_source","invoice_type")
     res
     //    bPolicyHolderCompanyProductNew.show()
   }
@@ -497,7 +497,7 @@ object OdsPolicyDetail  extends Until {
     val odrPolicyBznprd: DataFrame = readMysqlTable(sqlContext, "odr_policy")
       .selectExpr("id as master_policy_id", "applicant_code", "policy_code","insure_company_name", "order_id","policy_type","insure_code", "premium", "status",
         "start_date", "end_date", "effect_date","renewal_policy_code","order_date","channelId", "channel_name", "create_time as policy_create_time",
-        "update_time as policy_update_time")
+        "update_time as policy_update_time","invoice_type")
 //            odrPolicyBznprd.show()
 
     /**
@@ -630,20 +630,20 @@ object OdsPolicyDetail  extends Until {
       .selectExpr("master_order_id", "order_code", "user_id", "pay_amount_master","contact_name","contact_mobile","contact_email","original_price",
       "price","sales_name","order_create_time","order_update_time","master_policy_id", "applicant_code", "policy_code","insure_company_name",
         "order_id","policy_type","insure_code", "premium", "status","start_date", "end_date", "effect_date","renewal_policy_code","order_date","channelId",
-        "channel_name", "policy_create_time", "policy_update_time")
+        "channel_name", "policy_create_time", "policy_update_time","invoice_type")
 
     val orderPolicy = orderPolicyTemp.join(policyFirstPremiumBznprd, orderPolicyTemp("master_policy_id") === policyFirstPremiumBznprd("policy_id_premium"), "leftouter")
       .selectExpr("master_order_id", "order_code", "user_id", "case when policy_id_premium is not null then pay_amount else pay_amount_master end as pay_amount",
         "contact_name","contact_mobile","contact_email","original_price","price","sales_name","order_create_time","order_update_time","master_policy_id", "applicant_code",
         "policy_code","insure_company_name","order_id","policy_type","insure_code", "premium", "status","start_date", "end_date", "effect_date","renewal_policy_code",
-        "order_date","channelId","channel_name", "policy_create_time", "policy_update_time")
+        "order_date","channelId","channel_name", "policy_create_time", "policy_update_time","invoice_type")
 
     val orderPolicyProductTemp = orderPolicy.join(pdtProductBznprd, orderPolicy("insure_code") === pdtProductBznprd("product_code"), "leftouter")
       .selectExpr("master_order_id", "order_code", "user_id", "pay_amount",
         "contact_name","contact_mobile","contact_email","original_price","price","sales_name","order_create_time","order_update_time","master_policy_id", "applicant_code",
         "policy_code","insure_company_name","order_id","policy_type","insure_code", "premium", "status","start_date", "end_date", "effect_date","renewal_policy_code",
         "order_date","channelId","channel_name", "policy_create_time", "policy_update_time","product_id","product_name","product_short_name",
-        "manage_org_name","product_type_code","type_name","pdt_original_price","pdt_current_price")
+        "manage_org_name","product_type_code","type_name","pdt_original_price","pdt_current_price","invoice_type")
 
     val orderPolicyProduct = orderPolicyProductTemp.join(policyRes, orderPolicyProductTemp("master_policy_id") === policyRes("policy_id_sku"), "leftouter")
       .selectExpr("master_order_id", "order_code", "user_id", "pay_amount",
@@ -651,7 +651,7 @@ object OdsPolicyDetail  extends Until {
         "policy_code","insure_company_name","sku_id","policy_type","insure_code", "premium", "status","start_date", "end_date", "effect_date","renewal_policy_code",
         "order_date","channelId","channel_name", "policy_create_time", "policy_update_time","product_id","product_name","product_short_name",
         "manage_org_name","product_type_code","type_name","pdt_original_price","pdt_current_price","minimum_premium","sku_code","sku_str","sku_id", "sku_coverage",
-        "sku_append", "sku_ratio", "sku_price", "sku_price_id","sku_charge_type")
+        "sku_append", "sku_ratio", "sku_price", "sku_price_id","sku_charge_type","invoice_type")
 
 
     val orderPolicyProductHolder = orderPolicyProduct.join(odrPolicyHolderBznprd, orderPolicyProduct("master_policy_id") === odrPolicyHolderBznprd("policy_id"), "leftouter")
@@ -663,7 +663,7 @@ object OdsPolicyDetail  extends Until {
         "work_type","holder_email","holder_mobile","holder_nation", "holder_province","holder_city", "holder_district","holder_street","holder_zipno","holder_company",
         "holder_company_addr","holder_contact_name", "holder_contact_mobile","holder_contact_email","holder_org_code","holder_create_time","holder_update_time",
         "product_id","product_name","product_short_name","manage_org_name","product_type_code","type_name","pdt_original_price","pdt_current_price","minimum_premium",
-        "sku_code","sku_str","sku_id", "sku_coverage","sku_append", "sku_ratio", "sku_price","sku_price_id", "sku_charge_type")
+        "sku_code","sku_str","sku_id", "sku_coverage","sku_append", "sku_ratio", "sku_price","sku_price_id", "sku_charge_type","invoice_type")
 
     val orderPolicyProductHolderInsurant = orderPolicyProductHolder.join(odrPolicyInsurantBznprd, orderPolicyProductHolder("master_policy_id") === odrPolicyInsurantBznprd("policy_id"), "leftouter")
       .selectExpr("master_order_id", "order_code", "user_id", "pay_amount",
@@ -676,7 +676,7 @@ object OdsPolicyDetail  extends Until {
         "insurant_id","policy_id", "holder_relation", "insurant_cert_type","insurant_cert_no","insurant_province","insurant_city","insurant_company_name",
         "insurant_company_address","insurant_contact_name","insurant_contact_mobile","insurant_contact_email","insurant_create_time","insurant_update_time",
         "product_id","product_name","product_short_name","manage_org_name","product_type_code","type_name","pdt_original_price","pdt_current_price","minimum_premium",
-        "sku_code","sku_str","sku_id", "sku_coverage","sku_append", "sku_ratio", "sku_price","sku_price_id", "sku_charge_type")
+        "sku_code","sku_str","sku_id", "sku_coverage","sku_append", "sku_ratio", "sku_price","sku_price_id", "sku_charge_type","invoice_type")
 
     val orderPolicyProductHolderInsurantItemOrder = orderPolicyProductHolderInsurant.join(odrOrderItemInfoBznprd, orderPolicyProductHolderInsurant("master_order_id") === odrOrderItemInfoBznprd("order_id"), "leftouter")
       .selectExpr("master_order_id", "order_code", "user_id", "pay_amount",
@@ -690,7 +690,7 @@ object OdsPolicyDetail  extends Until {
         "insurant_company_address","insurant_contact_name","insurant_contact_mobile","insurant_contact_email","insurant_create_time","insurant_update_time",
         "product_id","product_name","product_short_name","manage_org_name","product_type_code","type_name","pdt_original_price","pdt_current_price","minimum_premium",
         "sku_code","sku_str","sku_id", "sku_coverage","sku_append", "sku_ratio", "sku_price","sku_price_id", "sku_charge_type","quantity as number_of_pople","renewal_policy_code",
-        "'1.0' as system_source")
+        "'1.0' as system_source","invoice_type")
 
     val resTemp = orderPolicyProductHolderInsurantItemOrder.join(entRes,orderPolicyProductHolderInsurantItemOrder("policy_code")===entRes("policy_code_ent_map"),"leftouter")
       .selectExpr("master_order_id as order_id", "order_code", "user_id", "pay_amount",
@@ -708,7 +708,7 @@ object OdsPolicyDetail  extends Until {
         "case when office_province is null then holder_province else office_province end as office_province",
         "case when office_city is null then holder_city else office_city end as office_city","ent_contact_name","ent_contact_duty","ent_contact_email",
         "ent_contact_mobile","ent_contact_telephone","ent_type","ent_biz_address","ent_status","tax_address","ent_telephone","ent_bank_name","ent_bank_account",
-        "number_of_pople","renewal_policy_code", "'1.0' as system_source")
+        "number_of_pople","renewal_policy_code", "'1.0' as system_source","invoice_type")
       .cache()
 
 
@@ -743,7 +743,7 @@ object OdsPolicyDetail  extends Until {
         "license_code","org_code","tax_code","case when join_social = '' then null else join_social end as join_social","office_address",
         "office_province","office_city","ent_contact_name","ent_contact_duty","ent_contact_email","ent_contact_mobile","ent_contact_telephone",
         "ent_type","ent_biz_address","case when ent_status = '' then null else ent_status end as ent_status","tax_address","ent_telephone",
-        "ent_bank_name","ent_bank_account","number_of_pople","renewal_policy_code", "'1.0' as system_source")
+        "ent_bank_name","ent_bank_account","number_of_pople","renewal_policy_code", "'1.0' as system_source","invoice_type")
 
     resEnd
   }

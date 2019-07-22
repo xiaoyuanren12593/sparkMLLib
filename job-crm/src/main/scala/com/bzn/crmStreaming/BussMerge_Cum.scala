@@ -247,7 +247,6 @@ object BussMerge_Cum extends Spark_Util {
                   }
                 }
               }
-
               //用户自定义数据
               val field = mergeData(len-1).split("\\^")
 

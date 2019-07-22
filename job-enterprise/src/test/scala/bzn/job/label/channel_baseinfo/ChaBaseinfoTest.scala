@@ -103,34 +103,34 @@ object ChaBaseinfoTest extends ChaBaseinfoUntilTest {
 
     //过滤出标签中的渠道
     val channel_before = before.filter(x => channel_ent_name.contains(x._1))
-//    ods_ent_guzhu_salesman_temp.leftOuterJoin(channel_before)
-//    channel_before.take(10).foreach(println)
-//    channel_before.filter(x => x._1 == "重庆翔耀保险咨询服务有限公司").take(10).foreach(println)
-//    //渠道类型
-//    val et = channel_before
-//      .map(x => (x._1, x._2.split(";").filter(_.contains("ent_type")).take(1).mkString("")))
-//      .filter(_._2.length > 1)
-//      .map(end => {
-//        val before = JSON.parseObject(end._2)
-//        (s"${en_before.getOrElse(end._1, "null")}", before.getString("value"), before.getString("qual"))
-//      })
-//      .filter(_._1.length > 5)
-//    println(1)
-//    et.foreach(println)
-////    saveToHbase(et, columnFamily, "ent_type", conf_fs, tableName, conf)
-//
-//    //渠道的注册时间
-//    val rt = channel_before
-//      .map(x => (x._1, x._2.split(";").filter(_.contains("register_time")).take(1).mkString("")))
-//      .filter(_._2.length > 1)
-//      .map(end => {
-//        val before = JSON.parseObject(end._2)
-//        (s"${en_before.getOrElse(end._1, "null")}", before.getString("value"), before.getString("qual"))
-//      })
-//      .filter(_._1.length > 5)
-//    println(2)
-//    rt.foreach(println)
-////    saveToHbase(rt, columnFamily, "register_time", conf_fs, tableName, conf)
+    ods_ent_guzhu_salesman_temp.leftOuterJoin(channel_before)
+    channel_before.take(10).foreach(println)
+    channel_before.filter(x => x._1 == "重庆翔耀保险咨询服务有限公司").take(10).foreach(println)
+    //渠道类型
+    val et = channel_before
+      .map(x => (x._1, x._2.split(";").filter(_.contains("ent_type")).take(1).mkString("")))
+      .filter(_._2.length > 1)
+      .map(end => {
+        val before = JSON.parseObject(end._2)
+        (s"${en_before.getOrElse(end._1, "null")}", before.getString("value"), before.getString("qual"))
+      })
+      .filter(_._1.length > 5)
+    println(1)
+    et.foreach(println)
+//    saveToHbase(et, columnFamily, "ent_type", conf_fs, tableName, conf)
+
+    //渠道的初次投保时间
+    val rt = channel_before
+      .map(x => (x._1, x._2.split(";").filter(_.contains("first_insure_time")).take(1).mkString("")))
+      .filter(_._2.length > 1)
+      .map(end => {
+        val before = JSON.parseObject(end._2)
+        (s"${en_before.getOrElse(end._1, "null")}", before.getString("value"), before.getString("qual"))
+      })
+      .filter(_._1.length > 5)
+    println(2)
+    rt.foreach(println)
+//    saveToHbase(rt, columnFamily, "first_insure_time", conf_fs, tableName, conf)
 //
     //渠道名称
     val en = channel_before
