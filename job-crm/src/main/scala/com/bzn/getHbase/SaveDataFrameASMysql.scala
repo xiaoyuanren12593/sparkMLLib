@@ -166,34 +166,36 @@ object SaveDataFrameASMysql {
     /**
       * "name","entName","getCumChannel"  保留唯一一条
       */
-    val resTwo = res.selectExpr("name","entName","getCumChannel","updateTime")
+    val resTwo = res.selectExpr("name","entName","getCumChannel","CusLevelCount","updateTime")
       .map(x => {
         val name = x.getAs[String]("name")
         val entName = x.getAs[String]("entName")
         val getCumChannel = x.getAs[String]("getCumChannel")
-        var updateTime = x.getAs[String]("updateTime")
-        var updateTimeRes: Long = 0L
+        val cusLevelCount = x.getAs[String]("CusLevelCount")
+        val updateTime = x.getAs[String]("updateTime")
+        var updateTimeRes = 0L
         if(updateTime != null){
           updateTimeRes = currentTimeL(updateTime)
         }
         var nameRes = ""
-        if(name == null){
-          if(entName != null){
-            nameRes = entName.trim
+        if(entName == null){
+          if(name != null){
+            nameRes = name.trim
           }else{
             nameRes = null
           }
         }else{
-          nameRes = name.trim
+          nameRes = entName.trim
         }
-        (nameRes,(getCumChannel,updateTimeRes))
+        println(nameRes)
+        (nameRes,(getCumChannel,cusLevelCount,updateTimeRes))
       })
       .reduceByKey((x1,x2)=>{
-        val res = if(x1._2>x2._2) x1 else x2
+        val res = if(x1._3>x2._3) x1 else x2
         res
       })
-      .map(x => (x._1,x._2._1))
-      .toDF("ent_name","cum_channel")
+      .map(x => (x._1,x._2._1,x._2._2))
+      .toDF("ent_name","cum_channel","cus_level_count")
 
     saveASMysqlTable(resAll, "crm_field_value", SaveMode.Overwrite)
     saveASMysqlTable(resTwo, "crm_cum_channel", SaveMode.Overwrite)

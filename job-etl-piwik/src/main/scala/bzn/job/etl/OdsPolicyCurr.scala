@@ -24,7 +24,7 @@ object  OdsPolicyCurr extends Until {
 
     val OdsPolicyCurr: DataFrame = odsPolicyCurr(sqlContext)
 //    保存到hive
-//    OdsPolicyCurr.write.mode(SaveMode.Overwrite).saveAsTable("odsdb_prd.ods_policy_curr_insured")
+    OdsPolicyCurr.write.mode(SaveMode.Overwrite).saveAsTable("odsdb_prd.ods_policy_curr_insured")
 //    保存到mysql
     val res: RDD[String] = OdsPolicyCurr.rdd.map(_.mkString("`"))
     val path = "/xing/data/ods_policy_curr_insured_sang"

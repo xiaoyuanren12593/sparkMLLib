@@ -91,9 +91,9 @@ object EntIdCurrPersonTest extends Until{
       .map(x => {
         val dayId = x.getAs[String]("day_id")
         val entId = x.getAs[String]("ent_id")
-        var currInsured = x.getAs[Long]("curr_insured")
+        var currInsured = x.getAs[Int]("curr_insured")
         if(currInsured == null){
-          currInsured = 0L
+          currInsured = 0
         }
         ((entId,dayId),currInsured)
       })

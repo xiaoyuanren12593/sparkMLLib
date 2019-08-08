@@ -34,6 +34,7 @@ object OdsPolicyDetailTest  extends Until {
     val oneRes = oneOdsPolicyDetail(hiveContext)
     val twores = twoOdsPolicyDetail(hiveContext)
     val res = oneRes.unionAll(twores)
+    res.printSchema()
 //    saveASMysqlTable(res,"ods_policy_detail_2",SaveMode.Overwrite)
     //      .rdd.map(_.mkString("`"))
     //      .map(x => {
@@ -570,11 +571,13 @@ object OdsPolicyDetailTest  extends Until {
           minimumPremium = minimumPremium.setScale(4, RoundingMode.HALF_UP).bigDecimal
         }
 
-        var skuCoverage = "" //保费
+        var skuCoverage = "" //保额
         var skuAppend = "" //特约
         var sku_charge_type = "" //保费类型  年缴或者月缴
         var sku_ratio = "" //伤残赔付比例
         if (termThree != null && termThree.toString.length == 5) {
+          skuCoverage = termThree.toString.substring(0, 2)
+          skuCoverage = termThree.toString.substring(0, 2)
           skuCoverage = termThree.toString.substring(0, 2)
         } else {
           if (termOne != null) {
