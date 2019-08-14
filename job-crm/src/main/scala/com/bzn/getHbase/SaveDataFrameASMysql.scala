@@ -84,6 +84,7 @@ object SaveDataFrameASMysql {
       .toDF("key","name","businessCategoryId","createUser","master","masterOffice","lastMasterUserId","updateTime","getCumChannel","CusLevelCount",
         "CusSpecificFrom","CusFrom")
 
+
     val getCumChannelTmp = getHbaseKeyValue.join(crmCustomFieldsOptions,getHbaseKeyValue("getCumChannel")===crmCustomFieldsOptions("fieldAndKey"),"left")
       .map(x => {
         val key = x.getAs[String]("key")

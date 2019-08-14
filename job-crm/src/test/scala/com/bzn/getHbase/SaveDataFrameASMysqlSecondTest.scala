@@ -79,6 +79,8 @@ object SaveDataFrameASMysqlSecondTest {
     })
       .toDF("key","name","businessCategoryId","createUser","master","masterOffice","lastMasterUserId","updateTime","getCumChannel","CusLevelCount",
         "CusSpecificFrom","CusFrom")
+
+//    getHbaseKeyValue.where ("name = '上海瑞方企业管理有限公司'").show()
 //    getHbaseKeyValue.map(x=> x.toString()).take(10).foreach(println)
 //    println(getHbaseKeyValue.count())
     val getCumChannelTmp = getHbaseKeyValue.join(crmCustomFieldsOptions,getHbaseKeyValue("getCumChannel")===crmCustomFieldsOptions("fieldAndKey"),"left")
@@ -197,7 +199,7 @@ object SaveDataFrameASMysqlSecondTest {
       .map(x => (x._1,x._2._1,x._2._2))
       .toDF("ent_name","cum_channel","cus_level_count")
     resTwo.show()
-    saveASMysqlTable(resTwo, "crm_cum_channel", SaveMode.Overwrite)
+//    saveASMysqlTable(resTwo, "crm_cum_channel", SaveMode.Overwrite)
   }
 
   //将时间转换为时间戳

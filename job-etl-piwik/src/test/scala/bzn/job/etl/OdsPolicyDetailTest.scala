@@ -33,6 +33,7 @@ object OdsPolicyDetailTest  extends Until {
 
     val oneRes = oneOdsPolicyDetail(hiveContext)
     val twores = twoOdsPolicyDetail(hiveContext)
+    twores.printSchema()
     val res = oneRes.unionAll(twores)
     res.printSchema()
 //    saveASMysqlTable(res,"ods_policy_detail_2",SaveMode.Overwrite)
@@ -429,7 +430,7 @@ object OdsPolicyDetailTest  extends Until {
     val policyFirstPremiumBznprd: DataFrame = readMysqlTable(sqlContext, "policy_first_premium")
       .selectExpr("policy_id as policy_id_premium", "pay_amount as pay_amount_premium")
 
-    val res = resEnd.join(policyFirstPremiumBznprd,resEnd("policy_id")===policyFirstPremiumBznprd("policy_id_premium"),"leftouter")
+    val resEndTemp = resEnd.join(policyFirstPremiumBznprd,resEnd("policy_id")===policyFirstPremiumBznprd("policy_id_premium"),"leftouter")
       .selectExpr("id","order_id","order_code","user_id","contact_name","contact_mobile","contact_email","original_price","price",
         "case when policy_id_premium is not null then pay_amount_premium else pay_amount end as pay_amount","sales_name","order_create_time",
         "order_update_time",
@@ -460,6 +461,45 @@ object OdsPolicyDetailTest  extends Until {
         "office_city","ent_contact_name","ent_contact_duty","ent_contact_email","ent_contact_mobile","ent_contact_telephone","ent_type",
         "ent_biz_address","ent_status","tax_address","ent_telephone",
         "ent_bank_name","ent_bank_account","number_of_pople","renewal_policy_code","system_source","invoice_type")
+
+    /**
+      * 读取渠道销售表
+      */
+    val bsChannel = readMysqlTable(sqlContext, "bs_channel")
+      .selectExpr("channel_id as channel_id_channel","sale_responsible_person_name")
+
+    val res = resEndTemp.join(bsChannel,resEndTemp("channel_id")===bsChannel("channel_id_channel"),"leftouter")
+      .selectExpr("id","order_id","order_code","user_id","contact_name","contact_mobile","contact_email","original_price","price",
+        "pay_amount","sale_responsible_person_name as sales_name","order_create_time",
+        "order_update_time",
+        "policy_id","applicant_code","policy_code","insure_company_name","sku_id",
+        "policy_type","insure_code","premium","start_date", "end_date",
+        "effect_date","order_date","policy_status",
+        "channel_id","channel_name",
+        "policy_create_time", "policy_update_time","holder_id","holder_type",
+        "holder_name",
+        "holder_gender","holder_cert_type","holder_cert_no",
+        "holder_birthday","holder_profession",
+        "holder_industry","work_type","holder_email","holder_mobile","holder_nation",
+        "holder_province","holder_city","holder_district","holder_street",
+        "holder_zipno","holder_company","holder_company_addr","holder_contact_name",
+        "holder_contact_mobile","holder_contact_email","holder_org_code",
+        "holder_create_time","holder_update_time",
+        "insurant_id",
+        "holder_relation","insurant_cert_type",
+        "insurant_cert_no","insurant_province","insurant_city","insurant_company_name",
+        "insurant_company_address","insurant_contact_name","insurant_contact_mobile",
+        "insurant_contact_email","insurant_create_time","insurant_update_time",
+        "product_id","product_name","product_short_name","manage_org_name","product_type_code","type_name",
+        "pdt_original_price","pdt_current_price","minimum_premium",
+        "sku_code","sku_str","sku_price",
+        "sku_coverage", "sku_append", "sku_charge_type", "sku_ratio","sku_price_id",
+        "ent_id","ent_code","ent_name","license_code","org_code","tax_code","join_social",
+        "office_address","office_province",
+        "office_city","ent_contact_name","ent_contact_duty","ent_contact_email","ent_contact_mobile","ent_contact_telephone","ent_type",
+        "ent_biz_address","ent_status","tax_address","ent_telephone",
+        "ent_bank_name","ent_bank_account","number_of_pople","renewal_policy_code","system_source","invoice_type")
+
     res
     //    bPolicyHolderCompanyProductNew.show()
   }
@@ -748,6 +788,7 @@ object OdsPolicyDetailTest  extends Until {
       "office_province","office_city","ent_contact_name","ent_contact_duty","ent_contact_email","ent_contact_mobile","ent_contact_telephone",
       "ent_type","ent_biz_address","case when ent_status = '' then null else ent_status end as ent_status","tax_address","ent_telephone",
       "ent_bank_name","ent_bank_account","number_of_pople","renewal_policy_code", "'1.0' as system_source","invoice_type")
+      .where("policy_code not in ('21010000889180002031','21010000889180002022','21010000889180002030')")
 
     resEnd
   }
