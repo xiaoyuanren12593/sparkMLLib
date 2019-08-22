@@ -201,6 +201,7 @@ object EntBaseinfo extends BaseinfoUntil with EnterpriseUntil {
         val channel_id = x.getAs[String]("channel_id")
         (new_channel_name, channel_id)
       })
+    sqlContext.read.jdbc(location_mysql_url, "ods_ent_guzhu_salesman", prop)
 
     BaseInfo(sqlContext,ods_ent_guzhu_salesman_temp)
     sc.stop()
